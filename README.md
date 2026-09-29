@@ -1,16 +1,79 @@
 # 개인 Claude Code 스킬 모음
 
-`~/.claude/skills/`에 두고 쓰는 **개인 제작 스킬 저장소**다. 어느 PC에서든 이 저장소를
-`~/.claude/skills`로 clone하면 Claude Code가 세션 시작 시 자동으로 인식한다.
+Claude Code에게 **평소 말투로 개발을 시키면, 일의 크기에 맞게 알아서 계획·구현·검증·리뷰까지 하도록** 만든 설정 모음이다.
+설치는 PC마다 한 번, 그 뒤로는 그냥 말하면 된다.
 
-형식은 Anthropic Agent Skills 표준(agentskills.io 스펙 + Anthropic 작성 가이드 + Claude Code 확장)을 따른다.
-버전·갱신일은 각 SKILL.md 프론트매터 `metadata`에 있다. 모델 기준은 **Opus 5.5 메인 세션**(2026-09-29 점검)이다.
+---
 
-## 한 장 요약 — 이렇게 말하면 된다
+## 1. 설치 (PC마다 처음 한 번)
 
-**Claude는 목수다. 무엇을 원하는지만 평소 말투로 말하면, 목수가 일의 크기를 보고 방법을 고른다.**
+**준비물**: Claude Code, git, Python. 아래는 Windows PowerShell 기준이다(macOS·Linux는 맨 아래 접힌 부분).
+
+**① 스킬 내려받기** — PowerShell에 붙여넣는다.
+
+```powershell
+git clone https://github.com/sangchane/claude-skills "$env:USERPROFILE\.claude\skills"
+```
+
+**② 설정 파일 두 가지 복사** — 작업 원칙(CLAUDE.md)과 도우미 에이전트 3개.
+
+```powershell
+$C = "$env:USERPROFILE\.claude"
+if (Test-Path "$C\CLAUDE.md") { Copy-Item "$C\CLAUDE.md" "$C\CLAUDE.md.bak" }
+Copy-Item "$C\skills\_tools\CLAUDE.global.md" "$C\CLAUDE.md"
+New-Item -ItemType Directory -Force "$C\agents" | Out-Null
+Copy-Item "$C\skills\_tools\agents\*.md" "$C\agents\"
+```
+
+**③ 플러그인 설치** — Claude Code를 켜고 **대화창에** 한 줄씩 입력한다.
+
+```
+/plugin marketplace add obra/superpowers-marketplace
+/plugin install superpowers@superpowers-marketplace
+/plugin marketplace add DietrichGebert/ponytail
+/plugin install ponytail@ponytail
+/plugin marketplace add https://github.com/affaan-m/ECC
+/plugin install ecc@ecc
+```
+
+superpowers는 구현 절차, ponytail은 "코드 적게 쓰기", ecc는 새 서비스 설계용 도구 상자다.
+
+**④ ecc 끄기** — ecc는 무거워서 평소엔 꺼 두고 설계할 때만 켠다. PowerShell에서:
+
+```powershell
+claude plugin disable ecc --scope user
+```
+
+**⑤ 확인** — 아래를 실행해서 "참조한 스킬 전부 설치됨 ✔"이 나오면 끝이다.
+
+```powershell
+python "$env:USERPROFILE\.claude\skills\_tools\skill_catalog.py"
+```
+
+<details>
+<summary>macOS·Linux</summary>
+
+```bash
+git clone https://github.com/sangchane/claude-skills ~/.claude/skills
+[ -f ~/.claude/CLAUDE.md ] && cp ~/.claude/CLAUDE.md ~/.claude/CLAUDE.md.bak
+cp ~/.claude/skills/_tools/CLAUDE.global.md ~/.claude/CLAUDE.md
+mkdir -p ~/.claude/agents && cp ~/.claude/skills/_tools/agents/*.md ~/.claude/agents/
+# ③ 플러그인 설치는 위와 같다 (Claude Code 대화창에서)
+claude plugin disable ecc --scope user
+python3 ~/.claude/skills/_tools/skill_catalog.py
+```
+</details>
+
+---
+
+## 2. 쓰는 법
+
+**Claude는 목수다. 원하는 걸 평소 말투로 말하면, 목수가 일의 크기를 보고 방법을 고른다.**
 작은 수리는 바로 고치고, 방 하나는 한 장짜리 도면을 그리고, 집을 새로 지을 때만 설계부터 한다.
 스킬 이름도, 모델도 몰라도 된다.
+
+**새 프로젝트를 시작할 때 한 번만**: 프로젝트 폴더에서 Claude Code를 켜고 `/catch-up`을 입력한다(작업 일지를 붙여 두는 것).
+새 서비스를 설계할 프로젝트라면 PowerShell에서 `claude plugin enable ecc --scope project`도 한 번.
 
 ### 상황별로 이렇게 말한다
 
@@ -33,16 +96,34 @@
 
 버그는 **증상 + 언제 + 기대했던 것**: "주문 목록에서 새로고침하면 방금 넣은 주문이 사라져. 남아 있어야 해."
 
-### 내가 직접 해야 하는 것 (이것뿐)
+### 가끔 내가 할 일
 
-- 새 프로젝트 폴더에서 처음 한 번 `/catch-up` — 공사 일지(NEXT.md)를 붙여 둔다. 그래야 다음 날 "다음 진행해"가 된다.
-- 새 서비스를 설계할 프로젝트에서만 `claude plugin enable ecc --scope project` — 설계 도구 상자를 연다(안 열어도 동작은 한다).
 - Claude가 `/effort high`를 권하면 그대로 입력한다. 위험한 작업 확인 질문에는 답한다.
 - 전혀 다른 일을 시작할 때는 `/clear` 또는 새 세션. 같은 문제를 두 번 고쳐도 안 되면 새 세션에서 더 구체적으로 다시 말한다.
 
 ### 안 해도 되는 것
 
 스킬 이름 외우기 · 모델 바꾸기(`/model`) · 매번 처음부터 맥락 설명하기 · 서브에이전트 쓰라고 시키기.
+
+---
+
+## 3. 최신화
+
+스킬이 바뀌었을 때(다른 PC에서 고쳤거나 GitHub에 새로 올라왔을 때):
+
+```powershell
+cd "$env:USERPROFILE\.claude\skills"
+git pull
+Copy-Item _tools\CLAUDE.global.md "$env:USERPROFILE\.claude\CLAUDE.md"
+Copy-Item _tools\agents\*.md "$env:USERPROFILE\.claude\agents\"
+```
+
+Claude Code는 새 세션부터 바뀐 내용을 쓴다. 스킬을 직접 고쳤다면 그 PC에서 `git add . ; git commit -m "무엇을 왜" ; git push`.
+두 PC에서 같은 스킬을 동시에 고치지 않는다.
+
+---
+
+# 자세한 설명 (궁금할 때만)
 
 ## 구조 — 어떻게 동작하나
 
@@ -110,7 +191,7 @@ ecc는 **평소 꺼 두고 autopilot을 돌리는 프로젝트에서만 켠다**
 
 ---
 
-## 1. service-autopilot — 기획·설계 오토파일럿
+## 스킬: service-autopilot — 기획·설계 오토파일럿
 
 **L 신규 전용. 한 줄 아이디어를 "구현 착수 가능한 설계 패키지"로 바꾼다.** AI가 스스로 조사하고, 사각지대를 찾아 덮고,
 가정으로 못 덮는 위험한 결정만 객관식 최대 5문항으로 **딱 1번** 묻는다.
@@ -141,7 +222,7 @@ ecc는 **평소 꺼 두고 autopilot을 돌리는 프로젝트에서만 켠다**
 
 ---
 
-## 2. service-prompt-workflow — 구현 워크플로우 (superpowers 위의 얇은 층)
+## 스킬: service-prompt-workflow — 구현 워크플로우 (superpowers 위의 얇은 층)
 
 **실행 절차는 superpowers가 맡고, 이 스킬은 규모에 맞게 단계를 고르고 단계마다 어떤 스킬을 붙일지만 정한다.** (0.7.0, 77줄)
 
@@ -163,7 +244,7 @@ ecc는 **평소 꺼 두고 autopilot을 돌리는 프로젝트에서만 켠다**
 
 ---
 
-## 3. frontend-design-taste — 프론트엔드 디자인 취향
+## 스킬: frontend-design-taste — 프론트엔드 디자인 취향
 
 **웹 UI에서 "AI가 만든 티(slop)"를 없애고 의도된 고급 결과를 강제하는 취향 하네스.** React·Tailwind·Zustand 특화.
 3개 dial(밀도·모션·파격)과 프로파일(관제 8 / 제품 UI 5 / 랜딩 3)을 정하고, 하드룰 위반은 반려한다.
@@ -171,7 +252,7 @@ service-prompt-workflow의 BUILD·REVIEW에 프론트가 포함되면 자동 참
 
 ---
 
-## 4. catch-up — 세션 이어받기 부트스트랩 (1회 세팅, 사용자 호출 전용)
+## 스킬: catch-up — 세션 이어받기 부트스트랩 (1회 세팅, 사용자 호출 전용)
 
 **"지난 작업 확인" 스킬이 아니다.** 프로젝트에 얇은 `CLAUDE.md`(행동규칙 + `@AGENTS.md`) · `AGENTS.md`(크로스툴 단일 원본) ·
 `NEXT.md`(다음-할일) + SessionStart 훅 · 폴더별 `CLAUDE.md` · `WORKLOG.md` 구조를 **처음 한 번** 깔아 주는 스킬이다.
@@ -185,7 +266,7 @@ service-prompt-workflow의 BUILD·REVIEW에 프론트가 포함되면 자동 참
 
 ---
 
-## 5. sk — 스킬 추천기 (사용자 호출 전용)
+## 스킬: sk — 스킬 추천기 (사용자 호출 전용)
 
 스킬 이름을 몰라도 되게 하는 얇은 스킬. 라우팅 표 2개(사람이 근거를 단 1순위 후보)를 먼저 보고,
 없으면 설치 카탈로그를 의미로 훑어 최대 3개를 이유·실행 명령과 함께 추천한다.
@@ -243,42 +324,6 @@ python _tools/skill_catalog.py --available  # 마켓플레이스에 있지만 �
 흡수 완료: `ponytail`(121k★, 2026-09-04), `superpowers`(281k★, 2026-09-07 — 구현 단계 엔진으로 배선). 후보(미설치): `skill-creator`(공식 마켓, 스킬 평가 도구).
 플러그인 사이 경계(누가 설계하고 누가 구현하나)는 `~/.claude/CLAUDE.md`에 사용자 지시로 둔다 — superpowers가 "사용자 지시 > 스킬"이라 명시하기 때문. 새 PC에서는 이 파일도 복사한다.
 Remote Control 세션에서는 `/plugin`이 막혀 있으므로 같은 PC의 터미널에서 `claude plugin marketplace add <repo>` → `claude plugin install <name>@<marketplace>`를 쓴다.
-
-## 새 PC 세팅
-
-```bash
-git clone https://github.com/sangchane/claude-skills "$HOME/.claude/skills"
-mkdir -p ~/.claude/agents && cp ~/.claude/skills/_tools/agents/*.md ~/.claude/agents/
-cp ~/.claude/skills/_tools/CLAUDE.global.md ~/.claude/CLAUDE.md   # 기존 파일은 먼저 백업
-```
-
-Windows PowerShell:
-
-```powershell
-git clone https://github.com/sangchane/claude-skills "$env:USERPROFILE\.claude\skills"
-Copy-Item "$env:USERPROFILE\.claude\skills\_tools\agents\*.md" "$env:USERPROFILE\.claude\agents\"
-Copy-Item "$env:USERPROFILE\.claude\skills\_tools\CLAUDE.global.md" "$env:USERPROFILE\.claude\CLAUDE.md"
-```
-
-프로젝트마다 한 번 `/catch-up`을 돌리면 NEXT.md 세션 훅이 깔린다(없어도 전역 CLAUDE.md가 NEXT.md를 확인하게 한다).
-플러그인은 이 저장소에 포함되지 않는다. `/plugin marketplace add` → `/plugin install`로 superpowers·ponytail·ecc를 설치한 뒤
-ecc와 claude-mem은 사용자 범위에서 끈다(이름은 `/plugin` 목록에 보이는 대로).
-
-```bash
-claude plugin disable <ecc 플러그인 이름> --scope user
-claude plugin disable <claude-mem 플러그인 이름> --scope user
-# 새 서비스 설계(autopilot)를 하는 프로젝트에서만
-claude plugin enable <ecc 플러그인 이름> --scope project
-```
-
-`python _tools/skill_catalog.py`로 라우팅 표가 가리키는 스킬이 다 있는지, 항상 로드되는 설명문이 얼마인지 확인한다.
-
-## 평소 동기화 루틴
-
-- 스킬을 **고친 PC에서**: `git add . && git commit -m "무엇을 왜" && git push`
-- **다른 PC에서** 세션 시작 전: `git pull`. `_tools/agents/`나 `CLAUDE.global.md`가 바뀌었으면 다시 복사한다.
-- 원칙: 원본은 GitHub 하나. 두 PC에서 동시에 같은 스킬을 고치지 않는다.
-- 스킬을 고치면 회귀 평가: autopilot은 `eval/PROTOCOL.md` 스모크(시드 3개), prompt-workflow는 `eval/` 대리 A/B.
 
 ## 변경 이력
 
