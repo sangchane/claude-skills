@@ -10,8 +10,8 @@ description: |
   ponytail·프론트 배선만 맡는다. 사용자가 이름을 부를 필요는 없다 — "구현해·리뷰해줘·커밋해" 문장에 자동으로 뜬다.
 argument-hint: "[요청 한 문장 또는 단계명]"
 metadata:
-  version: "0.4.1"
-  updated: "2026-09-08"
+  version: "0.5.0"
+  updated: "2026-09-29"
 ---
 
 # Service Prompt Workflow (서비스 프롬프트 워크플로우)
@@ -89,7 +89,8 @@ SEED→RECON→INTERROGATE→PRD→ARCHITECT       Frame→Explore→Spec→Plan
 
 1. 라우터로 진입 단계를 정한다. 필요하면 사용자에게 **한 번에 하나** 확인한다.
 2. `references/skill-routing.md`에서 그 단계의 행을 읽어 설치된 스킬을 호출한다(없으면 대체 열). 사용 기록은 decision-log 한 줄.
-   서브에이전트에 위임하는 작업은 `references/model-routing.md`의 작업 클래스로 `model`을 고른다
+   기본은 메인 세션에서 직접 한다. 위임 여부와 상한은 `references/model-routing.md` "위임 여부" 절로 정하고,
+   위임하는 작업은 같은 파일의 작업 클래스로 `model`을 고른다
    (PLAN에서 tasks.md에 `model:` 태그 → BUILD 위임 시 그대로, REVIEW 정확성은 `opus` fresh). 기록 줄에 모델을 병기한다.
 3. 1순위 스킬이 없을 때만 해당 단계의 프롬프트 블록을 `references/prompt-templates.md`에서 가져와 빈칸(`{{...}}`)을 채운다
    (superpowers 설치 시 4)~8) 블록은 대체용이다).

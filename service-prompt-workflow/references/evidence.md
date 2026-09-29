@@ -51,6 +51,19 @@ Anthropic 번들 `claude-api` 스킬의 prompt-audit 기준("모델이 이미 �
 - 반영 안 함(하네스가 이미 적용): 진행 상황 알림, 독립 도구 호출 묶음, 승인 작업 끝까지(autonomy), 대화 기록 추가 전용 — Claude Code 시스템 프롬프트가 같은 문장을 넣는다. 스킬에 다시 쓰면 중복.
 - 보류(autopilot 실행 중이라 나중에): 긴 산출물은 effort high(`effort:` 프론트매터), 검토관·서브에이전트 effort 표, 진척 주장은 도구 결과로 대조.
 
+## Anthropic Opus 5.5 공식 지침 반영 (2026-09-29)
+
+출처: platform.claude.com "Prompting Claude Opus 5.5", "Prompting Claude Opus 5", "Migrating to Claude Opus 5.5", "Effort",
+Claude Code prompt-caching·sub-agents 문서 (모두 2026-09-29 확인).
+- 반영: 위임 기본값을 메인으로, 위임 조건·상한(동시 3, 요청당 5) 명시, VERIFY·소규모 기계적 작업 위임 제거,
+  BUILD 1순위를 `executing-plans`로, EXPLORE 1순위를 직접 Read/Grep으로. 근거 문장: "delegates to subagents more readily …
+  it multiplies cost and time when applied to small tasks … give explicit guidance on which scenarios warrant delegation,
+  or set deterministic caps" (Prompting Claude Opus 5).
+- 반영: 서브에이전트 effort는 정의 파일 `effort:`로 준다(이전 문장 "effort를 따로 못 준다"는 틀림 — sub-agents 문서에 `effort` 필드가 있다).
+- 사실 갱신: Opus 5.5 기본 effort medium(Opus 5는 high), medium ≥ Opus 5 high, xhigh·max는 측정된 이득이 있을 때만,
+  effort 변경은 Opus 5.5·Fable 5.1에서 캐시 유지.
+- 회귀 미실행: 이 변경은 `eval/` 대리 A/B를 돌리지 않았다. 다음 구현 작업에서 서브에이전트 수·토큰을 이전 기록과 비교한다.
+
 ## 주의(변동 사항)
 
 - Anthropic의 고전 "프리필(assistant 턴 미리 채우기)" 기법은 **Claude 4.6+에서 미지원**.

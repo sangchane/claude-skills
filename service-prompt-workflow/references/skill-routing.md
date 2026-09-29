@@ -18,10 +18,10 @@
 |---|---|---|---|
 | 0 BASE | `catch-up` (얇은 CLAUDE.md + AGENTS.md + NEXT 구조, 사용자 호출 전용) · 낯선 저장소면 `ecc:codebase-onboarding` | 템플릿 0) | 항상-로드 층을 얇게 |
 | 1 FRAME | 저장소 안 bounded 변경·spike면 `superpowers:brainstorming` (질문 1개씩, 승인 게이트) · 새 서비스면 `service-autopilot` (brainstorming 생략) | `ecc:product-lens` | 성공기준·범위경계 |
-| 2 EXPLORE | Explore 서브에이전트(내장) · `ecc:search-first` (기존 도구·패턴 우선) | 직접 Read/Grep | 수정 없는 탐색, file:line 인용 |
+| 2 EXPLORE | 직접 Read/Grep · `ecc:search-first` (기존 도구·패턴 우선) | 여러 모듈을 넓게 훑어야 할 때만 Explore 서브에이전트(내장) | 수정 없는 탐색, file:line 인용 |
 | 3 SPEC | `ecc:product-capability` · API면 `ecc:api-design` | 템플릿 3) | 제약·불변식·인터페이스 명시 |
 | 4 PLAN | `superpowers:writing-plans` (2~5분 작업, 파일 경로·인터페이스·실패테스트→구현→커밋 사이클, 자리표시자 금지) · 다세션이면 `ecc:blueprint` | 템플릿 4) · `ecc:prp-plan` | 낯선 구현자가 그대로 실행 가능한 계획. **순서는 위험 우선 + 워킹 스켈레톤 먼저** (아래 경계 절) |
-| 5 BUILD | `superpowers:subagent-driven-development` (작업마다 새 서브에이전트 + 2단계 리뷰) 또는 `superpowers:executing-plans` (같은 세션, 배치 체크포인트) + `ponytail:ponytail` 사다리 · 스택 패턴 1개 — `ecc:python-patterns` `ecc:golang-patterns` `ecc:rust-patterns` `ecc:kotlin-patterns` `ecc:dotnet-patterns` `ecc:frontend-patterns` `ecc:backend-patterns` `ecc:springboot-patterns` `ecc:django-patterns` `ecc:nestjs-patterns` `ecc:laravel-patterns` `ecc:swiftui-patterns` `ecc:dart-flutter-patterns` 중 해당 | 템플릿 5) `<ladder>` | 안 써도 되는 코드를 안 쓰게. 스택 관례 |
+| 5 BUILD | `superpowers:executing-plans` (같은 세션, 배치 체크포인트) + `ponytail:ponytail` 사다리. `superpowers:subagent-driven-development`(작업마다 구현 서브에이전트 + 2단계 리뷰 = 3개)는 작업이 크고 서로 독립이며 한 세션 컨텍스트에 안 들어갈 때만, 요청당 작업 1개씩(상한 5 안) · 스택 패턴 1개 — `ecc:python-patterns` `ecc:golang-patterns` `ecc:rust-patterns` `ecc:kotlin-patterns` `ecc:dotnet-patterns` `ecc:frontend-patterns` `ecc:backend-patterns` `ecc:springboot-patterns` `ecc:django-patterns` `ecc:nestjs-patterns` `ecc:laravel-patterns` `ecc:swiftui-patterns` `ecc:dart-flutter-patterns` 중 해당 | 템플릿 5) `<ladder>` | 안 써도 되는 코드를 안 쓰게. 스택 관례 |
 | 5 BUILD 테스트 | `superpowers:test-driven-development` (RED→GREEN→REFACTOR) + 언어별 `ecc:python-testing` `ecc:golang-testing` `ecc:rust-testing` `ecc:kotlin-testing` `ecc:csharp-testing` `ecc:cpp-testing` | `ecc:tdd-workflow` · 템플릿 5) | 실패 테스트 먼저. 커버리지는 SPEC 리스크 기반 |
 | 5 BUILD 프론트 | `frontend-design-taste` | `anti-patterns.md` | AI 티 제거 |
 | 6 VERIFY | `superpowers:verification-before-completion` (완료 선언 전 실제 실행) · `/verify` (빌드·실행으로 확인) · UI면 `ecc:browser-qa` | `ecc:verification-loop` · `/run` · 템플릿 6) | 실행 증거(로그·종료코드·스크린샷) |
@@ -31,7 +31,7 @@
 | 7 고위험 | `ecc:security-review` (인증·입력·시크릿·결제) · 돈·안전·법이면 `ecc:santa-method` | — | 독립 리뷰어 2명 |
 | 8 SHIP | `superpowers:finishing-a-development-branch` (머지·PR 결정) · `ecc:git-workflow` · 배포 있으면 `ecc:deployment-patterns` · 배포 후 `ecc:canary-watch` | `ecc:prp-pr` · 템플릿 8) | 증분 커밋·한글 메시지 |
 | 9 REFLECT | `ecc:architecture-decision-records` · `ecc:continuous-learning` (세션 패턴 → learned 스킬) · `catch-up` (NEXT/WORKLOG 갱신) | 템플릿 9) | 다음 세션이 재사용 |
-| 병렬·격리 | 독립 작업 2개 이상이면 `superpowers:dispatching-parallel-agents` · 실험적 변경은 `superpowers:using-git-worktrees` | 순차 실행 | 공유 상태 없는 작업만 병렬 |
+| 병렬·격리 | 각각 크고 공유 상태 없는 작업이 3개 이상이면 `superpowers:dispatching-parallel-agents` (상한은 `model-routing.md` "위임 여부") · 실험적 변경은 `superpowers:using-git-worktrees` | 순차 실행 | 공유 상태 없는 작업만 병렬 |
 
 ## superpowers 경계 (설치 시)
 
@@ -72,6 +72,10 @@ superpowers는 SessionStart 훅으로 `superpowers:using-superpowers`를 매 세
   사소한 한 줄은 테스트 없음 (양쪽 동의).
 - **리뷰 횟수**: ecc 언어별 리뷰어의 "MUST BE USED" + `/code-review` + `ponytail:ponytail-review` = 변경당 3회.
   → 정확성 1회 (`/code-review` 또는 언어별 리뷰어 중 하나) + 복잡도 1회 (`ponytail:ponytail-review`). santa-method는 고위험만.
+- **서브에이전트 과다**: `subagent-driven-development`는 작업 1개에 구현 1 + 리뷰 2 서브에이전트를 띄워, 작업 10개면 30개가 된다.
+  여기에 `using-superpowers`의 "1%라도 해당되면 스킬"과 ecc 리뷰어의 "MUST BE USED"가 겹치면 위임이 불어난다.
+  → BUILD 기본은 `executing-plans`(같은 세션), 리뷰는 기능 단위로 REVIEW에서 1회. 상한은 `model-routing.md` "위임 여부".
+  리뷰어 서브에이전트를 띄우는 스킬(`requesting-code-review`, `/code-review`, 언어별 리뷰어)은 정확성 리뷰 1회 안에서 하나만.
 - **질문 방식**: ponytail "기본값으로 진행하고 같은 응답에서 묻는다" vs ETHOS 1 "방향 전환은 한 번에 하나".
   → 범위 안의 구현 결정은 ponytail 방식, **범위·방향 변경은 ETHOS 1**.
 - **서브에이전트 주입**: ponytail 훅은 모든 서브에이전트에 사다리를 넣는다. REVIEW·GATE 판정자가 "짧은 쪽 선호" 편향을

@@ -105,7 +105,7 @@ tasks.md 작성:
 - 순서(의존성)를 명시하고, 서로 독립인 작업은 [P](병렬 가능)로 표기.
 - 각 작업에 "검증 가능한 완료 기준"을 붙인다.
 - 테스트 우선: 각 기능 작업 앞에 "실패하는 테스트 작성" 작업을 둔다.
-- 각 작업에 `model: opus|sonnet|haiku` 태그를 붙인다 (분류: references/model-routing.md —
+- 각 작업에 위임할 때 쓸 `model: opus|sonnet|haiku` 태그를 붙인다. 위임 여부는 따로 정하고 기본은 메인 (분류: references/model-routing.md —
   불변식·동시성·인증·마이그레이션=opus / CRUD·화면·RED 테스트·설정=sonnet / 리네임·문구·포맷=haiku).
   service-autopilot 08의 <model_hints>가 있으면 그 값을 초기값으로 쓴다.
 </make_tasks_md>
@@ -136,7 +136,7 @@ tasks.md 작성:
   이 저장소가 그런 변경에 테스트를 두는 곳에만 커밋한다. 검증용 스크래치 스크립트는 커밋하지 않는다.
 - 라이브러리 import 전 package.json/의존성에 실제 존재하는지 확인한다.
 - 오류는 억누르지 말고 근본 원인을 고쳐라.
-- 이 작업을 서브에이전트에 위임하면 tasks.md의 `model:` 태그를 Agent `model`에 그대로 준다.
+- 몇 번의 도구 호출로 끝나는 작업은 위임하지 않는다. 위임하면 tasks.md의 `model:` 태그를 Agent `model`에 그대로 준다.
   VERIFY에서 2회 실패하면 한 등급 올려 재시도, 그래도 실패면 모델이 아니라 명세 문제 — SPEC으로 되돌아간다.
 </how>
 <examples>{{입출력/엣지케이스 예시 3~5개 — 있으면}}</examples>

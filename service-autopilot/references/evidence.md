@@ -101,6 +101,13 @@
 - 2026-09-09 추가 반영(Anthropic Fable 5.1 가이드): SKILL·fresh-reviewer `effort: high`(긴 산출물은 xhigh보다 high), model-routing effort 규칙,
   GATE 검토관에 "수량 주장은 확인한 것만". 실측 사실: 서브에이전트 컨텍스트 상한 20만 토큰(재개 시 58만 토큰 대화가 압축됨), 한도 리셋 명령은 이 계정에서 대상 아님.
 
+## 2026-09-29 모델 세대 갱신 (Opus 5.5)
+
+- 등급표: `opus` = `claude-opus-5-5`(4/20), `fable` 가격 10/50 확인, 기본 effort 열 추가 (Anthropic 가격·effort 문서, Claude Code model-config).
+- 정정: "서브에이전트는 effort를 따로 못 준다"는 틀림 — sub-agents 문서의 `effort` 필드로 준다(규칙 5와 7의 모순 해소). 규칙 번호 중복 정리.
+- 캐시: effort 변경은 Opus 5.5·Fable 5.1에서 캐시 유지 (Claude Code prompt-caching).
+- 규칙·라우팅 자체는 바꾸지 않았다. 스모크 회귀 불필요(사실 갱신만).
+
 ## 이 파일의 용도
 
 스킬 규칙·템플릿을 바꾸려면: ① 바꿀 항목의 출처를 여기서 확인 ② 새 근거(수렴 출처)를 확보
