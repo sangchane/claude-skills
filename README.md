@@ -27,6 +27,7 @@ A0~A7 + GATE                 0 BASE ~ 9 REFLECT               BUILD·REVIEW에�
 
 [세션 부트스트랩]  catch-up — 얇은 CLAUDE.md/AGENTS.md/NEXT.md 구조를 1회 세팅 (사용자 호출 전용)
 [스킬 추천]        sk — "/sk 문구" 로 맞는 스킬 최대 3개 추천
+[추론 강도]        opus-effort-router — Opus 고정, 난이도별 effort 판정 + effort 고정 서브에이전트 위임
 [정비 도구]        _tools/skill_catalog.py — 설치 스킬 카탈로그 + 라우팅 표 정합성 검사
 ```
 
@@ -134,6 +135,20 @@ service-prompt-workflow의 BUILD·REVIEW에 프론트가 포함되면 자동 참
 ## 6. solution-planner — ⚠ 폐기됨 (2026-07-09)
 
 service-autopilot으로 대체됐다. 과거 산출물(`solution-planning/` 디렉토리) 해석용으로만 남겨둔다.
+
+---
+
+## 7. opus-effort-router — Opus 고정 effort 라우터
+
+**모델은 Opus로 고정하고, 요청 난이도에 맞춰 effort(low~max)만 고른다.** 모델 전환은 캐시를 깨지만
+Opus 5.5에서는 effort를 바꿔도 캐시가 유지된다는 공식 문서 내용을 근거로 한다.
+
+- **판정**: 응답 첫 줄에 `effort: high — 여러 파일 수정`처럼 한 줄로 알린다. 애매하면 한 단계 높게.
+- **위임**: xhigh·max 추론은 `opus-deep`(effort max), 반복·대량 작업은 `opus-quick`(effort low) 서브에이전트로.
+  서브에이전트는 별도 컨텍스트라 메인 캐시에 영향이 없다.
+- **준비**: `_tools/agents/opus-deep.md`, `opus-quick.md`를 `~/.claude/agents/`에 복사(PC당 1회).
+- **항상 적용하려면**: `~/.claude/CLAUDE.md`에 "작업 시작 전 opus-effort-router로 effort를 판정한다" 한 줄.
+- Claude는 세션 effort를 직접 못 바꾼다. 세션 전체를 올려야 하면 `/effort <level>`을 안내만 한다.
 
 ---
 
