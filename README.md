@@ -245,7 +245,7 @@ claude plugin enable <ecc 플러그인 이름> --scope project
 ## 변경 이력
 
 **2026-09-29 — 플러그인 정리.** 실측(항상 로드 설명문 약 1만 9천 토큰, 대부분 ecc) 기준으로 ecc는 평소 끄고 autopilot 프로젝트에서만 켜기,
-claude-mem 끄기. 구현 워크플로우 라우팅에서 ecc 49개 참조를 빼고 superpowers·ponytail·번들 명령만 남겼다(santa-method → `/security-review` + 다른 등급 fresh-reviewer).
+claude-mem 끄기 → **항상 로드 설명문 약 1만 9,013 토큰 → 2,614 토큰(약 86% 감소, 사용자 PC `skill_catalog.py` 실측)**. 구현 워크플로우 라우팅에서 ecc 49개 참조를 빼고 superpowers·ponytail·번들 명령만 남겼다(santa-method → `/security-review` + 다른 등급 fresh-reviewer).
 autopilot은 ecc가 꺼져 있으면 켜라고 한 줄 안내하고, 안 켜면 대체 절차로 진행.
 
 **2026-09-29 — 중복 정리.** 전역 CLAUDE.md의 Karpathy 4절을 Opus 5.5판 작업 원칙 6줄로 바꿔 `CLAUDE.global.md` 하나로 합쳤다
