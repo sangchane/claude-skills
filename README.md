@@ -182,13 +182,13 @@ Remote Control 세션에서는 `/plugin`이 막혀 있으므로 같은 PC의 터
 ## 다른 PC에서 쓰는 법
 
 ```bash
-git clone https://github.com/kimsangchan/claude-skills "$HOME/.claude/skills"
+git clone https://github.com/sangchane/claude-skills "$HOME/.claude/skills"
 ```
 
 Windows PowerShell:
 
 ```powershell
-git clone https://github.com/kimsangchan/claude-skills "$env:USERPROFILE\.claude\skills"
+git clone https://github.com/sangchane/claude-skills "$env:USERPROFILE\.claude\skills"
 ```
 
 플러그인(ecc·ponytail)은 이 저장소에 포함되지 않는다. 새 PC에서는 `/plugin marketplace add` → `/plugin install`로 따로 설치하고
