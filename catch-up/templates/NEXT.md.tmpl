@@ -1,12 +1,15 @@
 <!-- NEXT-ACTION:START -->
 ## ▶ 지금 할 일 (새 세션은 이 블록부터 — SessionStart 훅이 자동 주입)
 
-- **[진행중]** {{무엇을 · 다음 한 걸음 · 앵커(파일:줄 / 계획 문서 / 커밋 해시)}}
+- 등급: {{S|M|L}} · 스킬: {{service-autopilot | service-prompt-workflow | 없음}} · 단계: {{예: A4 ARCHITECT, 5 BUILD FR-003}}
+- 다음: {{다음 한 걸음 1~3줄}}
+- 산출물: {{경로 — autopilot/<slug>/, SPEC.md, tasks.md}}
 <!-- NEXT-ACTION:END -->
 
 <!--
 규칙:
-- 이 마커 사이는 "지금/다음 할 일" 1~3건만. 짧게(화면 한 판).
+- 이 마커 사이는 "지금/다음 할 일" 1~3건만. 짧게(화면 한 판). service-autopilot·service-prompt-workflow가 단계마다 덮어쓴다.
+- "다음 진행해"·"이어서"는 이 블록의 등급·스킬·단계에서 이어간다(~/.claude/CLAUDE.md "이어가기").
 - 완료된 항목은 여기 두지 말고 WORKLOG.md 의 ## History 로 옮긴다 (단일 출처·비대 방지).
 - 훅(print_next_action.py)은 이 마커 사이만 세션에 주입한다.
 -->

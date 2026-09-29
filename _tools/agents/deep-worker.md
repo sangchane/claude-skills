@@ -1,6 +1,6 @@
 ---
 name: deep-worker
-description: 판단 집약(불변식·동시성·인증·마이그레이션·설계 판단)이나 원인 불명 문제의 장기 조사를 높은 effort로 처리한다. model-effort-router가 호출하며, 호출 시 model로 opus 또는 fable을 준다.
+description: 판단 집약(불변식·동시성·인증·마이그레이션·설계 판단)이나 원인 불명 문제의 장기 조사를 높은 effort로 처리한다. 위임할 때(전역 CLAUDE.md "모델·effort·위임") 부르며, 호출 시 model로 opus 또는 fable을 준다.
 effort: high
 ---
 

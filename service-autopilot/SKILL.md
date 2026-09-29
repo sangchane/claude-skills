@@ -1,18 +1,19 @@
 ---
 name: service-autopilot
 description: |
-  서비스 기획·설계 오토파일럿 — 한 줄 아이디어를 구현 착수 가능한 설계 패키지(PRD·아키텍처+위협모델·
+  L 등급 전용 기획·설계 오토파일럿 — 한 줄 아이디어를 구현 착수 가능한 설계 패키지(PRD·아키텍처+위협모델·
   API계약/ERD·테스트설계·IaC/관측성)로 바꾸는 8단계 파이프라인.
   사용 시점: 신규 서비스/솔루션/기능 기획(신규 기획, 서비스 기획, 초기 기획, PRD, 기획서), 기술스택
   추천, MVP 범위, 도메인을 모르는 상태의 착수("IoT 카메라 서비스 만들고 싶어" 같은 한 줄 아이디어),
   위협모델·API 설계·배포/모니터링 설계가 필요할 때. 도메인 조사→블라인드스팟 심문(객관식 최대 5문항
   1회)→설계 산출물 생성을 사용자 개입 최소로 자동 진행한다. 구현 실행은 service-prompt-workflow가
-  이어받는다 (이 스킬의 산출물이 그쪽 SPEC 입력).
+  이어받는다 (이 스킬의 산출물이 그쪽 SPEC 입력). 기능 하나·미니 프로젝트·게임 프로토타입(S·M)에는 쓰지 않는다 —
+  그건 service-prompt-workflow가 바로 맡는다.
 argument-hint: "[spike|lite|full] [한 줄 아이디어]"
 effort: high
 metadata:
-  version: "1.4.3"
-  updated: "2026-09-09"
+  version: "1.5.0"
+  updated: "2026-09-29"
 ---
 
 # Service Autopilot (서비스 기획·설계 오토파일럿)
@@ -20,6 +21,9 @@ metadata:
 한 줄 아이디어 → **구현 착수 가능한 설계 패키지**. 사용자가 빈칸을 채우는 게 아니라
 **AI가 조사하고, 사각지대를 스스로 찾아 덮고, 가정으로 못 덮는 위험 결정만 객관식으로 1회 묻는다.**
 
+- 대상: L 신규(새 서비스, 모르는 도메인, 되돌리기 어려운 설계 결정). 등급 기준은 `~/.claude/CLAUDE.md` "규모 판정".
+  기능 하나·미니 프로젝트는 service-prompt-workflow의 S·M 경로로, 기존 저장소의 결제·인증 변경과 버그는 그 스킬의 L 변경·디버깅 경로로
+  바로 간다 — 설계 문서 9개가 구현보다 비싸다.
 - 이전 버전: `solution-planner` (2026-09-29 저장소에서 삭제, git 기록에 남음)
 - 후속: 산출물을 `service-prompt-workflow`의 SPEC 단계에 입력하여 구현 실행
 - 근거: 모든 단계 구조·질문 프로토콜은 검증된 프레임워크(spec-kit, MetaGPT, BMAD)와 실무 표준
@@ -137,8 +141,10 @@ lite의 바닥은 스킬 본문 읽기와 도구 호출 횟수다 (문서 분량
    full 한 바퀴는 중간 압축을 거친다 — 파일과 NEXT.md가 진실원이고, 기억은 아니다.
 4. **비용 기록.** 런이 끝나면 decision-log 말미에 `강도 · 검색 횟수 · 서브에이전트 수 · 소요 시간`(알면 토큰도)을 적는다.
    다음 강도 판정의 근거가 된다.
-5. **단계마다 `NEXT.md` 갱신.** 각 단계를 마칠 때 `autopilot/<slug>/NEXT.md`에 현재 상태 1줄 · 다음 할 일 3줄 · 재개 명령 1줄을 덮어쓴다.
-   세션이 끊기면 이 파일이 재개 포인터다(실행 절차 3). 08이 없어도 다른 세션이 이어받을 수 있어야 한다.
+5. **단계마다 루트 `NEXT.md` 갱신.** 각 단계를 마칠 때 프로젝트 루트 `NEXT.md`의 `NEXT-ACTION` 블록(없으면 만든다)을
+   `L · service-autopilot · <단계> · 다음 할 일 1~3줄 · 산출물 autopilot/<slug>/`로 덮어쓴다. GATE를 마치면 다음 할 일을
+   "service-prompt-workflow L 경로로 구현 착수(08 핸드오프)"로 적는다. 세션이 끊기거나 다음 날 "다음 진행해"라고만 해도
+   이 블록이 재개 포인터다(실행 절차 3). 세션 시작 훅(catch-up)이 이 블록을 자동 주입한다.
 6. 최종 보고는 (0) **해석 목록**(A0에서 내가 정한 것 — "아니면 지금 고치세요"), (a) 판정, (b) 핵심 결정 5줄 요약,
    (c) 질문에서 가정으로 채택된 항목 목록, (d) service-prompt-workflow로 넘어가는 복붙 프롬프트로 구성한다.
 
@@ -151,12 +157,13 @@ autopilot/<service-slug>/
 ├─ 02-blindspot-register.md  ├─ 06-test-design.md
 ├─ 03-prd.md             ├─ 07-ops-design.md
 ├─ 08-readiness-report.md    ├─ decision-log.md
-└─ NEXT.md (단계마다 갱신)    └─ REVISIONS.md (대규모 개정 시)
+└─ REVISIONS.md (대규모 개정 시)
+(재개 포인터는 프로젝트 루트 NEXT.md — 실행 절차 5)
 ```
 
 ### 핸드오프 (구현으로)
 
-GATE 통과 후 사용자가 08의 핸드오프 프롬프트를 붙여 넣는 것이 **설계 승인**이다 (superpowers brainstorming의 승인 게이트와
+GATE 통과 후 사용자가 08의 핸드오프 프롬프트를 붙여 넣거나, 루트 NEXT.md의 "GATE 완료" 블록을 보고 "다음 진행해"라고 하는 것이 **설계 승인**이다 (superpowers brainstorming의 승인 게이트와
 같은 역할 — 그 뒤 brainstorming을 다시 하지 않는다). service-prompt-workflow SPEC의 입력은 `03-prd.md`(요구사항·상수 표) +
 `05-api-contract.md`(계약) + `08`의 착수 조건·첫 작업 3개(워킹 스켈레톤)만이다. `04·06·07`은 경로만 넘기고 필요할 때 읽는다
 (핸드오프 130KB → 입력 40KB 목표). UI가 포함되면 BUILD·REVIEW에서 `frontend-design-taste` 스킬을 함께 적용한다.

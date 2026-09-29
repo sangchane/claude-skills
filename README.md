@@ -3,59 +3,77 @@
 `~/.claude/skills/`에 두고 쓰는 **개인 제작 스킬 저장소**다. 어느 PC에서든 이 저장소를
 `~/.claude/skills`로 clone하면 Claude Code가 세션 시작 시 자동으로 인식한다.
 
-스킬 이름을 몰라도 된다 — 각 스킬의 `description`을 보고 Claude가 상황에 맞게 자동 적용한다.
-직접 부르고 싶으면 `/스킬이름 인자` 형태로 호출하고, **뭘 불러야 할지 모르면 `/sk <하고 싶은 것>`** 으로 물어본다.
-
 형식은 Anthropic Agent Skills 표준(agentskills.io 스펙 + Anthropic 작성 가이드 + Claude Code 확장)을 따른다.
 버전·갱신일은 각 SKILL.md 프론트매터 `metadata`에 있다. 모델 기준은 **Opus 5.5 메인 세션**(2026-09-29 점검)이다.
 
+## 쓰는 법 — 그냥 말하면 된다
+
+스킬 이름을 부를 필요가 없다. 역할은 세 층으로 나뉜다.
+
+| 층 | 무엇 | 하는 일 |
+|---|---|---|
+| **전역 CLAUDE.md** (항상 로드) | `_tools/CLAUDE.global.md`를 `~/.claude/CLAUDE.md`에 넣는다 | 요청마다 규모를 S·M·L로 판정하고 맞는 스킬로 보낸다. 모델·effort·위임 규칙 |
+| **NEXT.md** (프로젝트 루트) | 스킬이 단계마다 덮어쓰는 "지금 어디까지 왔나" 블록 | "다음 진행해"·"이어서"가 여기서 이어진다. catch-up 훅이 세션 시작 때 주입 |
+| **스킬** (필요할 때만 로드) | autopilot · 구현 워크플로우 · 프론트 취향 | 단계별 절차 |
+
+| 등급 | 이런 요청 | 흐름 |
+|---|---|---|
+| **S** | "로그 한 줄 추가해", "이 변수 이름 바꿔" — 한 문장으로 설명되는 변경 | 바로 구현 → 검증 명령 1회. 문서 없음 |
+| **M** | "로그인에 소셜 로그인 붙여줘", "테트리스 만들어줘" — 기능 하나, 미니 프로젝트 | 1쪽 SPEC → 구현 → 검증 → 리뷰 1회. 게임은 버리는 프로토타입으로 재미부터 확인 |
+| **L 신규** | "회의실 예약 서비스 만들고 싶어", 모르는 도메인, 되돌리기 어려운 설계 결정 | autopilot 설계 패키지 → 구현 워크플로우 SPEC부터(버티컬 슬라이스 먼저) |
+| **L 변경** | 기존 저장소의 결제·인증·개인정보·마이그레이션 변경 | autopilot 없이 구현 워크플로우 전체 경로 + 보안 리뷰 |
+| 버그 | "결제 모듈 버그 고쳐줘" | 등급과 별개로 디버깅 분기(재현 → 원인 → 수정), 위험 모듈이면 리뷰 1회 더 |
+
+응답 첫 줄에 `등급: M — 기능 하나, 파일 여러 개`처럼 판정이 나온다. 틀렸으면 "S로 해"라고만 하면 된다.
+뭘 불러야 할지 궁금하면 `/sk <하고 싶은 것>`.
+
 ## 구성
 
-| 스킬 | 역할 | 발동 |
+| 스킬·파일 | 역할 | 발동 |
 |---|---|---|
-| `service-autopilot` | 한 줄 아이디어 → 설계 패키지(PRD·아키텍처·API·테스트·운영) | 자동 |
-| `service-prompt-workflow` | 뭘 만들지 아는 상태 → 구현·검증·리뷰·배포 9단계 | 자동 |
+| `service-autopilot` | L 신규: 한 줄 아이디어 → 설계 패키지(PRD·아키텍처·API·테스트·운영) | 자동 |
+| `service-prompt-workflow` | M·L 구현과 버그: 등급별로 단계를 건너뛰는 구현·검증·리뷰·배포 | 자동 |
 | `frontend-design-taste` | 웹 UI의 AI 티 제거, 하드룰 강제 | 자동(프론트 작업 시) |
-| `model-effort-router` | 작업별 모델·effort 판정, 이득일 때만 서브에이전트 위임 | 자동(CLAUDE.md 한 줄로 상시) |
-| `catch-up` | 세션 이어받기 구조(CLAUDE.md·AGENTS.md·NEXT.md) 1회 세팅 | `/catch-up` |
+| `catch-up` | 프로젝트에 CLAUDE.md·AGENTS.md·NEXT.md·세션 훅 구조를 1회 세팅 | `/catch-up` |
 | `sk` | 맞는 스킬 최대 3개 추천 | `/sk 문구` |
-| `_tools/` | 에이전트 정의 파일, 스킬 카탈로그·정합성 검사 | — |
+| `_tools/CLAUDE.global.md` | 전역 CLAUDE.md에 넣는 이어가기·규모 판정·superpowers 경계·모델·위임 규칙 | 항상 |
+| `_tools/agents/` | 서브에이전트 정의(fresh-reviewer·deep-worker·quick-worker) | 위임할 때 |
+| `_tools/skill_catalog.py` | 설치 스킬 카탈로그 + 라우팅 표 정합성 검사 | 수동 |
 | `learned/` | `ecc:continuous-learning`이 세션 패턴에서 뽑은 스킬이 쌓이는 자리(현재 비어 있음) | — |
 
-## 스킬 간 관계 (큰 그림)
+## 흐름 (큰 그림)
 
 ```
-[아이디어만 있고 막연함]        [뭘 만들지 정해짐]              [화면이 포함됨]
-service-autopilot        →   service-prompt-workflow   →   frontend-design-taste
-"기획·설계 자동 생성"          "구현을 단계별로 명령"           "AI 티 안 나는 UI 강제"
-A0~A7 + GATE                 0 BASE ~ 9 REFLECT               BUILD·REVIEW에서 참조
-      │                            │
-      └── 각 단계 진입 시 references/skill-routing.md 의 행을 읽어 설치된 전문 스킬(ecc:* 등)을 호출
-      └── 위임은 references/model-routing.md 가 정한 곳에서만, 그때의 모델 등급(opus/sonnet/haiku/fable)도 여기서
-      └── 강도 spike/lite/full: 미확정이면 spike(엔진+시뮬 먼저), 아니면 A0 신호로 판정. 실측 lite 20만·full 70만 토큰(상한 25만·80만)
-                                   └── PLAN 이후는 superpowers(writing-plans → executing-plans → TDD → verification → code-review)
-                                   └── 기본은 메인 세션에서 직접 구현. 위임 상한 동시 3·요청당 5
-                                   └── BUILD·REVIEW 는 ponytail 결정 사다리(있으면 플러그인, 없으면 내장) 적용
-
-[파이프라인 밖]    model-effort-router — 일반 작업에서 모델·effort 판정과 위임 여부 (파이프라인 안에서는 각 model-routing.md 우선)
-[경계 규칙]        ~/.claude/CLAUDE.md — 설계는 service-autopilot, 저장소 안 구현은 superpowers, 웹 UI는 frontend-design-taste
-[세션 부트스트랩]  catch-up — 얇은 CLAUDE.md/AGENTS.md/NEXT.md 구조를 1회 세팅 (사용자 호출 전용)
-[스킬 추천]        sk — "/sk 문구" 로 맞는 스킬 최대 3개 추천
-[정비 도구]        _tools/skill_catalog.py — 설치 스킬 카탈로그 + 라우팅 표 정합성 검사
+요청 ─→ 전역 CLAUDE.md 규모 판정 ─┬─ S ─→ 스킬 없이 바로 수정 → 검증 명령 1회
+                                   ├─ M ─→ service-prompt-workflow: FRAME 3줄 → SPEC(1쪽) → BUILD → VERIFY → REVIEW 1회
+                                   ├─ L 신규 ─→ service-autopilot: A0~A7 + GATE ─→ service-prompt-workflow: SPEC부터 (버티컬 슬라이스 먼저)
+                                   ├─ L 변경 ─→ service-prompt-workflow: FRAME~REFLECT 전체 + 보안 리뷰
+                                   └─ 버그 ─→ service-prompt-workflow: 디버깅 분기
+                                                                                         └─ 화면이 있으면 frontend-design-taste
+각 단계 끝 ─→ 루트 NEXT.md 갱신 ─→ 다음 세션 시작 때 훅이 주입 ─→ "다음 진행해"로 이어감
+위임 ─→ 기본은 메인 세션. 크고 독립적인 작업·대용량 읽기·최종 리뷰만 서브에이전트(동시 3·요청당 5)
 ```
 
-비유하면: **autopilot이 건축 설계도를 그리고, prompt-workflow가 시공 순서를 지휘하고,
-design-taste가 인테리어 품질 기준을 잡는다.** 각 공정마다 어느 전문 업체(스킬)를 부를지는 라우팅 표에,
-어느 공정을 하청(서브에이전트)에 줄지는 모델 라우팅 표에 적혀 있다. 기본은 직영(메인 세션)이다.
+비유하면: **작은 수리는 바로 고치고(S), 방 하나 리모델링은 한 장짜리 도면으로(M), 집을 새로 지을 때만 설계 사무소(autopilot)를 부른다(L).**
+공사 일지(NEXT.md)가 현장에 붙어 있어서 다음 날 누가 와도 이어서 일한다.
+
+## 현업 근거 (2026-09-29 조사)
+
+- **무게는 되돌리기 어려운 정도에 비례**: Amazon Type 1/Type 2 결정, Google은 불확실성 질문 3개 이상일 때만 설계 문서
+  ("구현 방법만 적고 대안이 없으면 코드를 먼저 써라"), Kiro Quick Spec, Claude Code "diff를 한 문장으로 설명할 수 있으면 계획 생략".
+- **문서는 한 번 쓰고 고쳐 가며 쓴다**: Google 설계 문서는 구현 중 갱신하는 living doc. 단계마다 전체 재검토를 하지 않는다.
+- **검증은 실행으로**: Claude Code "검증할 수단(테스트·빌드·스크린샷)을 줘라", 게임은 플레이테스트.
+- **작게, 시간 상한**: Google 변경당 약 100줄, Shape Up 6주 초과 시 연장 없이 중단, 게임은 프로토타입 → 버티컬 슬라이스 → 제작.
+- **리뷰는 1회**: "지적을 전부 쫓으면 과잉설계가 된다"(Claude Code best practices).
 
 ---
 
 ## 1. service-autopilot — 기획·설계 오토파일럿
 
-**한 줄 아이디어를 "구현 착수 가능한 설계 패키지"로 바꾼다.** AI가 스스로 조사하고, 사각지대를 찾아 덮고,
+**L 신규 전용. 한 줄 아이디어를 "구현 착수 가능한 설계 패키지"로 바꾼다.** AI가 스스로 조사하고, 사각지대를 찾아 덮고,
 가정으로 못 덮는 위험한 결정만 객관식 최대 5문항으로 **딱 1번** 묻는다.
 
-- **언제 쓰나**: 신규 서비스/기능 기획, PRD, 기술스택 추천, MVP 범위, 도메인을 모르는 상태의 착수, 위협모델·API·운영 설계.
+- **언제 쓰나**: 새 서비스, 모르는 도메인, 되돌리기 어려운 설계 결정. 기능 하나·미니 프로젝트·게임 프로토타입(S·M), 기존 저장소의 결제·인증 변경(L 변경), 버그에는 쓰지 않는다.
 - **파이프라인**: A0 SEED → A1 RECON(조사) → A2 INTERROGATE(사각지대 심문, 질문 1회) → A3 PRD → A4 아키텍처+위협모델(STRIDE)
   → A5 API계약+ERD → A6 테스트설계 → A7 배포/관측성 → GATE(새 컨텍스트 적대적 검토).
 - **단계별 스킬 라우팅** (`references/skill-routing.md`): 단계 진입 시 설치된 전문 스킬을 호출한다.
@@ -70,8 +88,8 @@ design-taste가 인테리어 품질 기준을 잡는다.** 각 공정마다 어�
   버전 전파를 스크립트가 센다. CRITICAL이면 GATE 진입 금지.
 - **개정 전파·상수 표**: 산출물마다 `버전:`, 04~07은 `기준 03 v`. 숫자는 03 상수 표에만.
 - **착수 자산**: A3 화면 스케치 1장, A7 디렉터리 구조·`.env.example`(값 없음)·첫 작업 3개(워킹 스켈레톤).
-- **예산·재개**: GATE 재실행 1회, 끊기면 없는 첫 파일의 단계부터 재개, 런 끝에 비용 기록.
-- **산출물**: `00-seed.md` ~ `08-readiness-report.md` + `decision-log.md` (9개 파일).
+- **예산·재개**: GATE 재실행 1회, 끊기면 없는 첫 파일의 단계부터 재개, 런 끝에 비용 기록. 단계마다 루트 `NEXT.md`를 갱신하므로 다음 날 "다음 진행해"로 이어진다.
+- **산출물**: `autopilot/<slug>/`의 `00-seed.md` ~ `08-readiness-report.md` + `decision-log.md`.
 - **평가**: `eval/PROTOCOL.md`(블라인드 pairwise A/B, 동결 시드 10개) + `evals/evals.json`(skill-creator 호환).
 
 ```
@@ -87,7 +105,10 @@ design-taste가 인테리어 품질 기준을 잡는다.** 각 공정마다 어�
 각 단계에 하드 게이트가 있어 못 넘으면 다음 단계로 안 간다.
 
 - **파이프라인**: 0 BASE → 1 FRAME → 2 EXPLORE → 3 SPEC → 4 PLAN → 5 BUILD → 6 VERIFY → 7 REVIEW → 8 SHIP → 9 REFLECT.
-- **라우터 내장**: "구현해" → BUILD, "리뷰해줘" → REVIEW, "커밋해" → SHIP.
+- **등급별 경로**: S는 이 스킬 없이 처리. M은 FRAME 3줄 → 1쪽 SPEC → BUILD → VERIFY → REVIEW 1회 → SHIP
+  (게임·도구 프로토타입은 버리는 프로토타입으로 핵심 가설부터). L 신규는 autopilot 뒤 SPEC부터, 첫 작업 3개는 버티컬 슬라이스.
+  L 변경(기존 저장소의 결제·인증 등)은 전체 경로 + 보안 리뷰. 버그는 디버깅 분기.
+- **라우터 내장**: "구현해" → BUILD, "리뷰해줘" → REVIEW, "커밋해" → SHIP, "다음 진행해" → NEXT.md에 적힌 단계.
 - **위임은 기본이 아니다** (`references/model-routing.md` "위임 여부"): 기본은 메인 세션에서 직접 구현한다. 크고 독립적인 작업·대용량 읽기·
   다른 등급이 분명히 이득인 작업만 위임하고, 테스트 실행(VERIFY)·몇 번의 편집으로 끝나는 일·자기 작업 재확인은 위임하지 않는다.
   상한은 동시 3개, 요청당 새로 띄우는 서브에이전트 5개.
@@ -121,27 +142,12 @@ service-prompt-workflow의 BUILD·REVIEW에 프론트가 포함되면 자동 참
 
 ---
 
-## 4. model-effort-router — 모델·effort 라우터
-
-**메인 세션 모델은 그대로 두고, 작업마다 모델과 effort를 판정해 위임이 이득인 부분만 서브에이전트에 넘긴다.**
-Claude는 `/model`·`/effort`를 직접 못 바꾸고 스킬 프론트매터 `model:`·`effort:`는 그 턴에만 적용되므로, 작업 일부만 달리하는 실용적인 수단은 서브에이전트다. 서브에이전트는 별도 컨텍스트라 메인 캐시를 건드리지 않는다.
-
-- **판정**: 응답 첫 줄에 `라우팅: 메인 medium | 위임: sonnet·low CRUD 4개 — 독립 반복 작업` 형식으로 한 줄. 대부분은 `위임 없음`.
-- **effort**: Opus 5.5 기본 medium(= Opus 5의 high 이상). 여러 파일·원인 불명·설계는 high, xhigh·max는 한 단계 낮춰서 부족했던 작업만.
-- **모델**: 기계적 대량 `haiku`, 패턴 반복 묶음·대용량 읽기 `sonnet`, 판단 집약 `opus`, 장기 조사 `fable`(Opus 5.5의 2.5배 가격).
-- **위임 조건·상한**: 크고 독립적이거나 대용량 읽기일 때만. 동시 3개, 요청당 5개. 테스트 실행·짧은 작업·자기 검증은 위임하지 않는다.
-- **effort가 다른 위임**: `_tools/agents/deep-worker.md`(high), `quick-worker.md`(low)를 `~/.claude/agents/`에 복사(PC당 1회). 모델은 호출할 때 준다.
-- **세션 전체를 바꿀 때**: `/effort`는 Opus 5.5·Fable 5.1에서 캐시 유지, `/model`은 캐시를 버리므로 새 작업 시작 때만 권한다.
-- **항상 적용**: 아래 "새 PC 세팅"의 `~/.claude/CLAUDE.md` 두 줄.
-
----
-
-## 5. catch-up — 세션 이어받기 부트스트랩 (1회 세팅, 사용자 호출 전용)
+## 4. catch-up — 세션 이어받기 부트스트랩 (1회 세팅, 사용자 호출 전용)
 
 **"지난 작업 확인" 스킬이 아니다.** 프로젝트에 얇은 `CLAUDE.md`(행동규칙 + `@AGENTS.md`) · `AGENTS.md`(크로스툴 단일 원본) ·
 `NEXT.md`(다음-할일) + SessionStart 훅 · 폴더별 `CLAUDE.md` · `WORKLOG.md` 구조를 **처음 한 번** 깔아 주는 스킬이다.
 그 뒤로는 세션 시작마다 훅이 `NEXT.md`의 현재 작업 블록을 자동 주입하므로, "지난 작업 이어서"는 아무 스킬도 부를 필요가 없다.
-상세 이력이 필요하면 `WORKLOG.md`를 읽는다.
+상세 이력이 필요하면 `WORKLOG.md`를 읽는다. autopilot·구현 워크플로우가 단계마다 이 블록을 덮어써서 설계 → 구현이 자연스럽게 이어진다.
 
 ```
 > /catch-up                                   ← diff를 먼저 보여주고 승인 후 적용
@@ -150,7 +156,7 @@ Claude는 `/model`·`/effort`를 직접 못 바꾸고 스킬 프론트매터 `mo
 
 ---
 
-## 6. sk — 스킬 추천기 (사용자 호출 전용)
+## 5. sk — 스킬 추천기 (사용자 호출 전용)
 
 스킬 이름을 몰라도 되게 하는 얇은 스킬. 라우팅 표 2개(사람이 근거를 단 1순위 후보)를 먼저 보고,
 없으면 설치 카탈로그를 의미로 훑어 최대 3개를 이유·실행 명령과 함께 추천한다.
@@ -164,17 +170,21 @@ Claude는 `/model`·`/effort`를 직접 못 바꾸고 스킬 프론트매터 `mo
 
 ---
 
-## _tools/agents/ — 서브에이전트 정의
+## _tools/ — 전역 규칙·에이전트·정비 도구
 
-`~/.claude/agents/`에 복사해 쓴다(PC당 1회). effort는 Agent 호출로 못 주므로 이 파일로 주고, 모델은 호출할 때 지정한다.
+**`CLAUDE.global.md`** — 전역 CLAUDE.md에 넣는 규칙. 이어가기(NEXT.md) · 규모 판정(S·M·L 신규/변경·버그) · superpowers 경계 · 모델·effort·위임.
+superpowers와의 경계(M의 FRAME과 L의 autopilot이 brainstorming을 대신)도 여기 들어 있어 새 PC에서도 따로 챙길 게 없다.
+기존 `~/.claude/CLAUDE.md`에 예전 경계 규칙이 있으면 이 내용으로 교체한다.
+
+**`agents/`** — `~/.claude/agents/`에 복사해 쓴다. effort는 Agent 호출로 못 주므로 이 파일로 주고, 모델은 호출할 때 지정한다.
 
 | 파일 | effort | 쓰는 곳 |
 |---|---|---|
-| `fresh-reviewer.md` | high | autopilot A4 독립 검토·GATE, prompt-workflow REVIEW 정확성, eval judge (읽기 전용) |
+| `fresh-reviewer.md` | high | autopilot A4 독립 검토·GATE, 구현 REVIEW 정확성, eval judge (읽기 전용) |
 | `deep-worker.md` | high | 판단 집약·장기 조사 위임 (`model: opus` 또는 `fable`) |
 | `quick-worker.md` | low | 기계적 대량 작업 위임 (`model: haiku` 또는 `sonnet`) |
 
-## _tools/ — 정비 도구
+**`skill_catalog.py`**
 
 ```bash
 python _tools/skill_catalog.py              # 설치 스킬 요약 + 항상-로드 메타데이터 토큰 추정 + 라우팅 표 정합성 검사
@@ -206,6 +216,7 @@ Remote Control 세션에서는 `/plugin`이 막혀 있으므로 같은 PC의 터
 ```bash
 git clone https://github.com/sangchane/claude-skills "$HOME/.claude/skills"
 mkdir -p ~/.claude/agents && cp ~/.claude/skills/_tools/agents/*.md ~/.claude/agents/
+cat ~/.claude/skills/_tools/CLAUDE.global.md >> ~/.claude/CLAUDE.md
 ```
 
 Windows PowerShell:
@@ -213,26 +224,27 @@ Windows PowerShell:
 ```powershell
 git clone https://github.com/sangchane/claude-skills "$env:USERPROFILE\.claude\skills"
 Copy-Item "$env:USERPROFILE\.claude\skills\_tools\agents\*.md" "$env:USERPROFILE\.claude\agents\"
+Get-Content "$env:USERPROFILE\.claude\skills\_tools\CLAUDE.global.md" | Add-Content "$env:USERPROFILE\.claude\CLAUDE.md"
 ```
 
-`~/.claude/CLAUDE.md`에는 경계 규칙과 함께 아래 두 줄을 둔다(위는 model-effort-router, 아래는 Anthropic "Prompting Claude Opus 5" 권장 문구를 줄인 것).
-
-```
-작업 시작 전 model-effort-router로 모델·effort를 판정한다.
-서브에이전트는 크고 서로 독립적인 작업에만 쓴다. 도구 호출 몇 번이면 끝나는 일과 내 작업을 다시 확인하는 일에는 쓰지 않고, 하나로 되면 하나만 띄운다.
-```
-
+프로젝트마다 한 번 `/catch-up`을 돌리면 NEXT.md 세션 훅이 깔린다(없어도 전역 CLAUDE.md가 NEXT.md를 확인하게 한다).
 플러그인(superpowers·ecc·ponytail)은 이 저장소에 포함되지 않는다. `/plugin marketplace add` → `/plugin install`로 따로 설치하고
 `python _tools/skill_catalog.py`로 라우팅 표가 가리키는 스킬이 다 있는지 확인한다.
 
 ## 평소 동기화 루틴
 
 - 스킬을 **고친 PC에서**: `git add . && git commit -m "무엇을 왜" && git push`
-- **다른 PC에서** 세션 시작 전: `git pull` (에이전트 파일이 바뀌었으면 `~/.claude/agents/`에 다시 복사)
+- **다른 PC에서** 세션 시작 전: `git pull`. `_tools/agents/`나 `CLAUDE.global.md`가 바뀌었으면 다시 복사한다(CLAUDE.md는 해당 절을 교체).
 - 원칙: 원본은 GitHub 하나. 두 PC에서 동시에 같은 스킬을 고치지 않는다.
 - 스킬을 고치면 회귀 평가: autopilot은 `eval/PROTOCOL.md` 스모크(시드 3개), prompt-workflow는 `eval/` 대리 A/B.
 
-## 변경 이력 (모델 세대 맞춤)
+## 변경 이력
+
+**2026-09-29 — 규모 등급 구조.** 현업 조사(위 "현업 근거")를 바탕으로 개편.
+- S·M·L 등급 도입: 전역 CLAUDE.md가 판정, autopilot은 L 신규 전용, 기존 저장소의 위험 변경은 L 변경 경로, 구현 워크플로우는 등급별로 단계 생략.
+- 상태 통일: autopilot의 `autopilot/<slug>/NEXT.md` → 프로젝트 루트 `NEXT.md` 블록. 세션 훅이 읽는 곳과 스킬이 쓰는 곳이 같아졌다.
+- `model-effort-router` 삭제: 규칙을 `_tools/CLAUDE.global.md`로 흡수(따로 부를 스킬이 하나 줄었다).
+- 미실행: 등급 경로의 `eval/` 회귀.
 
 **2026-09-29 — Opus 5.5.** Anthropic "Prompting Claude Opus 5.5"·"Migrating to Claude Opus 5.5"·"Prompting Claude Opus 5"·Effort 문서 기준.
 - 위임 과다 수정: 구현 기본값을 "메인에서 직접"으로, 위임 조건·상한(동시 3, 요청당 5). BUILD 1순위 `executing-plans`, EXPLORE 직접 Read/Grep,

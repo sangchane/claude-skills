@@ -4,13 +4,15 @@ description: |
   어떤 서비스·기능이든 AI 코딩 에이전트에게 "효율적인 프롬프트"로 명령하는 9단계 실행 워크플로우.
   무엇을 만들지 아는 상태에서 착수할 때 사용 — 서비스/기능 제작 시작, "이거 어떻게 시작하지",
   프롬프트를 어떻게 써야 할지 막힐 때, SPEC·PLAN·구현·리뷰·배포 명령이 필요할 때, 스택 선정 후
-  실제 빌드로 넘어갈 때. 기획 자체가 막연하거나 도메인을 모르면 먼저 service-autopilot을 쓴다.
+  실제 빌드로 넘어갈 때, 버그를 고칠 때. 요청 규모에 따라 단계를 건너뛴다 — 기능 하나·게임/도구 프로토타입(M)은 1쪽 SPEC 경로,
+  새 서비스(L 신규)는 service-autopilot 설계 뒤 SPEC부터, 기존 저장소의 돈·인증·개인정보 변경(L 변경)은 전체 경로.
+  한 문장으로 설명되는 변경(S)에는 이 스킬을 부르지 않는다.
   gstack 스프린트 모델 + Anthropic/OpenAI/GitHub spec-kit 검증 기법을 종합한 근거 기반 하네스.
   superpowers가 설치돼 있으면 PLAN·BUILD·VERIFY·REVIEW·SHIP은 그 스킬들로 넘기고, 이 스킬은 한국어 라우터·ETHOS·
   ponytail·프론트 배선만 맡는다. 사용자가 이름을 부를 필요는 없다 — "구현해·리뷰해줘·커밋해" 문장에 자동으로 뜬다.
 argument-hint: "[요청 한 문장 또는 단계명]"
 metadata:
-  version: "0.5.0"
+  version: "0.6.0"
   updated: "2026-09-29"
 ---
 
@@ -69,6 +71,23 @@ SEED→RECON→INTERROGATE→PRD→ARCHITECT       Frame→Explore→Spec→Plan
 | 8 | **SHIP** | 배포 | 증분 커밋 + 설명형 메시지(한글) + PR | 커밋·PR |
 | 9 | **REFLECT** | 회고·학습 | 배운 것 → CLAUDE.md/decision-log 반영 | 학습 기록 |
 
+### 등급별 경로 (S · M · L)
+
+단계 수는 규모에 맞춘다. 등급 기준은 `~/.claude/CLAUDE.md` "규모 판정"(원본 `_tools/CLAUDE.global.md`)과 같다.
+현업 근거: 되돌리기 쉬운 결정은 가볍게(Amazon Type 2), "diff를 한 문장으로 설명할 수 있으면 계획을 건너뛴다"(Claude Code best practices),
+구현 방법만 적는 설계 문서라면 코드를 먼저 쓴다(Google design docs).
+
+| 등급 | 단계 | 문서 | 리뷰 |
+|---|---|---|---|
+| **S** | 스킬 없이 바로 수정 → 검증 명령 1회 (전역 CLAUDE.md). 이 스킬 안에서 S로 판정되면 5 BUILD → 6 VERIFY | 없음 | 없음. 사용자가 원할 때만 |
+| **M** | 1 FRAME(3줄, brainstorming 대신) → 3 SPEC(1쪽) → 5 BUILD → 6 VERIFY → 7 REVIEW → 8 SHIP. 모르는 코드면 2 EXPLORE. 작업이 5개를 넘으면 4 PLAN, 아니면 SPEC의 완료 기준 목록을 작업 순서로 쓰고 메인에서 직접 구현 | `SPEC.md` 1개: 목표 · 안 할 것 · 완료 기준 · 검증 명령. 게이트는 "완료 기준마다 검증 명령이 있다" | 기능 단위 1회 |
+| **L 신규** | autopilot GATE 뒤 **3 SPEC부터**(입력 `03·05·08`) → 4 PLAN → 5~9. PLAN 첫 작업 3개는 버티컬 슬라이스(핵심 여정을 끝까지 얇게). NEXT.md의 "GATE 완료" 블록으로 이어받는 것도 08 핸드오프 붙여 넣기와 같은 설계 승인이다 | SPEC.md + tasks.md | 기능 단위 1회 + 고위험이면 security/santa |
+| **L 변경** | 기존 저장소의 돈·인증·개인정보·마이그레이션 변경. 1 FRAME → 2 EXPLORE → 3 SPEC → 4 PLAN → 5~9 (autopilot 없음) | SPEC.md(+ 필요하면 tasks.md) | 기능 단위 1회 + `ecc:security-review` |
+
+게임·도구 프로토타입(M)은 SPEC 전에 **버리는 프로토타입**으로 핵심 가설(재미·성능·조작감) 하나를 먼저 확인하고, 결과를 SPEC에 반영한다.
+진행 중 L 신호(돈·보안·개인정보·법, 되돌리기 어려운 결정)가 나오면 등급을 올리고 한 줄로 알린다.
+버그는 등급과 별개로 6 VERIFY의 디버깅 분기로 들어가고, 위험 모듈이면 7 REVIEW를 1회 더한다.
+
 ### 라우터 (요청 → 단계 매핑)
 
 사용자 한 문장을 받아 어느 단계에서 진입할지 판단한다. 의심스러우면 앞 단계로 내려간다
@@ -82,6 +101,7 @@ SEED→RECON→INTERROGATE→PRD→ARCHITECT       Frame→Explore→Spec→Plan
 - "이거 진짜 되는지 확인", "테스트 돌려" → **6 VERIFY**
 - "버그야", "테스트가 깨져", "왜 안 되지" → **6 VERIFY의 디버깅 분기** (`superpowers:systematic-debugging`, 근본 원인 수정)
 - "리뷰해줘", "버그 없나 봐줘" → **7 REVIEW**
+- "다음 진행해", "이어서" → 루트 `NEXT.md`의 `NEXT-ACTION` 블록에 적힌 단계
 - "커밋/PR 만들어" → **8 SHIP**
 - "회고", "뭘 배웠지", "CLAUDE.md 갱신" → **9 REFLECT**
 
@@ -95,7 +115,8 @@ SEED→RECON→INTERROGATE→PRD→ARCHITECT       Frame→Explore→Spec→Plan
 3. 1순위 스킬이 없을 때만 해당 단계의 프롬프트 블록을 `references/prompt-templates.md`에서 가져와 빈칸(`{{...}}`)을 채운다
    (superpowers 설치 시 4)~8) 블록은 대체용이다).
 4. 하드 게이트를 확인한다. 못 넘으면 그 단계에 머문다.
-5. 산출물을 파일로 남긴다 (대화에만 두지 않는다).
+5. 산출물을 파일로 남긴다 (대화에만 두지 않는다). 단계를 마치면 루트 `NEXT.md`의 `NEXT-ACTION` 블록을
+   `등급 · service-prompt-workflow · 단계 · 다음 할 일 1~3줄 · 산출물 경로`로 덮어쓴다.
 6. 다음 단계로. 완료 상태는 `DONE / DONE_WITH_CONCERNS / NEEDS_CONTEXT` 중 하나로 명시한다.
 
 코드를 쓰는 단계(BUILD)와 보는 단계(REVIEW)는 ponytail을 함께 적용한다 — BUILD 진입 시 `ponytail:ponytail`

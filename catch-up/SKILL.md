@@ -13,8 +13,8 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 disable-model-invocation: true
 argument-hint: "[--tools antigravity,cursor]"
 metadata:
-  version: "1.0.3"
-  updated: "2026-09-09"
+  version: "1.0.4"
+  updated: "2026-09-29"
 ---
 
 # Catch-Up (세션 이어받기 부트스트랩)

@@ -108,6 +108,13 @@
 - 캐시: effort 변경은 Opus 5.5·Fable 5.1에서 캐시 유지 (Claude Code prompt-caching).
 - 규칙·라우팅 자체는 바꾸지 않았다. 스모크 회귀 불필요(사실 갱신만).
 
+## 2026-09-29 L 등급 전용화 · 재개 포인터 이동 (1.5.0)
+
+- L 등급 전용: 기능 하나·미니 프로젝트는 service-prompt-workflow S·M 경로로. 근거는 service-prompt-workflow `references/evidence.md` "규모 등급 S·M·L".
+- 재개 포인터를 `autopilot/<slug>/NEXT.md`에서 프로젝트 루트 `NEXT.md`의 `NEXT-ACTION` 블록으로 옮겼다. catch-up 세션 훅이 루트만 읽어서,
+  설계를 마친 뒤 새 세션이 현재 단계를 몰랐다(단계마다 NEXT.md 규칙의 원래 목적 — 위 표 "08 없이 세션 이동" — 을 세션 경계까지 확장).
+- 파이프라인·GATE·산출물 형식은 바꾸지 않았다. 스모크 회귀는 트리거 범위만 바뀌어 생략.
+
 ## 이 파일의 용도
 
 스킬 규칙·템플릿을 바꾸려면: ① 바꿀 항목의 출처를 여기서 확인 ② 새 근거(수렴 출처)를 확보

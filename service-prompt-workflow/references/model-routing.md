@@ -4,6 +4,8 @@
 위임할 때 `model` 파라미터**(Claude Code Agent 도구: `haiku` · `sonnet` · `opus` · `fable`)로 고른다.
 등급표·가격·근거는 `service-autopilot/references/model-routing.md`와 같다(확인 2026-09-29, Anthropic 가격·모델 문서).
 
+이 파일의 "등급"은 **모델 등급**(haiku < sonnet < opus < fable)이다. 작업 규모 S·M·L과는 다르다.
+
 ## 위임 여부를 먼저 정한다
 
 기본은 **메인 세션에서 직접** 한다. 아래 표의 모델은 "위임하기로 했을 때 누구에게 맡기나"이지, 모든 작업을 위임하라는 뜻이 아니다.

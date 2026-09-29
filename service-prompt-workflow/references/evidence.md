@@ -64,6 +64,15 @@ Claude Code prompt-caching·sub-agents 문서 (모두 2026-09-29 확인).
   effort 변경은 Opus 5.5·Fable 5.1에서 캐시 유지.
 - 회귀 미실행: 이 변경은 `eval/` 대리 A/B를 돌리지 않았다. 다음 구현 작업에서 서브에이전트 수·토큰을 이전 기록과 비교한다.
 
+## 규모 등급 S·M·L (2026-09-29)
+
+출처(2026-09-29 확인): Claude Code "Best practices"("If you could describe the diff in one sentence, skip the plan", 큰 기능은 인터뷰 → SPEC.md → 새 세션,
+"Chasing every finding leads to over-engineering"), Google "Design Docs at Google"(구현 방법만 적는 문서면 코드를 먼저, 작은 개선은 1~3쪽),
+Google eng-practices "Small CLs"(약 100줄), Amazon Type 1/Type 2 결정, Basecamp Shape Up(appetite·circuit breaker), Kiro Quick Spec,
+게임 프로토타입 → 버티컬 슬라이스(Rami Ismail "Levelling The Playing Field").
+- 반영: 등급별 경로 표(S 문서·리뷰 없음, M 1쪽 SPEC + 리뷰 1회, L 전체), 게임·도구 프로토타입은 버리는 프로토타입 먼저, NEXT.md 갱신, "다음 진행해" 라우팅.
+- 미실행: `eval/` 대리 A/B. 다음 M 작업에서 단계 수·토큰을 이전 기록과 비교한다.
+
 ## 주의(변동 사항)
 
 - Anthropic의 고전 "프리필(assistant 턴 미리 채우기)" 기법은 **Claude 4.6+에서 미지원**.
