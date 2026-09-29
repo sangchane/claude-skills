@@ -134,7 +134,7 @@ for a in fresh-reviewer deep-worker quick-worker; do [ -f $C/agents/$a.md ] && m
 
 ## 6. Codex · Antigravity에서도 쓰기
 
-같은 규칙(등급 S·M·L, NEXT.md 이어가기)과 스킬 design·build·ui·setup을 두 도구의 **전역 설정**에 복사한다. 터미널에서 한 번.
+같은 규칙(등급 S·M·L, NEXT.md 이어가기)과 스킬 ui·setup을 두 도구의 **전역 설정**에 복사한다. 어떤 모델(GPT·Gemini·Claude)을 골라도 똑같이 적용된다. 터미널에서 한 번.
 
 ```bash
 git clone https://github.com/sangchane/claude-skills   # 처음 한 번 (이미 있으면 git pull)
@@ -144,13 +144,13 @@ python tools/export.py              # 둘 다. 하나만: python tools/export.py
 
 | 도구 | 규칙이 들어가는 곳 | 스킬이 들어가는 곳 | 부르는 법 |
 |---|---|---|---|
-| Codex | `~/.codex/AGENTS.md` (기존 내용은 두고 `dev:start~end` 블록만 교체) | `~/.agents/skills/` | `$build`, `$design` … 또는 그냥 말하기 |
+| Codex | `~/.codex/AGENTS.md` (기존 내용은 두고 `dev:start~end` 블록만 교체) | `~/.agents/skills/` | `$ui`, `$setup` 또는 그냥 말하기 |
 | Antigravity | `~/.gemini/config/rules/dev.md` | `~/.gemini/config/skills/` | 그냥 말하기 |
 
 - 저장소가 바뀌면 `git pull` 후 같은 명령을 다시 돌린다. 같은 이름의 **다른** 스킬이 이미 있으면 덮어쓰지 않고 "건너뜀"이라고 알려 준다.
-- Claude Code와 다른 점: 세션 시작 훅이 없어서 NEXT.md는 에이전트가 규칙대로 직접 읽는다. guide 스킬과 reviewer·deep·quick 에이전트는 없고, 리뷰는 같은 에이전트가 별도 단계로 한다.
-  superpowers·ponytail이 없으면 그 단계를 규칙대로 직접 수행한다.
-- 모델·effort는 두 도구 모두 **사용자가** 바꾼다(Codex `/model`, Antigravity 모델·모드 선택). 등급과 크게 어긋날 때만 에이전트가 바꾸라고 한 줄로 권한다.
+- Claude Code와 다른 점: 세션 시작 훅이 없어서 NEXT.md는 에이전트가 규칙대로 직접 읽는다. design·build는 Claude 전용 절차(superpowers·서브에이전트)가 많아 스킬로 보내지 않고,
+  규칙의 등급별 단계(SPEC → 구현 → 검증 → 리뷰, L 신규는 설계 문서 먼저)를 에이전트가 직접 한다. guide와 reviewer·deep·quick 에이전트도 없다.
+- 모델·effort는 두 도구 모두 **사용자가** 바꾼다(Codex `/model`, Antigravity 모델 선택기의 사고 수준). 모델 기본값으로 두고, 큰 작업(L)을 낮은 수준으로 하고 있을 때만 에이전트가 올리라고 한 줄로 권한다.
 
 ---
 
@@ -328,7 +328,8 @@ Remote Control 세션에서는 `/plugin`이 막혀 있으므로 같은 PC의 터
 
 ## 변경 이력
 
-**2026-09-29 — Codex·Antigravity 내보내기 (1.1.0).** `tools/export.py`가 `rules.md`를 각 도구 형식으로 바꿔 전역 규칙에 넣고 스킬 4개를 복사한다. 규칙 원본은 `rules.md` 하나다.
+**2026-09-29 — Codex·Antigravity 내보내기 (1.1.0 → 1.1.1).** `tools/export.py`가 `rules.md`를 각 도구 형식으로 바꿔 전역 규칙에 넣고 스킬 ui·setup을 복사한다. 규칙 원본은 `rules.md` 하나다.
+1.1.1: GPT-6·Gemini 3.x 기준으로 effort 문구를 모델 기본값 기준으로 바꾸고, Claude 전용 절차가 많은 design·build는 내보내지 않는다(예전 복사본은 자동 삭제).
 
 **2026-09-29 — 플러그인으로 전환.** clone·파일 복사 설치를 없애고 `dev@sangchane` 플러그인으로 묶었다. 이름을 짧게:
 service-autopilot → `design`, service-prompt-workflow → `build`, frontend-design-taste → `ui`, catch-up → `setup`, sk → `guide`,

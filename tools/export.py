@@ -3,19 +3,20 @@ import os, re, shutil, sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
-SKILLS = ["design", "build", "ui", "setup"]  # guide는 Claude 플러그인 목록을 읽는 스킬이라 제외
+SKILLS = ["ui", "setup"]  # design·build는 Claude 전용 절차(superpowers·서브에이전트)가 많아 규칙만 쓴다. guide는 Claude 플러그인 목록용
+REMOVED = ["design", "build"]  # 예전 버전이 복사한 것은 지운다
 MARK = ".dev-sangchane"  # 이 파일이 있는 스킬 폴더만 덮어쓴다
 START, END = "<!-- dev:start -->", "<!-- dev:end -->"
 
 TOOL = {
     "codex": """## 모델·effort·위임
-- 모델과 reasoning effort는 사용자가 `/model`로 고른다. 나는 바꾸지 못한다. 등급에 맞는 수준은 S low, M medium, L high다. L 작업을 low로 하거나 S 작업을 xhigh로 하고 있을 때만 `/model`로 바꾸라고 한 줄로 권한다.
-- 스킬은 `$build`, `$design`, `$ui`, `$setup`으로 부르거나 요청에 맞으면 스스로 쓴다.""",
+- 모델과 reasoning effort는 사용자가 `/model`로 고른다. 나는 바꾸지 못한다. 모델 기본 effort로 시작하고, L 작업만 한 단계 올리는 게 맞다. L 작업을 기본보다 낮게 하고 있을 때만 `/model`로 올리라고 한 줄로 권한다.
+- 스킬은 `$ui`, `$setup`으로 부르거나 요청에 맞으면 스스로 쓴다.""",
     "antigravity": """## 모델·모드·위임
-- 모델과 모드(Planning·Fast)는 사용자가 에이전트 패널에서 고른다. 나는 바꾸지 못한다. S는 Fast, M·L은 Planning이 맞다. L 작업을 Fast로 하고 있을 때만 Planning으로 바꾸라고 한 줄로 권한다.
-- 스킬 design, build, ui, setup은 요청에 맞으면 스스로 쓴다.""",
+- 모델과 사고 수준(Fast·Low·Medium·High)은 사용자가 모델 선택기에서 고른다. 나는 바꾸지 못한다. 모델 기본 수준으로 시작하고, L 작업만 한 단계 올리는 게 맞다. L 작업을 Fast나 Low로 하고 있을 때만 올리라고 한 줄로 권한다.
+- 스킬 ui, setup은 요청에 맞으면 스스로 쓴다.""",
 }
-COMMON = "- 스킬 본문의 `dev:X`는 스킬 `X`다. 본문이 없는 이름(`superpowers:*`, `ponytail:*`, `ecc:*`, `reviewer`·`deep`·`quick` 에이전트)을 가리키면, 그 이름이 뜻하는 단계를 직접 수행한다. 리뷰는 구현을 마친 뒤 diff만 다시 읽는 별도 단계로 한다."
+COMMON = "- `build`·`design`은 이 도구에 스킬로 없다. 그 등급의 괄호 안 단계를 직접 수행하고, design은 요구사항·아키텍처·API·테스트 설계를 문서로 먼저 쓰는 단계로 한다. 스킬 본문의 `dev:X`는 스킬 `X`다. 본문이 없는 다른 이름(`superpowers:*`, `ponytail:*`, `ecc:*`, `reviewer`·`deep`·`quick` 에이전트)을 가리키면, 그 이름이 뜻하는 단계를 직접 수행한다. 리뷰는 구현을 마친 뒤 diff만 다시 읽는 별도 단계로 한다."
 
 
 def rules_for(tool):
@@ -39,6 +40,10 @@ def write_block(path, body):
 
 
 def copy_skills(dest):
+    for name in REMOVED:
+        if (dest / name / MARK).exists():
+            shutil.rmtree(dest / name)
+            print(f"  지움(예전 복사본): {dest / name}")
     for name in SKILLS:
         d = dest / name
         if d.exists() and not (d / MARK).exists():
