@@ -81,6 +81,13 @@ Google eng-practices "Small CLs"(약 100줄), Amazon Type 1/Type 2 결정, Basec
 - SPEC 자기채점 루프(7/10 미만이면 최대 3회 재작성) 삭제: "Prompting Claude Opus 5" — 이 세대는 스스로 검증하며 명시적 재확인 지시는 비용만 늘린다.
 - evals.json 1·2번 단언을 새 경로에 맞게 수정. 회귀 미실행.
 
+## ecc 구현 라우팅 제거 (2026-09-29)
+
+- 실측(사용자 PC `skill_catalog.py --unassigned`): 항상 로드 설명문 약 74,490자(추정 1만 9천 토큰), ecc가 스킬 181·명령 76·에이전트 47.
+- 구현 라우팅의 ecc 49개는 대부분 언어별 패턴·리뷰어·테스트 변형으로 superpowers·번들 명령과 겹치고, 효과를 잰 기록이 없다. 설계 쪽(autopilot)은
+  9월 3일 스모크에서 ecc 조합이 값을 했으므로 유지하되, 플러그인은 그 프로젝트에서만 켠다(Claude Code `enabledPlugins` 범위: user < project < local).
+- santa-method(ecc) 대신 `/security-review` + 다른 등급 fresh-reviewer 1명.
+
 ## 주의(변동 사항)
 
 - Anthropic의 고전 "프리필(assistant 턴 미리 채우기)" 기법은 **Claude 4.6+에서 미지원**.

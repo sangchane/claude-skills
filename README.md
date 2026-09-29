@@ -39,7 +39,11 @@
 | `_tools/CLAUDE.global.md` | 전역 `~/.claude/CLAUDE.md` 원본: 작업 원칙·이어가기·규모 판정·superpowers 경계·모델·위임 (32줄) | 항상 |
 | `_tools/agents/` | 서브에이전트 정의(fresh-reviewer·deep-worker·quick-worker) | 위임할 때 |
 | `_tools/skill_catalog.py` | 설치 스킬 카탈로그 + 라우팅 표 정합성 검사 | 수동 |
-| `learned/` | `ecc:continuous-learning`이 세션 패턴에서 뽑은 스킬이 쌓이는 자리(현재 비어 있음) | — |
+| `learned/` | 세션에서 배운 패턴을 스킬로 쌓는 자리(현재 비어 있음) | — |
+| `archify`, `graphify` | 저장소 밖에서 따로 설치해 쓰는 외부 스킬(graphify는 `graphify install`로 재생성, git 추적 제외) | 자동 |
+
+**플러그인 구성 (2026-09-29)**: superpowers(구현 절차) · ponytail(단순함 사다리) · claude-dashboard는 켜 두고,
+ecc는 **평소 꺼 두고 autopilot을 돌리는 프로젝트에서만 켠다**(스킬 181개 설명문이 매 세션 로드된다), claude-mem은 끈다(NEXT.md·WORKLOG·자동 메모리와 중복).
 
 ## 흐름 (큰 그림)
 
@@ -78,7 +82,7 @@
   → A5 API계약+ERD → A6 테스트설계 → A7 배포/관측성 → GATE(새 컨텍스트 적대적 검토).
 - **단계별 스킬 라우팅** (`references/skill-routing.md`): 단계 진입 시 설치된 전문 스킬을 호출한다.
   예: A1은 `ecc:research-ops`, A4는 `ecc:architecture-decision-records`+`ecc:security-review`, A5는 `ecc:api-design`,
-  A6은 `ecc:tdd-workflow`, A7은 `ecc:deployment-patterns`. 미설치면 대체 절차. 사용 기록은 decision-log에 남는다.
+  A6은 `ecc:tdd-workflow`, A7은 `ecc:deployment-patterns`. ecc는 평소 꺼 두므로 꺼져 있으면 이 프로젝트에서 켜라고 한 줄 안내하고, 안 켜면 대체 절차로 간다. 사용 기록은 decision-log에 남는다.
 - **단계 진입 사전조사**: A3~A7은 각 단계의 결정에 필요한 근거를 정량(숫자+출처+확인일)·정성(실무자 인용)·사용자 영향 3줄로 산출물 상단에 남긴다.
 - **단계별 모델 라우팅** (`references/model-routing.md`): 위임은 세 곳뿐이다 — A1 조사 `sonnet`, A4 독립 검토·GATE 검토관은 생성 모델 이상.
   판단 단계(A2~A5)는 위임하지 않는다. 08 핸드오프의 `<model_hints>`는 구현 쪽이 위임할 때 쓸 모델이다.
@@ -218,8 +222,17 @@ Copy-Item "$env:USERPROFILE\.claude\skills\_tools\CLAUDE.global.md" "$env:USERPR
 ```
 
 프로젝트마다 한 번 `/catch-up`을 돌리면 NEXT.md 세션 훅이 깔린다(없어도 전역 CLAUDE.md가 NEXT.md를 확인하게 한다).
-플러그인(superpowers·ecc·ponytail)은 이 저장소에 포함되지 않는다. `/plugin marketplace add` → `/plugin install`로 따로 설치하고
-`python _tools/skill_catalog.py`로 라우팅 표가 가리키는 스킬이 다 있는지 확인한다.
+플러그인은 이 저장소에 포함되지 않는다. `/plugin marketplace add` → `/plugin install`로 superpowers·ponytail·ecc를 설치한 뒤
+ecc와 claude-mem은 사용자 범위에서 끈다(이름은 `/plugin` 목록에 보이는 대로).
+
+```bash
+claude plugin disable <ecc 플러그인 이름> --scope user
+claude plugin disable <claude-mem 플러그인 이름> --scope user
+# 새 서비스 설계(autopilot)를 하는 프로젝트에서만
+claude plugin enable <ecc 플러그인 이름> --scope project
+```
+
+`python _tools/skill_catalog.py`로 라우팅 표가 가리키는 스킬이 다 있는지, 항상 로드되는 설명문이 얼마인지 확인한다.
 
 ## 평소 동기화 루틴
 
@@ -229,6 +242,10 @@ Copy-Item "$env:USERPROFILE\.claude\skills\_tools\CLAUDE.global.md" "$env:USERPR
 - 스킬을 고치면 회귀 평가: autopilot은 `eval/PROTOCOL.md` 스모크(시드 3개), prompt-workflow는 `eval/` 대리 A/B.
 
 ## 변경 이력
+
+**2026-09-29 — 플러그인 정리.** 실측(항상 로드 설명문 약 1만 9천 토큰, 대부분 ecc) 기준으로 ecc는 평소 끄고 autopilot 프로젝트에서만 켜기,
+claude-mem 끄기. 구현 워크플로우 라우팅에서 ecc 49개 참조를 빼고 superpowers·ponytail·번들 명령만 남겼다(santa-method → `/security-review` + 다른 등급 fresh-reviewer).
+autopilot은 ecc가 꺼져 있으면 켜라고 한 줄 안내하고, 안 켜면 대체 절차로 진행.
 
 **2026-09-29 — 중복 정리.** 전역 CLAUDE.md의 Karpathy 4절을 Opus 5.5판 작업 원칙 6줄로 바꿔 `CLAUDE.global.md` 하나로 합쳤다
 (§4 "검증될 때까지 반복" 삭제, §1 "불확실하면 멈춘다" → "해석이 크게 갈릴 때만 묻는다"). catch-up 프로젝트 템플릿에서 행동 규칙 제거.

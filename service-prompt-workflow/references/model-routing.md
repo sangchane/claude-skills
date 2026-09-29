@@ -27,8 +27,8 @@
 | **기계적** | 리네임, 포맷, 로그·에러 문구 일괄(해요체), 주석, 의존성 버전 올림, 파일 이동 | 메인. 수십 파일 일괄일 때만 `haiku` | 판단 0. 몇 번의 편집이면 위임 왕복이 더 비싸다 |
 | **VERIFY 실행** | 테스트·빌드·린트 실행, 스크린샷 수집, 종료코드 보고 | 메인 | 명령 실행과 결과 해석이 붙어 있다. 위임하면 결과를 다시 읽는 비용만 는다 |
 | **REVIEW 정확성** | diff + 수용 기준 | 세션 등급 이상, fresh context (`fable` 세션이면 `fable`) | 생성 모델과 같거나 높은 등급이어야 잡는다 |
-| **REVIEW 복잡도** (`ponytail:ponytail-review`) | diff | `sonnet` | 삭제 후보 나열 |
-| **santa-method 2인** (돈·안전·법) | diff | 세션 등급 + `opus` (opus 세션이면 `opus` + `sonnet`) | 모델을 달리해 맹점을 공유하지 않게 |
+| **REVIEW 복잡도** (`ponytail:ponytail-review`, 선택) | diff | `sonnet` | 삭제 후보 나열 |
+| **고위험 추가 리뷰** (돈·안전·법) | diff + SPEC | `fresh-reviewer` 1명, 생성 모델과 다른 등급 (opus 세션이면 `fable` 또는 `sonnet`) | 모델을 달리해 같은 맹점을 공유하지 않게. `/security-review`와 함께 |
 
 ## 규칙
 
