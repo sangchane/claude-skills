@@ -188,6 +188,7 @@ python _tools/skill_catalog.py --available  # 마켓플레이스에 있지만 �
 ```
 
 스킬 id 표기: 플러그인 `ecc:api-design`, 번들 `/code-review`, 개인 `frontend-design-taste`.
+토큰 합계는 settings의 `enabledPlugins`(user < project < local)를 읽어 꺼진 플러그인과 다른 프로젝트 전용 플러그인을 뺀 값이다. 꺼진 플러그인의 스킬도 "설치됨"으로 보고 라우팅 검사에서는 미설치로 치지 않는다.
 라우팅 표가 미설치 스킬을 가리키면 종료코드 1.
 
 ## 외부 스킬 흡수 기준

@@ -30,12 +30,12 @@ service-autopilot(L 신규 설계)에서만 켠다 — 언어별 패턴·리뷰�
 - **질문 방식**: superpowers "한 번에 하나 + 구현 전 승인" vs autopilot "배치 1회 ≤5" vs ponytail "기본값으로 진행하고 같은 응답에서 묻는다".
   → autopilot 안에서는 배치. 그 밖에서는 전역 CLAUDE.md대로 해석이 크게 갈릴 때만, 한 번에 하나씩.
 - **테스트 양**: ponytail "검증 하나면 충분" vs superpowers TDD. → SPEC의 완료 기준·테스트 계획이 정한다. 사소한 한 줄은 테스트 없음.
-- **리뷰 횟수**: `superpowers:requesting-code-review`·`/code-review`는 둘 다 리뷰어를 띄운다. → 정확성 1회는 둘 중 하나, 복잡도는 `ponytail-review` 선택.
-  돈·안전·법 고위험은 `/security-review` + `fresh-reviewer` 1명을 생성 모델과 다른 등급으로 더한다.
-- **서브에이전트 과다**: `subagent-driven-development`는 작업 1개에 서브에이전트 3개. → BUILD 기본은 `executing-plans`(같은 세션), 상한은 `model-routing.md`.
+- **리뷰 횟수**: `superpowers:requesting-code-review`·`/code-review`는 둘 다 리뷰어를 띄운다. → 정확성 1회는 둘 중 하나, 복잡도는 `ponytail:ponytail-review` 선택.
+  돈·안전·법 고위험은 `/security-review` + fresh-reviewer 에이전트 1명을 생성 모델과 다른 등급으로 더한다.
+- **서브에이전트 과다**: `superpowers:subagent-driven-development`는 작업 1개에 서브에이전트 3개. → BUILD 기본은 `superpowers:executing-plans`(같은 세션), 상한은 `model-routing.md`.
 - **판정자 편향**: ponytail 훅은 모든 서브에이전트에 사다리를 넣어 REVIEW·GATE 판정자가 "짧은 쪽 선호"를 가질 수 있다.
   판정 프롬프트에 "길이는 품질이 아니다"를 둔다(autopilot `judge-prompt.md`). 코딩 에이전트로 한정하려면 `PONYTAIL_SUBAGENT_MATCHER`.
-- **Karpathy 가이드라인 플러그인**: 전역 CLAUDE.md 작업 원칙이 같은 내용의 Opus 5.5판이다. 프로젝트에 `andrej-karpathy-skills`가 설치돼 있으면 지운다.
+- **Karpathy 가이드라인 플러그인**: 전역 CLAUDE.md 작업 원칙이 같은 내용의 Opus 5.5판이다. 프로젝트에 andrej-karpathy-skills 플러그인이 설치돼 있으면 끈다.
 
 ## 갱신 절차
 

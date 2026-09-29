@@ -62,20 +62,38 @@ def scan_dir(root: Path, source: str, prefix: str = "") -> dict:
     return out
 
 
+def plugin_enabled_settings() -> dict:
+    """settings의 enabledPlugins 병합 → {"name@marketplace": bool}. 우선순위 local > project > user (Claude Code 문서)."""
+    merged = {}
+    for f in (CLAUDE_DIR / "settings.json", Path.cwd() / ".claude" / "settings.json",
+              Path.cwd() / ".claude" / "settings.local.json"):
+        try:
+            merged.update(json.loads(f.read_text(encoding="utf-8")).get("enabledPlugins", {}) or {})
+        except (OSError, json.JSONDecodeError, AttributeError):
+            continue
+    return merged
+
+
 def installed_plugins() -> dict:
-    """installed_plugins.json → {플러그인명: {installPath, scope, projectPath}}"""
+    """installed_plugins.json → {플러그인명: {installPath, scope, version, active}}"""
     p = CLAUDE_DIR / "plugins" / "installed_plugins.json"
     if not p.is_file():
         return {}
     data = json.loads(p.read_text(encoding="utf-8"))
+    enabled = plugin_enabled_settings()
     out = {}
     for key, entries in data.get("plugins", {}).items():
         name = key.split("@", 1)[0]
         for e in entries:
             scope = e.get("scope", "user")
+            active = True
             if scope == "project" and Path(e.get("projectPath", "")).resolve() != Path.cwd().resolve():
                 scope = f"project({Path(e['projectPath']).name}) — 이 프로젝트에선 비활성"
-            out[name] = {"installPath": Path(e["installPath"]), "scope": scope, "version": e.get("version")}
+                active = False
+            if enabled.get(key) is False:
+                scope += ", 꺼짐"
+                active = False
+            out[name] = {"installPath": Path(e["installPath"]), "scope": scope, "version": e.get("version"), "active": active}
     return out
 
 
@@ -85,11 +103,12 @@ def catalog() -> dict:
     cat.update(scan_dir(PROJECT_SKILLS, "project"))
     for pname, info in installed_plugins().items():
         src = f"plugin:{pname} v{info['version']} [{info['scope']}]"
-        cat.update(scan_dir(info["installPath"] / "skills", src, f"{pname}:"))
+        for sid, v in scan_dir(info["installPath"] / "skills", src, f"{pname}:").items():
+            cat[sid] = {**v, "active": info["active"]}
         # commands/ 는 Claude Code가 스킬과 동일하게 /name 으로 노출한다. agents/ 는 서브에이전트 타입.
         for sub, kind in (("commands", "command"), ("agents", "agent")):
             for md in sorted((info["installPath"] / sub).glob("*.md")):
-                cat.setdefault(f"{pname}:{md.stem}", {"source": f"{src} {kind}", "path": md, **frontmatter(md)})
+                cat.setdefault(f"{pname}:{md.stem}", {"source": f"{src} {kind}", "path": md, "active": info["active"], **frontmatter(md)})
     return cat
 
 
@@ -140,10 +159,13 @@ def main(argv):
     print("## 설치 스킬")
     for s, n in sorted(by_source.items(), key=lambda kv: -kv[1]):
         print(f"- {s}: {n}")
-    meta = " ".join(f"{sid} {i['description']}" for sid, i in cat.items())
-    print(f"- 항상 로드 메타데이터(name+description) 총 {len(meta):,}자 ≈ {est_tokens(meta):,} 토큰 (추정)")
+    live = {sid: i for sid, i in cat.items() if i.get("active", True)}
+    meta = " ".join(f"{sid} {i['description']}" for sid, i in live.items())
+    off = len(cat) - len(live)
+    print(f"- 항상 로드 메타데이터(name+description) 총 {len(meta):,}자 ≈ {est_tokens(meta):,} 토큰 (추정"
+          + (f", 꺼졌거나 이 프로젝트에서 비활성인 {off}개 제외)" if off else ")"))
     print(f"  · 상위 5개 description 길이: " + ", ".join(
-        f"{sid}={len(i['description'])}" for sid, i in sorted(cat.items(), key=lambda kv: -len(kv[1]['description']))[:5]))
+        f"{sid}={len(i['description'])}" for sid, i in sorted(live.items(), key=lambda kv: -len(kv[1]['description']))[:5]))
 
     print(f"\n## 라우팅 표 검사 ({len(ROUTING_FILES)}개 파일, 참조 {len(refs)}개)")
     missing = {}
@@ -160,8 +182,8 @@ def main(argv):
     else:
         print("- 참조한 스킬 전부 설치됨 ✔")
 
-    unassigned = sorted(sid for sid in cat if sid not in refs)
-    print(f"- 설치됐지만 어느 라우팅 표에도 없는 스킬: {len(unassigned)}개"
+    unassigned = sorted(sid for sid, i in cat.items() if sid not in refs and i.get("active", True))
+    print(f"- 켜져 있지만 어느 라우팅 표에도 없는 스킬: {len(unassigned)}개"
           + ("" if "--unassigned" in argv else " (전체 목록: --unassigned)"))
     if "--unassigned" in argv:
         for sid in unassigned:
