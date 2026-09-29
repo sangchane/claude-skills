@@ -14,16 +14,18 @@ Claude Code **대화창에** 입력한다.
 /plugin install dev@sangchane
 ```
 
-함께 쓰는 플러그인 두 개도 설치한다(구현 절차 · 코드 적게 쓰기).
+함께 쓰는 superpowers(구현 절차)와 ponytail(코드 적게 쓰기)은 **자동으로 같이 설치된다.** 설치가 끝나면 **새 세션**을 연다.
 
-```
-/plugin marketplace add obra/superpowers-marketplace
-/plugin install superpowers@superpowers-marketplace
-/plugin marketplace add DietrichGebert/ponytail
-/plugin install ponytail@ponytail
-```
+<details>
+<summary>superpowers·ponytail을 예전에 따로 설치했다면</summary>
 
-설치가 끝나면 **새 세션**을 연다. 이미 설치돼 있으면 "이미 설치됨"만 나오고 넘어간다.
+같은 플러그인이 두 벌이 되니 예전 것을 지운다. 터미널에서 한 번.
+
+```bash
+claude plugin uninstall superpowers@superpowers-marketplace
+claude plugin uninstall ponytail@ponytail
+```
+</details>
 
 <details>
 <summary>새 서비스 설계를 자주 한다면 (선택)</summary>
@@ -327,6 +329,8 @@ python tools/export.py                     # 규칙·스킬을 Codex·Antigravit
 Remote Control 세션에서는 `/plugin`이 막혀 있으므로 같은 PC의 터미널에서 `claude plugin marketplace add <repo>` → `claude plugin install <name>@<marketplace>`를 쓴다.
 
 ## 변경 이력
+
+**2026-09-29 — superpowers·ponytail 자동 설치 (1.2.0).** `plugin.json`의 `dependencies`로 선언하고, 두 플러그인을 원본 GitHub 저장소 그대로 sangchane 마켓플레이스에 올렸다. 설치가 두 줄로 줄었다.
 
 **2026-09-29 — Codex·Antigravity 내보내기 (1.1.0 → 1.1.1).** `tools/export.py`가 `rules.md`를 각 도구 형식으로 바꿔 전역 규칙에 넣고 스킬 ui·setup을 복사한다. 규칙 원본은 `rules.md` 하나다.
 1.1.1: GPT-6·Gemini 3.x 기준으로 effort 문구를 모델 기본값 기준으로 바꾸고, Claude 전용 절차가 많은 design·build는 내보내지 않는다(예전 복사본은 자동 삭제).
