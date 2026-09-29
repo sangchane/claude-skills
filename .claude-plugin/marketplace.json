@@ -8,7 +8,7 @@
     {
       "name": "dev",
       "source": "./",
-      "description": "평소 말투로 개발을 시키는 개인 개발 키트 (설계 design · 구현 build · 화면 ui · 프로젝트 준비 setup · 안내 guide)"
+      "description": "말로 시키는 개발 키트: 일 크기에 맞춘 설계·구현·검증·리뷰, 세션 이어가기"
     }
   ]
 }
