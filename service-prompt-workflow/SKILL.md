@@ -39,7 +39,7 @@ SEED→RECON→INTERROGATE→PRD→ARCHITECT       Frame→Explore→Spec→Plan
   test-driven-development → verification-before-completion → requesting-code-review → finishing-a-development-branch.
   이 스킬은 어느 단계에서 무엇을 부를지만 정한다 (`references/skill-routing.md` "superpowers 경계"). autopilot을 거친 요청은
   brainstorming을 건너뛴다 — 핸드오프 프롬프트를 붙여 넣은 것이 설계 승인이다.
-- (구) solution-planner는 deprecated. 그 blueprint(05/06/07)를 입력으로 쓴 기존 문서도 여전히 유효하다.
+- (구) solution-planner는 삭제됐다(2026-09-29). 그 blueprint(05/06/07)를 입력으로 쓴 기존 문서는 여전히 유효하다.
 
 ## 규칙 (ETHOS)
 
@@ -59,7 +59,7 @@ SEED→RECON→INTERROGATE→PRD→ARCHITECT       Frame→Explore→Spec→Plan
 | # | 단계 | 목적 | 하드 게이트 (넘어야 다음 단계) | 산출물 |
 |---|---|---|---|---|
 | 0 | **BASE** | 저장소 상시 지침 | CLAUDE.md/AGENTS.md 존재·최신 | 저장소 지침 파일 |
-| 1 | **FRAME** | 무엇을·왜 | 사용자·문제·성공기준·범위경계 확정 (모르면 solution-planner) | frame 메모 |
+| 1 | **FRAME** | 무엇을·왜 | 사용자·문제·성공기준·범위경계 확정 (모르면 service-autopilot) | frame 메모 |
 | 2 | **EXPLORE** | 코드·패턴 먼저 읽기 | 관련 파일 최소 1곳을 실제로 읽고 인용 (plan mode, 읽기만) | 탐색 노트(file:line) |
 | 3 | **SPEC** | 자기완결 명세 | "낯선 구현자가 실행 가능" 점수 ≥ 7/10, 모호성 0 | `SPEC.md` |
 | 4 | **PLAN** | 순서 있는 작업 | 각 작업에 검증 가능한 완료기준 + 테스트 우선 표기 | `tasks.md` |

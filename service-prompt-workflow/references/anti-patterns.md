@@ -53,7 +53,7 @@ REVIEW 단계와 프론트엔드 작업 시 체크리스트로 적용한다. 세
 - [ ] 밀도 높은 관제 화면은 카드 박스 남발 대신 `border-t`/`divide-y`/여백으로 그룹화.
 
 > 정성 표현이 요구사항/기획에 등장하면("토스처럼", "직관적") **측정 가능 기준으로 변환**한 뒤 진행한다
-> (solution-planner의 quality-decomposition 원칙과 동일).
+> (service-autopilot `references/quality-decomposition.md` 원칙과 동일).
 
 ---
 

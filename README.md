@@ -7,7 +7,20 @@
 직접 부르고 싶으면 `/스킬이름 인자` 형태로 호출하고, **뭘 불러야 할지 모르면 `/sk <하고 싶은 것>`** 으로 물어본다.
 
 형식은 Anthropic Agent Skills 표준(agentskills.io 스펙 + Anthropic 작성 가이드 + Claude Code 확장)을 따른다.
-버전·갱신일은 각 SKILL.md 프론트매터 `metadata`에 있다.
+버전·갱신일은 각 SKILL.md 프론트매터 `metadata`에 있다. 모델 기준은 **Opus 5.5 메인 세션**(2026-09-29 점검)이다.
+
+## 구성
+
+| 스킬 | 역할 | 발동 |
+|---|---|---|
+| `service-autopilot` | 한 줄 아이디어 → 설계 패키지(PRD·아키텍처·API·테스트·운영) | 자동 |
+| `service-prompt-workflow` | 뭘 만들지 아는 상태 → 구현·검증·리뷰·배포 9단계 | 자동 |
+| `frontend-design-taste` | 웹 UI의 AI 티 제거, 하드룰 강제 | 자동(프론트 작업 시) |
+| `model-effort-router` | 작업별 모델·effort 판정, 이득일 때만 서브에이전트 위임 | 자동(CLAUDE.md 한 줄로 상시) |
+| `catch-up` | 세션 이어받기 구조(CLAUDE.md·AGENTS.md·NEXT.md) 1회 세팅 | `/catch-up` |
+| `sk` | 맞는 스킬 최대 3개 추천 | `/sk 문구` |
+| `_tools/` | 에이전트 정의 파일, 스킬 카탈로그·정합성 검사 | — |
+| `learned/` | `ecc:continuous-learning`이 세션 패턴에서 뽑은 스킬이 쌓이는 자리(현재 비어 있음) | — |
 
 ## 스킬 간 관계 (큰 그림)
 
@@ -18,21 +31,22 @@ service-autopilot        →   service-prompt-workflow   →   frontend-design-t
 A0~A7 + GATE                 0 BASE ~ 9 REFLECT               BUILD·REVIEW에서 참조
       │                            │
       └── 각 단계 진입 시 references/skill-routing.md 의 행을 읽어 설치된 전문 스킬(ecc:* 등)을 호출
-      └── 서브에이전트에 맡기는 단계·작업은 references/model-routing.md 로 모델 등급(opus/sonnet/haiku/fable)을 고름
+      └── 위임은 references/model-routing.md 가 정한 곳에서만, 그때의 모델 등급(opus/sonnet/haiku/fable)도 여기서
       └── 강도 spike/lite/full: 미확정이면 spike(엔진+시뮬 먼저), 아니면 A0 신호로 판정. 실측 lite 20만·full 70만 토큰(상한 25만·80만)
-                                   └── PLAN 이후는 superpowers(writing-plans → TDD → verification → code-review)로 넘김
+                                   └── PLAN 이후는 superpowers(writing-plans → executing-plans → TDD → verification → code-review)
+                                   └── 기본은 메인 세션에서 직접 구현. 위임 상한 동시 3·요청당 5
                                    └── BUILD·REVIEW 는 ponytail 결정 사다리(있으면 플러그인, 없으면 내장) 적용
 
-[경계 규칙]  ~/.claude/CLAUDE.md — 설계는 service-autopilot, 저장소 안 구현은 superpowers, 웹 UI는 frontend-design-taste (이름 부를 필요 없음)
-
+[파이프라인 밖]    model-effort-router — 일반 작업에서 모델·effort 판정과 위임 여부 (파이프라인 안에서는 각 model-routing.md 우선)
+[경계 규칙]        ~/.claude/CLAUDE.md — 설계는 service-autopilot, 저장소 안 구현은 superpowers, 웹 UI는 frontend-design-taste
 [세션 부트스트랩]  catch-up — 얇은 CLAUDE.md/AGENTS.md/NEXT.md 구조를 1회 세팅 (사용자 호출 전용)
 [스킬 추천]        sk — "/sk 문구" 로 맞는 스킬 최대 3개 추천
-[모델·추론 강도]   model-effort-router — 메인 모델 유지, 작업별 모델·effort 판정, 이득일 때만 서브에이전트 위임(상한 동시 3·요청당 5)
 [정비 도구]        _tools/skill_catalog.py — 설치 스킬 카탈로그 + 라우팅 표 정합성 검사
 ```
 
 비유하면: **autopilot이 건축 설계도를 그리고, prompt-workflow가 시공 순서를 지휘하고,
-design-taste가 인테리어 품질 기준을 잡는다.** 각 공정마다 어느 전문 업체(스킬)를 부를지는 라우팅 표에 적혀 있다.
+design-taste가 인테리어 품질 기준을 잡는다.** 각 공정마다 어느 전문 업체(스킬)를 부를지는 라우팅 표에,
+어느 공정을 하청(서브에이전트)에 줄지는 모델 라우팅 표에 적혀 있다. 기본은 직영(메인 세션)이다.
 
 ---
 
@@ -48,9 +62,8 @@ design-taste가 인테리어 품질 기준을 잡는다.** 각 공정마다 어�
   예: A1은 `ecc:research-ops`, A4는 `ecc:architecture-decision-records`+`ecc:security-review`, A5는 `ecc:api-design`,
   A6은 `ecc:tdd-workflow`, A7은 `ecc:deployment-patterns`. 미설치면 대체 절차. 사용 기록은 decision-log에 남는다.
 - **단계 진입 사전조사**: A3~A7은 각 단계의 결정에 필요한 근거를 정량(숫자+출처+확인일)·정성(실무자 인용)·사용자 영향 3줄로 산출물 상단에 남긴다.
-- **단계별 모델 라우팅** (`references/model-routing.md`): 메인 세션 모델은 못 바꾸므로 서브에이전트 `model`로 고른다 —
-  A1 조사는 `sonnet`, A4 독립 검토·GATE 검토관은 `opus`(생성 모델 이상), 판단 단계(A2~A5)는 위임하지 않는다.
-  08 핸드오프에 구현 작업 클래스별 `<model_hints>`를 붙인다.
+- **단계별 모델 라우팅** (`references/model-routing.md`): 위임은 세 곳뿐이다 — A1 조사 `sonnet`, A4 독립 검토·GATE 검토관은 생성 모델 이상.
+  판단 단계(A2~A5)는 위임하지 않는다. 08 핸드오프의 `<model_hints>`는 구현 쪽이 위임할 때 쓸 모델이다.
 - **강도 spike/lite/full**: 플랫폼·범위·핵심 루프가 미확정이면 spike(엔진+시뮬 워킹 스켈레톤 먼저, 10만 토큰). 아니면 A0에서 신호(돈·안전·법·민감정보, 외부 연동 2개↑, 사용자 100명↑, 하드웨어, 팀 2명↑, "납품")로 lite/full 판정.
   lite는 질문 0·검색 ≤5·위협모델 조건부·GATE 자기 점검(실측 20만, 상한 25만). full은 상한 80만(서브에이전트 포함). `/service-autopilot spike|lite|full …`로 강제 가능.
 - **자기 선언 검증**: GATE 전에 `python scripts/check_package.py autopilot/<slug>` — FR→05 커버리지, SC→06 시나리오, 미결정, register 마킹,
@@ -108,7 +121,22 @@ service-prompt-workflow의 BUILD·REVIEW에 프론트가 포함되면 자동 참
 
 ---
 
-## 4. catch-up — 세션 이어받기 부트스트랩 (1회 세팅, 사용자 호출 전용)
+## 4. model-effort-router — 모델·effort 라우터
+
+**메인 세션 모델은 그대로 두고, 작업마다 모델과 effort를 판정해 위임이 이득인 부분만 서브에이전트에 넘긴다.**
+Claude는 `/model`·`/effort`를 직접 못 바꾸고 스킬 프론트매터 `model:`·`effort:`는 그 턴에만 적용되므로, 작업 일부만 달리하는 실용적인 수단은 서브에이전트다. 서브에이전트는 별도 컨텍스트라 메인 캐시를 건드리지 않는다.
+
+- **판정**: 응답 첫 줄에 `라우팅: 메인 medium | 위임: sonnet·low CRUD 4개 — 독립 반복 작업` 형식으로 한 줄. 대부분은 `위임 없음`.
+- **effort**: Opus 5.5 기본 medium(= Opus 5의 high 이상). 여러 파일·원인 불명·설계는 high, xhigh·max는 한 단계 낮춰서 부족했던 작업만.
+- **모델**: 기계적 대량 `haiku`, 패턴 반복 묶음·대용량 읽기 `sonnet`, 판단 집약 `opus`, 장기 조사 `fable`(Opus 5.5의 2.5배 가격).
+- **위임 조건·상한**: 크고 독립적이거나 대용량 읽기일 때만. 동시 3개, 요청당 5개. 테스트 실행·짧은 작업·자기 검증은 위임하지 않는다.
+- **effort가 다른 위임**: `_tools/agents/deep-worker.md`(high), `quick-worker.md`(low)를 `~/.claude/agents/`에 복사(PC당 1회). 모델은 호출할 때 준다.
+- **세션 전체를 바꿀 때**: `/effort`는 Opus 5.5·Fable 5.1에서 캐시 유지, `/model`은 캐시를 버리므로 새 작업 시작 때만 권한다.
+- **항상 적용**: 아래 "새 PC 세팅"의 `~/.claude/CLAUDE.md` 두 줄.
+
+---
+
+## 5. catch-up — 세션 이어받기 부트스트랩 (1회 세팅, 사용자 호출 전용)
 
 **"지난 작업 확인" 스킬이 아니다.** 프로젝트에 얇은 `CLAUDE.md`(행동규칙 + `@AGENTS.md`) · `AGENTS.md`(크로스툴 단일 원본) ·
 `NEXT.md`(다음-할일) + SessionStart 훅 · 폴더별 `CLAUDE.md` · `WORKLOG.md` 구조를 **처음 한 번** 깔아 주는 스킬이다.
@@ -122,7 +150,7 @@ service-prompt-workflow의 BUILD·REVIEW에 프론트가 포함되면 자동 참
 
 ---
 
-## 5. sk — 스킬 추천기 (사용자 호출 전용)
+## 6. sk — 스킬 추천기 (사용자 호출 전용)
 
 스킬 이름을 몰라도 되게 하는 얇은 스킬. 라우팅 표 2개(사람이 근거를 단 1순위 후보)를 먼저 보고,
 없으면 설치 카탈로그를 의미로 훑어 최대 3개를 이유·실행 명령과 함께 추천한다.
@@ -136,32 +164,15 @@ service-prompt-workflow의 BUILD·REVIEW에 프론트가 포함되면 자동 참
 
 ---
 
-## 6. solution-planner — ⚠ 폐기됨 (2026-07-09)
+## _tools/agents/ — 서브에이전트 정의
 
-service-autopilot으로 대체됐다. 과거 산출물(`solution-planning/` 디렉토리) 해석용으로만 남겨둔다.
+`~/.claude/agents/`에 복사해 쓴다(PC당 1회). effort는 Agent 호출로 못 주므로 이 파일로 주고, 모델은 호출할 때 지정한다.
 
----
-
-## 7. model-effort-router — 모델·effort 라우터
-
-**메인 세션 모델은 그대로 두고, 작업마다 모델과 effort를 판정해 위임이 이득인 부분만 서브에이전트에 넘긴다.**
-Claude는 `/model`·`/effort`를 직접 못 바꾸고 스킬 프론트매터 `model:`·`effort:`는 그 턴에만 적용되므로, 작업 일부만 달리하는 실용적인 수단은 서브에이전트다. 서브에이전트는 별도 컨텍스트라 메인 캐시를 건드리지 않는다.
-
-- **판정**: 응답 첫 줄에 `라우팅: 메인 medium | 위임: sonnet·low CRUD 4개 — 독립 반복 작업` 형식으로 한 줄. 대부분은 `위임 없음`.
-- **effort**: Opus 5.5 기본 medium(= Opus 5의 high 이상). 여러 파일·원인 불명·설계는 high, xhigh·max는 한 단계 낮춰서 부족했던 작업만.
-- **모델**: 기계적 대량 `haiku`, 패턴 반복 묶음·대용량 읽기 `sonnet`, 판단 집약 `opus`, 장기 조사 `fable`(Opus 5.5의 2.5배 가격).
-- **위임 조건·상한**: 크고 독립적이거나 대용량 읽기일 때만. 동시 3개, 요청당 5개. 테스트 실행·짧은 작업·자기 검증은 위임하지 않는다.
-- **effort가 다른 위임**: `_tools/agents/deep-worker.md`(high), `quick-worker.md`(low)를 `~/.claude/agents/`에 복사(PC당 1회). 모델은 호출할 때 준다.
-  예전 `opus-deep.md`·`opus-quick.md`가 있으면 지운다.
-- **세션 전체를 바꿀 때**: `/effort`는 Opus 5.5·Fable 5.1에서 캐시 유지, `/model`은 캐시를 버리므로 새 작업 시작 때만 권한다.
-- **항상 적용**: `~/.claude/CLAUDE.md`에 아래 두 줄 (위는 이 스킬, 아래는 Anthropic "Prompting Claude Opus 5" 권장 문구를 줄인 것).
-
-```
-작업 시작 전 model-effort-router로 모델·effort를 판정한다.
-서브에이전트는 크고 서로 독립적인 작업에만 쓴다. 도구 호출 몇 번이면 끝나는 일과 내 작업을 다시 확인하는 일에는 쓰지 않고, 하나로 되면 하나만 띄운다.
-```
-
----
+| 파일 | effort | 쓰는 곳 |
+|---|---|---|
+| `fresh-reviewer.md` | high | autopilot A4 독립 검토·GATE, prompt-workflow REVIEW 정확성, eval judge (읽기 전용) |
+| `deep-worker.md` | high | 판단 집약·장기 조사 위임 (`model: opus` 또는 `fable`) |
+| `quick-worker.md` | low | 기계적 대량 작업 위임 (`model: haiku` 또는 `sonnet`) |
 
 ## _tools/ — 정비 도구
 
@@ -190,42 +201,48 @@ python _tools/skill_catalog.py --available  # 마켓플레이스에 있지만 �
 플러그인 사이 경계(누가 설계하고 누가 구현하나)는 `~/.claude/CLAUDE.md`에 사용자 지시로 둔다 — superpowers가 "사용자 지시 > 스킬"이라 명시하기 때문. 새 PC에서는 이 파일도 복사한다.
 Remote Control 세션에서는 `/plugin`이 막혀 있으므로 같은 PC의 터미널에서 `claude plugin marketplace add <repo>` → `claude plugin install <name>@<marketplace>`를 쓴다.
 
-## 다른 PC에서 쓰는 법
+## 새 PC 세팅
 
 ```bash
 git clone https://github.com/sangchane/claude-skills "$HOME/.claude/skills"
+mkdir -p ~/.claude/agents && cp ~/.claude/skills/_tools/agents/*.md ~/.claude/agents/
 ```
 
 Windows PowerShell:
 
 ```powershell
 git clone https://github.com/sangchane/claude-skills "$env:USERPROFILE\.claude\skills"
+Copy-Item "$env:USERPROFILE\.claude\skills\_tools\agents\*.md" "$env:USERPROFILE\.claude\agents\"
 ```
 
-플러그인(ecc·ponytail)은 이 저장소에 포함되지 않는다. 새 PC에서는 `/plugin marketplace add` → `/plugin install`로 따로 설치하고
+`~/.claude/CLAUDE.md`에는 경계 규칙과 함께 아래 두 줄을 둔다(위는 model-effort-router, 아래는 Anthropic "Prompting Claude Opus 5" 권장 문구를 줄인 것).
+
+```
+작업 시작 전 model-effort-router로 모델·effort를 판정한다.
+서브에이전트는 크고 서로 독립적인 작업에만 쓴다. 도구 호출 몇 번이면 끝나는 일과 내 작업을 다시 확인하는 일에는 쓰지 않고, 하나로 되면 하나만 띄운다.
+```
+
+플러그인(superpowers·ecc·ponytail)은 이 저장소에 포함되지 않는다. `/plugin marketplace add` → `/plugin install`로 따로 설치하고
 `python _tools/skill_catalog.py`로 라우팅 표가 가리키는 스킬이 다 있는지 확인한다.
 
 ## 평소 동기화 루틴
 
 - 스킬을 **고친 PC에서**: `git add . && git commit -m "무엇을 왜" && git push`
-- **다른 PC에서** 세션 시작 전: `git pull`
+- **다른 PC에서** 세션 시작 전: `git pull` (에이전트 파일이 바뀌었으면 `~/.claude/agents/`에 다시 복사)
 - 원칙: 원본은 GitHub 하나. 두 PC에서 동시에 같은 스킬을 고치지 않는다.
 - 스킬을 고치면 회귀 평가: autopilot은 `eval/PROTOCOL.md` 스모크(시드 3개), prompt-workflow는 `eval/` 대리 A/B.
 
-## 모델 세대 맞춤 (2026-09-29, Opus 5.5)
+## 변경 이력 (모델 세대 맞춤)
 
-Anthropic "Prompting Claude Opus 5.5"·"Migrating to Claude Opus 5.5"·"Prompting Claude Opus 5"·Effort 문서 기준으로 점검했다.
-- **위임 과다 수정**: 구현 단계 기본값을 "메인에서 직접"으로 바꾸고 위임 조건·상한(동시 3, 요청당 5)을 뒀다. BUILD 1순위를
-  `executing-plans`(같은 세션)로, EXPLORE 1순위를 직접 Read/Grep으로, VERIFY 실행은 메인으로 옮겼다.
-  원인은 `subagent-driven-development`의 작업당 서브에이전트 3개와 이 세대 모델의 높은 위임 성향이 겹친 것.
-- **사실 갱신**: `opus` = Opus 5.5(4/20 달러), `fable` 10/50 달러, 기본 effort(Opus 5.5 medium, Fable·Sonnet high), effort 변경 시 캐시 유지.
-- **정정**: "서브에이전트는 effort를 따로 못 준다"는 틀렸다 — 에이전트 정의 파일의 `effort:`로 준다.
-- **그대로 둔 것**: 09-08 감사에서 압력 어조·"신중히 생각하라"류 지시는 이미 빠져 있어 추가로 뺄 문장이 없었다.
-  autopilot 규칙·GATE·eval은 바꾸지 않았다(사실 갱신만). 구현 워크플로우의 위임 변경은 `eval/` A/B를 아직 돌리지 않았다.
+**2026-09-29 — Opus 5.5.** Anthropic "Prompting Claude Opus 5.5"·"Migrating to Claude Opus 5.5"·"Prompting Claude Opus 5"·Effort 문서 기준.
+- 위임 과다 수정: 구현 기본값을 "메인에서 직접"으로, 위임 조건·상한(동시 3, 요청당 5). BUILD 1순위 `executing-plans`, EXPLORE 직접 Read/Grep,
+  VERIFY 메인. 원인은 `subagent-driven-development`의 작업당 서브에이전트 3개와 이 세대 모델의 높은 위임 성향이 겹친 것.
+- `opus-effort-router` → `model-effort-router`(모델까지 판정). 에이전트 `opus-deep`/`opus-quick` → `deep-worker`/`quick-worker`.
+- 사실 갱신: `opus` = Opus 5.5(4/20 달러), `fable` 10/50 달러, 기본 effort(Opus 5.5 medium, Fable·Sonnet high), effort 변경 시 캐시 유지.
+  "서브에이전트는 effort를 따로 못 준다"는 틀려서 정정.
+- 정리: 폐기 상태로 남아 있던 `solution-planner` 삭제(git 기록에 남음). 설명문이 매 세션 로드되고 service-autopilot과 트리거가 겹쳤다.
+- 미실행: 구현 워크플로우 위임 변경의 `eval/` A/B.
 
-## 모델 세대 맞춤 (2026-09-08)
-
-Fable 5.1 기준으로 Anthropic prompt-audit(번들 `claude-api` 스킬)를 적용했다. 압력 어조·사건 서술·교육 문장·중복 절차를 뺐고,
-택소노미·라우팅·검사 스크립트·형식 계약·GATE는 그대로다. 검토·판정 서브에이전트는 `_tools/agents/fresh-reviewer.md`
-(`~/.claude/agents/`에 복사)로 띄우며, ponytail 페르소나는 구현 서브에이전트에만 주입된다(`~/.claude/settings.json` env
-`PONYTAIL_SUBAGENT_MATCHER`). 상세와 미완 A/B는 `service-autopilot/references/evidence.md`.
+**2026-09-08 — Fable 5.1.** Anthropic prompt-audit(번들 `claude-api` 스킬) 적용. 압력 어조·사건 서술·교육 문장·중복 절차를 뺐고
+택소노미·라우팅·검사 스크립트·형식 계약·GATE는 그대로. ponytail 페르소나는 구현 서브에이전트에만 주입(`~/.claude/settings.json` env
+`PONYTAIL_SUBAGENT_MATCHER`). 상세는 `service-autopilot/references/evidence.md`.
