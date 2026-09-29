@@ -1,79 +1,63 @@
-# 개인 Claude Code 스킬 모음
+# dev — 말로 시키는 개발 키트
 
-Claude Code에게 **평소 말투로 개발을 시키면, 일의 크기에 맞게 알아서 계획·구현·검증·리뷰까지 하도록** 만든 설정 모음이다.
-설치는 PC마다 한 번, 그 뒤로는 그냥 말하면 된다.
+Claude Code에게 **평소 말투로 개발을 시키면, 일의 크기에 맞게 알아서 설계·구현·검증·리뷰까지 하도록** 만든 플러그인이다.
+설치는 대화창에 두 줄, 그 뒤로는 그냥 말하면 된다. Windows·macOS 똑같다.
 
 ---
 
-## 1. 설치 (PC마다 처음 한 번)
+## 1. 설치
 
-**준비물**: Claude Code, git, Python. 아래는 Windows PowerShell 기준이다(macOS·Linux는 맨 아래 접힌 부분).
+Claude Code **대화창에** 입력한다.
 
-**① 스킬 내려받기** — PowerShell에 붙여넣는다.
-
-```powershell
-git clone https://github.com/sangchane/claude-skills "$env:USERPROFILE\.claude\skills"
+```
+/plugin marketplace add sangchane/claude-skills
+/plugin install dev@sangchane
 ```
 
-**② 설정 파일 두 가지 복사** — 작업 원칙(CLAUDE.md)과 도우미 에이전트 3개.
-
-```powershell
-$C = "$env:USERPROFILE\.claude"
-if (Test-Path "$C\CLAUDE.md") { Copy-Item "$C\CLAUDE.md" "$C\CLAUDE.md.bak" }
-Copy-Item "$C\skills\_tools\CLAUDE.global.md" "$C\CLAUDE.md"
-New-Item -ItemType Directory -Force "$C\agents" | Out-Null
-Copy-Item "$C\skills\_tools\agents\*.md" "$C\agents\"
-```
-
-**③ 플러그인 설치** — Claude Code를 켜고 **대화창에** 한 줄씩 입력한다.
+함께 쓰는 플러그인 두 개도 설치한다(구현 절차 · 코드 적게 쓰기).
 
 ```
 /plugin marketplace add obra/superpowers-marketplace
 /plugin install superpowers@superpowers-marketplace
 /plugin marketplace add DietrichGebert/ponytail
 /plugin install ponytail@ponytail
+```
+
+설치가 끝나면 **새 세션**을 연다. 이미 설치돼 있으면 "이미 설치됨"만 나오고 넘어간다.
+
+<details>
+<summary>새 서비스 설계를 자주 한다면 (선택)</summary>
+
+설계 도구 상자 ecc를 설치하고, 무거우니 평소엔 꺼 둔다. 설계하는 프로젝트에서만 켠다.
+
+```
 /plugin marketplace add https://github.com/affaan-m/ECC
 /plugin install ecc@ecc
 ```
-
-superpowers는 구현 절차, ponytail은 "코드 적게 쓰기", ecc는 새 서비스 설계용 도구 상자다.
-
-**④ ecc 끄기** — ecc는 무거워서 평소엔 꺼 두고 설계할 때만 켠다. PowerShell에서:
-
-```powershell
-claude plugin disable ecc --scope user
-```
-
-**⑤ 확인** — 아래를 실행해서 "참조한 스킬 전부 설치됨 ✔"이 나오면 끝이다.
-
-```powershell
-python "$env:USERPROFILE\.claude\skills\_tools\skill_catalog.py"
-```
-
-<details>
-<summary>macOS·Linux</summary>
-
 ```bash
-git clone https://github.com/sangchane/claude-skills ~/.claude/skills
-[ -f ~/.claude/CLAUDE.md ] && cp ~/.claude/CLAUDE.md ~/.claude/CLAUDE.md.bak
-cp ~/.claude/skills/_tools/CLAUDE.global.md ~/.claude/CLAUDE.md
-mkdir -p ~/.claude/agents && cp ~/.claude/skills/_tools/agents/*.md ~/.claude/agents/
-# ③ 플러그인 설치는 위와 같다 (Claude Code 대화창에서)
-claude plugin disable ecc --scope user
-python3 ~/.claude/skills/_tools/skill_catalog.py
+claude plugin disable ecc --scope user          # 평소엔 끔
+claude plugin enable ecc --scope project        # 설계하는 프로젝트 폴더에서만
 ```
 </details>
 
----
+## 2. 이름표
 
-## 2. 쓰는 법
+보통은 **안 쳐도 된다** — 말로 하면 맞는 것이 자동으로 뜬다. 직접 부르고 싶을 때만 `/dev:` 뒤에 한 단어.
+
+| 입력 | 언제 |
+|---|---|
+| `/dev:design` | 새 서비스를 처음 만들 때 (아이디어 → 설계 문서) |
+| `/dev:build` | 기능 만들기 · 버그 고치기 · 리뷰 · 커밋 |
+| `/dev:ui` | 화면 만들 때 (AI 티 안 나게) |
+| `/dev:setup` | 새 프로젝트 폴더에서 처음 한 번 |
+| `/dev:guide 하고 싶은 것` | 뭘 써야 할지 모를 때 |
+
+## 3. 쓰는 법
 
 **Claude는 목수다. 원하는 걸 평소 말투로 말하면, 목수가 일의 크기를 보고 방법을 고른다.**
 작은 수리는 바로 고치고, 방 하나는 한 장짜리 도면을 그리고, 집을 새로 지을 때만 설계부터 한다.
-스킬 이름도, 모델도 몰라도 된다.
 
-**새 프로젝트를 시작할 때 한 번만**: 프로젝트 폴더에서 Claude Code를 켜고 `/catch-up`을 입력한다(작업 일지를 붙여 두는 것).
-새 서비스를 설계할 프로젝트라면 PowerShell에서 `claude plugin enable ecc --scope project`도 한 번.
+**새 프로젝트를 시작할 때 한 번만** `/dev:setup`(작업 일지 NEXT.md를 붙여 두는 것). 그다음부터는 그냥 말한다.
 
 ### 상황별로 이렇게 말한다
 
@@ -107,77 +91,85 @@ python3 ~/.claude/skills/_tools/skill_catalog.py
 
 ---
 
-## 3. 최신화
+## 4. 업데이트
 
-스킬이 바뀌었을 때(다른 PC에서 고쳤거나 GitHub에 새로 올라왔을 때):
-
-```powershell
-cd "$env:USERPROFILE\.claude\skills"
-git pull
-Copy-Item _tools\CLAUDE.global.md "$env:USERPROFILE\.claude\CLAUDE.md"
-Copy-Item _tools\agents\*.md "$env:USERPROFILE\.claude\agents\"
+```
+/plugin update dev@sangchane
 ```
 
-Claude Code는 새 세션부터 바뀐 내용을 쓴다. 스킬을 직접 고쳤다면 그 PC에서 `git add . ; git commit -m "무엇을 왜" ; git push`.
-두 PC에서 같은 스킬을 동시에 고치지 않는다.
+매번 치기 귀찮으면 `/plugin` → Marketplaces → sangchane → 자동 업데이트를 켠다. 바뀐 내용은 새 세션부터 적용된다.
+
+## 5. 예전 방식에서 옮기기 (`~/.claude/skills`에 clone해 쓰던 PC)
+
+플러그인을 설치한 뒤, 예전 복사본이 같은 스킬을 두 번 띄우지 않게 치운다. **아무것도 지우지 않고 옮기기만 한다.**
+예전 저장소에 있던 스킬만 `skills-old`로 빠지고, 그 밖의 개인 스킬(archify·graphify 등)은 제자리에 남는다.
+**Claude Code를 모두 닫고** 실행한다.
+
+**Windows PowerShell**
+```powershell
+$C = "$env:USERPROFILE\.claude"
+$old = "service-autopilot","service-prompt-workflow","frontend-design-taste","catch-up","sk","solution-planner","opus-effort-router","model-effort-router","_tools","learned",".git",".gitignore",".gitattributes","README.md"
+New-Item -ItemType Directory -Force "$C\skills-old" | Out-Null
+Get-ChildItem -Force "$C\skills" | Where-Object { $old -contains $_.Name } | Move-Item -Destination "$C\skills-old" -Force
+Get-ChildItem "$C\agents" -Include fresh-reviewer.md,deep-worker.md,quick-worker.md -Recurse | Move-Item -Destination "$C\skills-old" -Force
+if (Test-Path "$C\CLAUDE.md") { Move-Item "$C\CLAUDE.md" "$C\CLAUDE.md.pre-plugin" -Force }
+```
+
+**macOS**
+```bash
+C=~/.claude; mkdir -p $C/skills-old
+for n in service-autopilot service-prompt-workflow frontend-design-taste catch-up sk solution-planner opus-effort-router model-effort-router _tools learned .git .gitignore .gitattributes README.md; do
+  [ -e "$C/skills/$n" ] && mv "$C/skills/$n" $C/skills-old/
+done
+for a in fresh-reviewer deep-worker quick-worker; do [ -f $C/agents/$a.md ] && mv $C/agents/$a.md $C/skills-old/; done
+[ -f $C/CLAUDE.md ] && mv $C/CLAUDE.md $C/CLAUDE.md.pre-plugin
+```
+
+- 전역 `CLAUDE.md`는 `CLAUDE.md.pre-plugin`으로 이름만 바꾼다. 작업 규칙은 이제 플러그인이 넣어 준다.
+  예전 CLAUDE.md에 **직접 적어 둔 개인 메모**가 있었다면 그 줄만 새 `~/.claude/CLAUDE.md`에 옮긴다
+  (Karpathy 4절이나 예전 규칙은 옮기지 않는다 — 플러그인 규칙과 중복).
+- 예전에 `/catch-up`으로 세팅한 프로젝트에는 `.claude/settings.json`의 `print_next_action.py` 훅 항목과 `tools/hooks/print_next_action.py` 파일이 있다.
+  둘 다 지운다(같은 내용을 두 번 넣는다). 그 프로젝트에서 `/dev:setup`을 돌리면 제거를 제안해 준다.
+- 새 세션에서 잘 동작하면 `skills-old`와 `CLAUDE.md.pre-plugin`은 지워도 된다.
 
 ---
 
 # 자세한 설명 (궁금할 때만)
 
-## 구조 — 어떻게 동작하나
-
-역할은 세 층으로 나뉜다.
+## 구조
 
 | 층 | 무엇 | 하는 일 |
 |---|---|---|
-| **전역 CLAUDE.md** (항상 로드) | `_tools/CLAUDE.global.md`를 `~/.claude/CLAUDE.md`로 복사 | 작업 원칙(Karpathy 가이드라인의 Opus 5.5판), 규모 판정, superpowers 경계, 모델·위임 규칙 |
-| **NEXT.md** (프로젝트 루트) | 스킬이 단계마다 덮어쓰는 "지금 어디까지 왔나" 블록 | "다음 진행해"·"이어서"가 여기서 이어진다. catch-up 훅이 세션 시작 때 주입 |
-| **스킬** (필요할 때만 로드) | autopilot · 구현 워크플로우 · 프론트 취향 | 단계별 절차 |
+| **규칙** `rules.md` | 세션 시작 훅(`hooks/session-start.sh`)이 매 세션 Claude에게 넣는다 | 작업 원칙(Karpathy 가이드라인의 Opus 5.5판) · 규모 판정(S·M·L) · superpowers 경계 · 모델·위임 규칙 |
+| **NEXT.md** (프로젝트 루트) | 스킬이 단계마다 덮어쓰는 "지금 어디까지 왔나" 블록 | 같은 훅이 세션 시작 때 함께 넣는다. "다음 진행해"가 여기서 이어진다 |
+| **스킬** `skills/` | design · build · ui · setup · guide | 필요할 때만 로드되는 단계별 절차 |
+| **에이전트** `agents/` | `dev:reviewer`(high) · `dev:deep`(high) · `dev:quick`(low) | 독립 리뷰, 깊은 작업, 대량 기계 작업 위임. 모델은 부를 때 준다 |
 
-| 등급 | 이런 요청 | 흐름 |
-|---|---|---|
-| **S** | "로그 한 줄 추가해", "이 변수 이름 바꿔" — 한 문장으로 설명되는 변경 | 바로 구현 → 검증 명령 1회. 문서 없음 |
-| **M** | "로그인에 소셜 로그인 붙여줘", "테트리스 만들어줘" — 기능 하나, 미니 프로젝트 | 1쪽 SPEC → 구현 → 검증 → 리뷰 1회. 게임은 버리는 프로토타입으로 재미부터 확인 |
-| **L 신규** | "회의실 예약 서비스 만들고 싶어", 모르는 도메인, 되돌리기 어려운 설계 결정 | autopilot 설계 패키지 → 구현 워크플로우 SPEC부터(버티컬 슬라이스 먼저) |
-| **L 변경** | 기존 저장소의 결제·인증·개인정보·마이그레이션 변경 | autopilot 없이 구현 워크플로우 전체 경로 + 보안 리뷰 |
-| 버그 | "결제 모듈 버그 고쳐줘" | 등급과 별개로 디버깅 분기(재현 → 원인 → 수정), 위험 모듈이면 리뷰 1회 더 |
-
-응답 첫 줄에 `등급: M — 기능 하나, 파일 여러 개`처럼 판정이 나온다. 틀렸으면 "S로 해"라고만 하면 된다.
-뭘 불러야 할지 궁금하면 `/sk <하고 싶은 것>`.
-
-## 구성
-
-| 스킬·파일 | 역할 | 발동 |
-|---|---|---|
-| `service-autopilot` | L 신규: 한 줄 아이디어 → 설계 패키지(PRD·아키텍처·API·테스트·운영) | 자동 |
-| `service-prompt-workflow` | M·L 구현과 버그: 등급별로 단계를 건너뛰는 구현·검증·리뷰·배포 | 자동 |
-| `frontend-design-taste` | 웹 UI의 AI 티 제거, 하드룰 강제 | 자동(프론트 작업 시) |
-| `catch-up` | 프로젝트에 CLAUDE.md·AGENTS.md·NEXT.md·세션 훅 구조를 1회 세팅 | `/catch-up` |
-| `sk` | 맞는 스킬 최대 3개 추천 | `/sk 문구` |
-| `_tools/CLAUDE.global.md` | 전역 `~/.claude/CLAUDE.md` 원본: 작업 원칙·이어가기·규모 판정·superpowers 경계·모델·위임 (32줄) | 항상 |
-| `_tools/agents/` | 서브에이전트 정의(fresh-reviewer·deep-worker·quick-worker) | 위임할 때 |
-| `_tools/skill_catalog.py` | 설치 스킬 카탈로그 + 라우팅 표 정합성 검사 | 수동 |
-| `learned/` | 세션에서 배운 패턴을 스킬로 쌓는 자리(현재 비어 있음) | — |
-| `archify`, `graphify` | 저장소 밖에서 따로 설치해 쓰는 외부 스킬(graphify는 `graphify install`로 재생성, git 추적 제외) | 자동 |
-
-**플러그인 구성 (2026-09-29)**: superpowers(구현 절차) · ponytail(단순함 사다리) · claude-dashboard는 켜 두고,
-ecc는 **평소 꺼 두고 autopilot을 돌리는 프로젝트에서만 켠다**(스킬 181개 설명문이 매 세션 로드된다), claude-mem은 끈다(NEXT.md·WORKLOG·자동 메모리와 중복).
+```
+.claude-plugin/plugin.json      플러그인 정보(이름 dev, 버전)
+.claude-plugin/marketplace.json 마켓플레이스 정보(이름 sangchane)
+rules.md                        작업 규칙 (훅이 주입)
+hooks/                          세션 시작 훅
+skills/design|build|ui|setup|guide
+agents/reviewer|deep|quick
+tools/skill_catalog.py          설치 스킬·토큰·라우팅 표 검사
+docs/                           과거 분석 기록
+```
 
 ## 흐름 (큰 그림)
 
 ```
-요청 ─→ 전역 CLAUDE.md 규모 판정 ─┬─ S ─→ 스킬 없이 바로 수정 → 검증 명령 1회
-                                   ├─ M ─→ service-prompt-workflow: FRAME 3줄 → SPEC(1쪽) → BUILD → VERIFY → REVIEW 1회
-                                   ├─ L 신규 ─→ service-autopilot: A0~A7 + GATE ─→ service-prompt-workflow: SPEC부터 (버티컬 슬라이스 먼저)
-                                   ├─ L 변경 ─→ service-prompt-workflow: FRAME~REFLECT 전체 + 보안 리뷰
-                                   └─ 버그 ─→ service-prompt-workflow: 디버깅 분기
-                                                                                         └─ 화면이 있으면 frontend-design-taste
+요청 ─→ dev 규칙 규모 판정 ─────┬─ S ─→ 스킬 없이 바로 수정 → 검증 명령 1회
+                                   ├─ M ─→ dev:build: FRAME 3줄 → SPEC(1쪽) → BUILD → VERIFY → REVIEW 1회
+                                   ├─ L 신규 ─→ dev:design: A0~A7 + GATE ─→ dev:build: SPEC부터 (버티컬 슬라이스 먼저)
+                                   ├─ L 변경 ─→ dev:build: FRAME~REFLECT 전체 + 보안 리뷰
+                                   └─ 버그 ─→ dev:build: 디버깅 분기
+                                                                                         └─ 화면이 있으면 dev:ui
 각 단계 끝 ─→ 루트 NEXT.md 갱신 ─→ 다음 세션 시작 때 훅이 주입 ─→ "다음 진행해"로 이어감
 위임 ─→ 기본은 메인 세션. 크고 독립적인 작업·대용량 읽기·최종 리뷰만 서브에이전트(동시 3·요청당 5)
 ```
 
-비유하면: **작은 수리는 바로 고치고(S), 방 하나 리모델링은 한 장짜리 도면으로(M), 집을 새로 지을 때만 설계 사무소(autopilot)를 부른다(L).**
+비유하면: **작은 수리는 바로 고치고(S), 방 하나 리모델링은 한 장짜리 도면으로(M), 집을 새로 지을 때만 설계 사무소(design)를 부른다(L).**
 공사 일지(NEXT.md)가 현장에 붙어 있어서 다음 날 누가 와도 이어서 일한다.
 
 ## 현업 근거 (2026-09-29 조사)
@@ -191,7 +183,7 @@ ecc는 **평소 꺼 두고 autopilot을 돌리는 프로젝트에서만 켠다**
 
 ---
 
-## 스킬: service-autopilot — 기획·설계 오토파일럿
+## /dev:design — 새 서비스 설계
 
 **L 신규 전용. 한 줄 아이디어를 "구현 착수 가능한 설계 패키지"로 바꾼다.** AI가 스스로 조사하고, 사각지대를 찾아 덮고,
 가정으로 못 덮는 위험한 결정만 객관식 최대 5문항으로 **딱 1번** 묻는다.
@@ -206,7 +198,7 @@ ecc는 **평소 꺼 두고 autopilot을 돌리는 프로젝트에서만 켠다**
 - **단계별 모델 라우팅** (`references/model-routing.md`): 위임은 세 곳뿐이다 — A1 조사 `sonnet`, A4 독립 검토·GATE 검토관은 생성 모델 이상.
   판단 단계(A2~A5)는 위임하지 않는다. 08 핸드오프의 `<model_hints>`는 구현 쪽이 위임할 때 쓸 모델이다.
 - **강도 spike/lite/full**: 플랫폼·범위·핵심 루프가 미확정이면 spike(엔진+시뮬 워킹 스켈레톤 먼저, 10만 토큰). 아니면 A0에서 신호(돈·안전·법·민감정보, 외부 연동 2개↑, 사용자 100명↑, 하드웨어, 팀 2명↑, "납품")로 lite/full 판정.
-  lite는 질문 0·검색 ≤5·위협모델 조건부·GATE 자기 점검(실측 20만, 상한 25만). full은 상한 80만(서브에이전트 포함). `/service-autopilot spike|lite|full …`로 강제 가능.
+  lite는 질문 0·검색 ≤5·위협모델 조건부·GATE 자기 점검(실측 20만, 상한 25만). full은 상한 80만(서브에이전트 포함). `/dev:design spike|lite|full …`로 강제 가능.
 - **자기 선언 검증**: GATE 전에 `python scripts/check_package.py autopilot/<slug>` — FR→05 커버리지, SC→06 시나리오, 미결정, register 마킹,
   버전 전파를 스크립트가 센다. CRITICAL이면 GATE 진입 금지.
 - **개정 전파·상수 표**: 산출물마다 `버전:`, 04~07은 `기준 03 v`. 숫자는 03 상수 표에만.
@@ -217,12 +209,12 @@ ecc는 **평소 꺼 두고 autopilot을 돌리는 프로젝트에서만 켠다**
 
 ```
 > 회의실 예약 서비스 만들고 싶어           ← 자동 발동
-> /service-autopilot 라즈베리파이로 IP 카메라 모니터링 서비스
+> /dev:design 라즈베리파이로 IP 카메라 모니터링 서비스
 ```
 
 ---
 
-## 스킬: service-prompt-workflow — 구현 워크플로우 (superpowers 위의 얇은 층)
+## /dev:build — 구현·버그·리뷰·커밋 (superpowers 위의 얇은 층)
 
 **실행 절차는 superpowers가 맡고, 이 스킬은 규모에 맞게 단계를 고르고 단계마다 어떤 스킬을 붙일지만 정한다.** (0.7.0, 77줄)
 
@@ -230,7 +222,7 @@ ecc는 **평소 꺼 두고 autopilot을 돌리는 프로젝트에서만 켠다**
   (게임·도구 프로토타입은 버리는 프로토타입으로 핵심 가설부터). L 신규는 autopilot 뒤 SPEC부터, 첫 작업 3개는 버티컬 슬라이스.
   L 변경(기존 저장소의 결제·인증 등)은 전체 경로 + `/security-review`. 버그는 `superpowers:systematic-debugging`.
 - **단계별로 붙이는 것**: PLAN `superpowers:writing-plans`, BUILD `superpowers:executing-plans`(같은 세션) + TDD + `ponytail:ponytail` 사다리
-  (+ 화면이면 `frontend-design-taste`), VERIFY `verification-before-completion`, REVIEW `/code-review` 1회(+ `ponytail-review` 선택),
+  (+ 화면이면 `dev:ui`), VERIFY `verification-before-completion`, REVIEW `/code-review` 1회(+ `ponytail-review` 선택),
   SHIP `finishing-a-development-branch`. FRAME이 `brainstorming`을 대신한다.
 - **위임**: 기본은 메인 세션. `subagent-driven-development`는 크고 독립적인 작업만, 요청당 작업 1개. 상한·모델은 `references/model-routing.md`.
 - **SPEC 템플릿**: `references/spec-template.md` (M 1쪽 / L 전체). 옛 단계별 복붙 템플릿은 superpowers와 겹쳐 삭제했다(git 기록에 있음).
@@ -244,71 +236,58 @@ ecc는 **평소 꺼 두고 autopilot을 돌리는 프로젝트에서만 켠다**
 
 ---
 
-## 스킬: frontend-design-taste — 프론트엔드 디자인 취향
+## /dev:ui — 화면 품질
 
 **웹 UI에서 "AI가 만든 티(slop)"를 없애고 의도된 고급 결과를 강제하는 취향 하네스.** React·Tailwind·Zustand 특화.
 3개 dial(밀도·모션·파격)과 프로파일(관제 8 / 제품 UI 5 / 랜딩 3)을 정하고, 하드룰 위반은 반려한다.
-service-prompt-workflow의 BUILD·REVIEW에 프론트가 포함되면 자동 참조된다.
+dev:build의 BUILD·REVIEW에 프론트가 포함되면 자동 참조된다.
 
 ---
 
-## 스킬: catch-up — 세션 이어받기 부트스트랩 (1회 세팅, 사용자 호출 전용)
+## /dev:setup — 프로젝트 준비 (처음 한 번, 직접 호출)
 
-**"지난 작업 확인" 스킬이 아니다.** 프로젝트에 얇은 `CLAUDE.md`(행동규칙 + `@AGENTS.md`) · `AGENTS.md`(크로스툴 단일 원본) ·
-`NEXT.md`(다음-할일) + SessionStart 훅 · 폴더별 `CLAUDE.md` · `WORKLOG.md` 구조를 **처음 한 번** 깔아 주는 스킬이다.
-그 뒤로는 세션 시작마다 훅이 `NEXT.md`의 현재 작업 블록을 자동 주입하므로, "지난 작업 이어서"는 아무 스킬도 부를 필요가 없다.
-상세 이력이 필요하면 `WORKLOG.md`를 읽는다. autopilot·구현 워크플로우가 단계마다 이 블록을 덮어써서 설계 → 구현이 자연스럽게 이어진다.
+프로젝트에 얇은 `CLAUDE.md`(`@AGENTS.md` 포인터) · `AGENTS.md`(다른 AI 툴과 같이 쓰는 단일 원본) · `NEXT.md`(지금 할 일) · `WORKLOG.md`(히스토리) ·
+폴더별 `CLAUDE.md`를 **처음 한 번** 만든다. 바꾸기 전에 diff를 보여주고 승인받는다.
+세션마다 `NEXT.md`의 현재 작업을 넣는 일은 dev 플러그인의 세션 시작 훅이 하므로, 프로젝트에 따로 훅을 깔지 않는다.
 
 ```
-> /catch-up                                   ← diff를 먼저 보여주고 승인 후 적용
-> /catch-up --tools antigravity,cursor
+> /dev:setup
+> /dev:setup --tools antigravity,cursor
 ```
 
 ---
 
-## 스킬: sk — 스킬 추천기 (사용자 호출 전용)
+## /dev:guide — 뭘 써야 할지 안내 (직접 호출)
 
 스킬 이름을 몰라도 되게 하는 얇은 스킬. 라우팅 표 2개(사람이 근거를 단 1순위 후보)를 먼저 보고,
 없으면 설치 카탈로그를 의미로 훑어 최대 3개를 이유·실행 명령과 함께 추천한다.
 
 ```
-> /sk 회의실 예약 서비스 기획 시작하고 싶어
-> /sk 지난 작업 이어서            ← "스킬 필요 없음, 훅이 이미 주입함" 이라고 알려준다
+> /dev:guide 회의실 예약 서비스 기획 시작하고 싶어
+> /dev:guide 지난 작업 이어서            ← "스킬 필요 없음, 훅이 이미 주입함" 이라고 알려준다
 ```
 
 이미 이름을 아는 요청에는 쓰지 않는다. 그냥 그 스킬을 부르는 게 빠르다.
 
 ---
 
-## _tools/ — 전역 규칙·에이전트·정비 도구
-
-**`CLAUDE.global.md`** — 전역 `~/.claude/CLAUDE.md` 원본(32줄). 이 파일 전체를 복사해 쓴다.
-- **작업 원칙 6줄**: Karpathy 가이드라인을 Anthropic "Prompting Claude Opus 5/5.5" 권장 문구에 맞춰 줄였다. 범위대로 하기 · 해석이 크게 갈릴 때만 묻기 ·
-  최소 코드 · 외과적 변경 · 영향 있는 오류만 정정 · 할 수 있는 다음 단계는 멈추지 않고 진행. "검증될 때까지 반복"은 뺐다(모델이 스스로 검증하고,
-  명시 지시는 과잉 검증을 낳는다는 Opus 5 가이드). 단순함의 세부 기준은 ponytail이, 검증 절차는 superpowers가 맡는다.
-- **이어가기 · 규모 판정 · superpowers 경계 · 모델·effort·위임**: 위 "쓰는 법" 참고.
-- 프로젝트 CLAUDE.md에는 행동 규칙을 두지 않는다(catch-up 템플릿이 전역 포인터 + `@AGENTS.md`만 만든다). 예전 프로젝트에 Karpathy 4절이 있으면 지운다.
-
-**`agents/`** — `~/.claude/agents/`에 복사해 쓴다. effort는 Agent 호출로 못 주므로 이 파일로 주고, 모델은 호출할 때 지정한다.
-
-| 파일 | effort | 쓰는 곳 |
-|---|---|---|
-| `fresh-reviewer.md` | high | autopilot A4 독립 검토·GATE, 구현 REVIEW 정확성, eval judge (읽기 전용) |
-| `deep-worker.md` | high | 판단 집약·장기 조사 위임 (`model: opus` 또는 `fable`) |
-| `quick-worker.md` | low | 기계적 대량 작업 위임 (`model: haiku` 또는 `sonnet`) |
-
-**`skill_catalog.py`**
+## 도구
 
 ```bash
-python _tools/skill_catalog.py              # 설치 스킬 요약 + 항상-로드 메타데이터 토큰 추정 + 라우팅 표 정합성 검사
-python _tools/skill_catalog.py --catalog    # 설치 스킬 전체 목록 (id | 출처 | description)
-python _tools/skill_catalog.py --unassigned # 설치됐지만 어느 라우팅 표에도 없는 스킬
-python _tools/skill_catalog.py --available  # 마켓플레이스에 있지만 미설치인 플러그인
+python tools/skill_catalog.py              # 켜진 스킬 수 · 항상 로드 설명문 토큰 · 라우팅 표 검사
+python tools/skill_catalog.py --catalog    # 전체 목록 (id | 출처 | description)
+python tools/skill_catalog.py --unassigned # 켜져 있지만 라우팅 표에 없는 스킬
+python tools/skill_catalog.py --available  # 마켓플레이스에 있지만 미설치인 플러그인
 ```
 
-스킬 id 표기: 플러그인 `ecc:api-design`, 번들 `/code-review`, 개인 `frontend-design-taste`.
-토큰 합계는 settings의 `enabledPlugins`(user < project < local)를 읽어 꺼진 플러그인과 다른 프로젝트 전용 플러그인을 뺀 값이다. 꺼진 플러그인의 스킬도 "설치됨"으로 보고 라우팅 검사에서는 미설치로 치지 않는다.
-라우팅 표가 미설치 스킬을 가리키면 종료코드 1.
+설치된 플러그인 폴더나 이 저장소를 clone한 곳에서 실행한다. 꺼진 플러그인(`enabledPlugins`, user < project < local)은 토큰 합계에서 뺀다.
+
+## 스킬을 고칠 때
+
+1. 이 저장소를 clone해서 고친다.
+2. `.claude-plugin/plugin.json`의 `version`을 올린다 — **안 올리면 `/plugin update`가 "이미 최신"이라며 받지 않는다.**
+3. 커밋·푸시. 다른 PC는 `/plugin update dev@sangchane`.
+4. 회귀 평가: design은 `skills/design/eval/PROTOCOL.md` 스모크(시드 3개), build는 `skills/build/evals/evals.json`.
 
 ## 외부 스킬 흡수 기준
 
@@ -322,10 +301,15 @@ python _tools/skill_catalog.py --available  # 마켓플레이스에 있지만 �
 6. **컨텍스트 비용**: description이 항상 로드된다. 플러그인 하나가 수십 개 스킬을 들여오면 `--catalog`로 토큰 추정치를 보고 결정.
 
 흡수 완료: `ponytail`(121k★, 2026-09-04), `superpowers`(281k★, 2026-09-07 — 구현 단계 엔진으로 배선). 후보(미설치): `skill-creator`(공식 마켓, 스킬 평가 도구).
-플러그인 사이 경계(누가 설계하고 누가 구현하나)는 `~/.claude/CLAUDE.md`에 사용자 지시로 둔다 — superpowers가 "사용자 지시 > 스킬"이라 명시하기 때문. 새 PC에서는 이 파일도 복사한다.
+플러그인 사이 경계(누가 설계하고 누가 구현하나)는 dev 규칙(`rules.md`)에 사용자 지시로 둔다 — superpowers가 "사용자 지시 > 스킬"이라 명시하기 때문. 플러그인을 설치하면 같이 들어온다.
 Remote Control 세션에서는 `/plugin`이 막혀 있으므로 같은 PC의 터미널에서 `claude plugin marketplace add <repo>` → `claude plugin install <name>@<marketplace>`를 쓴다.
 
 ## 변경 이력
+
+**2026-09-29 — 플러그인으로 전환.** clone·파일 복사 설치를 없애고 `dev@sangchane` 플러그인으로 묶었다. 이름을 짧게:
+service-autopilot → `design`, service-prompt-workflow → `build`, frontend-design-taste → `ui`, catch-up → `setup`, sk → `guide`,
+에이전트 fresh-reviewer·deep-worker·quick-worker → `reviewer`·`deep`·`quick`. 전역 CLAUDE.md 복사 대신 세션 시작 훅이 `rules.md`와 NEXT.md 현재 작업을 넣는다.
+setup은 프로젝트별 훅을 더 이상 깔지 않는다. 산출물 폴더 이름 `autopilot/<slug>/`는 검사 스크립트·평가 호환을 위해 그대로 둔다.
 
 **2026-09-29 — 플러그인 정리.** 실측(항상 로드 설명문 약 1만 9천 토큰, 대부분 ecc) 기준으로 ecc는 평소 끄고 autopilot 프로젝트에서만 켜기,
 claude-mem 끄기 → **항상 로드 설명문 약 1만 9,013 토큰 → 2,614 토큰(약 86% 감소, 사용자 PC `skill_catalog.py` 실측)**. 구현 워크플로우 라우팅에서 ecc 49개 참조를 빼고 superpowers·ponytail·번들 명령만 남겼다(santa-method → `/security-review` + 다른 등급 fresh-reviewer).

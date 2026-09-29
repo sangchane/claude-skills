@@ -1,0 +1,14 @@
+{
+  "name": "sangchane",
+  "description": "sangchane의 개인 Claude Code 플러그인 모음",
+  "owner": {
+    "name": "sangchane"
+  },
+  "plugins": [
+    {
+      "name": "dev",
+      "source": "./",
+      "description": "평소 말투로 개발을 시키는 개인 개발 키트 (설계 design · 구현 build · 화면 ui · 프로젝트 준비 setup · 안내 guide)"
+    }
+  ]
+}
