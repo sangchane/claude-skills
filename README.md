@@ -132,6 +132,26 @@ for a in fresh-reviewer deep-worker quick-worker; do [ -f $C/agents/$a.md ] && m
   둘 다 지운다(같은 내용을 두 번 넣는다). 그 프로젝트에서 `/dev:setup`을 돌리면 제거를 제안해 준다.
 - 새 세션에서 잘 동작하면 `skills-old`와 `CLAUDE.md.pre-plugin`은 지워도 된다.
 
+## 6. Codex · Antigravity에서도 쓰기
+
+같은 규칙(등급 S·M·L, NEXT.md 이어가기)과 스킬 design·build·ui·setup을 두 도구의 **전역 설정**에 복사한다. 터미널에서 한 번.
+
+```bash
+git clone https://github.com/sangchane/claude-skills   # 처음 한 번 (이미 있으면 git pull)
+cd claude-skills
+python tools/export.py              # 둘 다. 하나만: python tools/export.py codex
+```
+
+| 도구 | 규칙이 들어가는 곳 | 스킬이 들어가는 곳 | 부르는 법 |
+|---|---|---|---|
+| Codex | `~/.codex/AGENTS.md` (기존 내용은 두고 `dev:start~end` 블록만 교체) | `~/.agents/skills/` | `$build`, `$design` … 또는 그냥 말하기 |
+| Antigravity | `~/.gemini/config/rules/dev.md` | `~/.gemini/config/skills/` | 그냥 말하기 |
+
+- 저장소가 바뀌면 `git pull` 후 같은 명령을 다시 돌린다. 같은 이름의 **다른** 스킬이 이미 있으면 덮어쓰지 않고 "건너뜀"이라고 알려 준다.
+- Claude Code와 다른 점: 세션 시작 훅이 없어서 NEXT.md는 에이전트가 규칙대로 직접 읽는다. guide 스킬과 reviewer·deep·quick 에이전트는 없고, 리뷰는 같은 에이전트가 별도 단계로 한다.
+  superpowers·ponytail이 없으면 그 단계를 규칙대로 직접 수행한다.
+- 모델·effort는 두 도구 모두 **사용자가** 바꾼다(Codex `/model`, Antigravity 모델·모드 선택). 등급과 크게 어긋날 때만 에이전트가 바꾸라고 한 줄로 권한다.
+
 ---
 
 # 자세한 설명 (궁금할 때만)
@@ -153,6 +173,7 @@ hooks/                          세션 시작 훅
 skills/design|build|ui|setup|guide
 agents/reviewer|deep|quick
 tools/skill_catalog.py          설치 스킬·토큰·라우팅 표 검사
+tools/export.py                 규칙·스킬을 Codex·Antigravity로 복사
 docs/                           과거 분석 기록
 ```
 
@@ -278,6 +299,7 @@ python tools/skill_catalog.py              # 켜진 스킬 수 · 항상 로드 
 python tools/skill_catalog.py --catalog    # 전체 목록 (id | 출처 | description)
 python tools/skill_catalog.py --unassigned # 켜져 있지만 라우팅 표에 없는 스킬
 python tools/skill_catalog.py --available  # 마켓플레이스에 있지만 미설치인 플러그인
+python tools/export.py                     # 규칙·스킬을 Codex·Antigravity 전역 설정으로 복사 (6절)
 ```
 
 설치된 플러그인 폴더나 이 저장소를 clone한 곳에서 실행한다. 꺼진 플러그인(`enabledPlugins`, user < project < local)은 토큰 합계에서 뺀다.
@@ -305,6 +327,8 @@ python tools/skill_catalog.py --available  # 마켓플레이스에 있지만 미
 Remote Control 세션에서는 `/plugin`이 막혀 있으므로 같은 PC의 터미널에서 `claude plugin marketplace add <repo>` → `claude plugin install <name>@<marketplace>`를 쓴다.
 
 ## 변경 이력
+
+**2026-09-29 — Codex·Antigravity 내보내기 (1.1.0).** `tools/export.py`가 `rules.md`를 각 도구 형식으로 바꿔 전역 규칙에 넣고 스킬 4개를 복사한다. 규칙 원본은 `rules.md` 하나다.
 
 **2026-09-29 — 플러그인으로 전환.** clone·파일 복사 설치를 없애고 `dev@sangchane` 플러그인으로 묶었다. 이름을 짧게:
 service-autopilot → `design`, service-prompt-workflow → `build`, frontend-design-taste → `ui`, catch-up → `setup`, sk → `guide`,

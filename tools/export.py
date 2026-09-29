@@ -1,0 +1,73 @@
+# dev 규칙(rules.md)과 스킬을 Codex·Antigravity 전역 설정으로 내보낸다. 다시 실행하면 최신본으로 덮어쓴다.
+import os, re, shutil, sys
+from pathlib import Path
+
+REPO = Path(__file__).resolve().parent.parent
+SKILLS = ["design", "build", "ui", "setup"]  # guide는 Claude 플러그인 목록을 읽는 스킬이라 제외
+MARK = ".dev-sangchane"  # 이 파일이 있는 스킬 폴더만 덮어쓴다
+START, END = "<!-- dev:start -->", "<!-- dev:end -->"
+
+TOOL = {
+    "codex": """## 모델·effort·위임
+- 모델과 reasoning effort는 사용자가 `/model`로 고른다. 나는 바꾸지 못한다. 등급에 맞는 수준은 S low, M medium, L high다. L 작업을 low로 하거나 S 작업을 xhigh로 하고 있을 때만 `/model`로 바꾸라고 한 줄로 권한다.
+- 스킬은 `$build`, `$design`, `$ui`, `$setup`으로 부르거나 요청에 맞으면 스스로 쓴다.""",
+    "antigravity": """## 모델·모드·위임
+- 모델과 모드(Planning·Fast)는 사용자가 에이전트 패널에서 고른다. 나는 바꾸지 못한다. S는 Fast, M·L은 Planning이 맞다. L 작업을 Fast로 하고 있을 때만 Planning으로 바꾸라고 한 줄로 권한다.
+- 스킬 design, build, ui, setup은 요청에 맞으면 스스로 쓴다.""",
+}
+COMMON = "- 스킬 본문의 `dev:X`는 스킬 `X`다. 본문이 없는 이름(`superpowers:*`, `ponytail:*`, `ecc:*`, `reviewer`·`deep`·`quick` 에이전트)을 가리키면, 그 이름이 뜻하는 단계를 직접 수행한다. 리뷰는 구현을 마친 뒤 diff만 다시 읽는 별도 단계로 한다."
+
+
+def rules_for(tool):
+    t = (REPO / "rules.md").read_text(encoding="utf-8")
+    t = re.sub(r"<!--.*?-->\n*", "", t, flags=re.S)
+    t = t.split("## 모델·effort·위임")[0]
+    t = t.replace("(dev 플러그인 세션 시작 훅이 이미 넣어 둔다)", "").replace("`dev:", "`")
+    t = re.sub(r"- superpowers 스킬은.*\n", "", t)
+    return t.rstrip() + "\n\n" + TOOL[tool] + "\n" + COMMON + "\n"
+
+
+def write_block(path, body):
+    old = path.read_text(encoding="utf-8") if path.exists() else ""
+    block = f"{START}\n{body}{END}\n"
+    if START in old and END in old:
+        new = old[: old.index(START)] + block + old[old.index(END) + len(END) :].lstrip("\n")
+    else:
+        new = (old.rstrip() + "\n\n" if old.strip() else "") + block
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(new, encoding="utf-8")
+
+
+def copy_skills(dest):
+    for name in SKILLS:
+        d = dest / name
+        if d.exists() and not (d / MARK).exists():
+            print(f"  건너뜀: {d} (같은 이름의 다른 스킬이 있음)")
+            continue
+        shutil.rmtree(d, ignore_errors=True)
+        shutil.copytree(REPO / "skills" / name, d, ignore=shutil.ignore_patterns("eval", "evals", "__pycache__"))
+        (d / MARK).write_text("dev@sangchane에서 복사됨. tools/export.py가 덮어쓴다.\n", encoding="utf-8")
+        print(f"  스킬: {d}")
+
+
+def main(tools):
+    home = Path.home()
+    for tool in tools:
+        print(tool)
+        if tool == "codex":
+            codex = Path(os.environ.get("CODEX_HOME", home / ".codex"))
+            write_block(codex / "AGENTS.md", rules_for(tool))
+            print(f"  규칙: {codex / 'AGENTS.md'}")
+            copy_skills(home / ".agents" / "skills")
+        elif tool == "antigravity":
+            p = home / ".gemini" / "config" / "rules" / "dev.md"
+            p.parent.mkdir(parents=True, exist_ok=True)
+            p.write_text("---\ntrigger: always_on\n---\n\n" + rules_for(tool), encoding="utf-8")
+            print(f"  규칙: {p}")
+            copy_skills(home / ".gemini" / "config" / "skills")
+        else:
+            sys.exit(f"알 수 없는 도구: {tool} (codex, antigravity 중에서)")
+
+
+if __name__ == "__main__":
+    main(sys.argv[1:] or ["codex", "antigravity"])
