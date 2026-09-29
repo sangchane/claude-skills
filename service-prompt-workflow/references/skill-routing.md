@@ -19,7 +19,7 @@
 | 0 BASE | `catch-up` (얇은 CLAUDE.md + AGENTS.md + NEXT 구조, 사용자 호출 전용) · 낯선 저장소면 `ecc:codebase-onboarding` | 템플릿 0) | 항상-로드 층을 얇게 |
 | 1 FRAME | 저장소 안 bounded 변경·spike면 `superpowers:brainstorming` (질문 1개씩, 승인 게이트) · 새 서비스면 `service-autopilot` (brainstorming 생략) | `ecc:product-lens` | 성공기준·범위경계 |
 | 2 EXPLORE | 직접 Read/Grep · `ecc:search-first` (기존 도구·패턴 우선) | 여러 모듈을 넓게 훑어야 할 때만 Explore 서브에이전트(내장) | 수정 없는 탐색, file:line 인용 |
-| 3 SPEC | `ecc:product-capability` · API면 `ecc:api-design` | 템플릿 3) | 제약·불변식·인터페이스 명시 |
+| 3 SPEC | `ecc:product-capability` · API면 `ecc:api-design` | `spec-template.md` | 제약·불변식·인터페이스 명시 |
 | 4 PLAN | `superpowers:writing-plans` (2~5분 작업, 파일 경로·인터페이스·실패테스트→구현→커밋 사이클, 자리표시자 금지) · 다세션이면 `ecc:blueprint` | 템플릿 4) · `ecc:prp-plan` | 낯선 구현자가 그대로 실행 가능한 계획. **순서는 위험 우선 + 워킹 스켈레톤 먼저** (아래 경계 절) |
 | 5 BUILD | `superpowers:executing-plans` (같은 세션, 배치 체크포인트) + `ponytail:ponytail` 사다리. `superpowers:subagent-driven-development`(작업마다 구현 서브에이전트 + 2단계 리뷰 = 3개)는 작업이 크고 서로 독립이며 한 세션 컨텍스트에 안 들어갈 때만, 요청당 작업 1개씩(상한 5 안) · 스택 패턴 1개 — `ecc:python-patterns` `ecc:golang-patterns` `ecc:rust-patterns` `ecc:kotlin-patterns` `ecc:dotnet-patterns` `ecc:frontend-patterns` `ecc:backend-patterns` `ecc:springboot-patterns` `ecc:django-patterns` `ecc:nestjs-patterns` `ecc:laravel-patterns` `ecc:swiftui-patterns` `ecc:dart-flutter-patterns` 중 해당 | 템플릿 5) `<ladder>` | 안 써도 되는 코드를 안 쓰게. 스택 관례 |
 | 5 BUILD 테스트 | `superpowers:test-driven-development` (RED→GREEN→REFACTOR) + 언어별 `ecc:python-testing` `ecc:golang-testing` `ecc:rust-testing` `ecc:kotlin-testing` `ecc:csharp-testing` `ecc:cpp-testing` | `ecc:tdd-workflow` · 템플릿 5) | 실패 테스트 먼저. 커버리지는 SPEC 리스크 기반 |
@@ -46,13 +46,13 @@ superpowers는 SessionStart 훅으로 `superpowers:using-superpowers`를 매 세
 - **PLAN 순서 규칙** (writing-plans가 주지 않는 것): ① 첫 작업 3개는 워킹 스켈레톤 — 핵심 여정 하나를 입력→저장→조회까지 얇게 끝까지.
   ② 그다음은 Impact×Uncertainty가 큰 작업부터 (로그인·화면은 보통 마지막). ③ 작업의 "됐다" = 빈/에러 상태 있음 + 저장 후 재조회 됨 + 다음 화면 스텁 있음.
   로그인까지만 예쁘고 그 뒤에서 막히는 패턴은 ①②를 어겨서 생긴다.
-- **템플릿 4)~8)은 대체용.** superpowers가 없는 PC에서만 `prompt-templates.md`의 해당 블록을 쓴다.
+- **대체 템플릿은 삭제했다(0.7.0).** superpowers가 없는 PC는 플러그인을 먼저 설치한다. 옛 템플릿은 git 기록에 있다.
 
 ## ponytail 배선 (BUILD·REVIEW)
 
 - **설치**: `/plugin marketplace add DietrichGebert/ponytail` 다음 프롬프트에서 `/plugin install ponytail@ponytail`.
   설치되면 훅이 매 세션·매 서브에이전트에 사다리를 주입하고 `/ponytail lite|full|ultra|off`로 강도를 바꾼다. 기본 full.
-- **BUILD 진입**: 코드를 쓰기 전에 사다리를 탄다 (`prompt-templates.md` 5)의 `<ladder>`). 문제를 다 읽은 뒤에 탄다 — 사다리는 해법을 줄이지 읽기를 줄이지 않는다.
+- **BUILD 진입**: 코드를 쓰기 전에 사다리를 탄다 (아래 내장 사다리). 문제를 다 읽은 뒤에 탄다 — 사다리는 해법을 줄이지 읽기를 줄이지 않는다.
 - **REVIEW**: `/code-review`로 정확성을 본 뒤 `ponytail:ponytail-review`로 삭제 후보만 한 줄씩 받는다 (`net: -N lines`).
 - **내장 사다리 (미설치 대체)**: 1 필요한가(YAGNI) → 2 이 코드베이스에 이미 있나 → 3 표준 라이브러리 → 4 플랫폼 네이티브
   (`<input type="date">`, CSS, DB 제약) → 5 이미 설치된 의존성 → 6 한 줄로 되나 → 7 그제야 최소 코드.
@@ -76,8 +76,8 @@ superpowers는 SessionStart 훅으로 `superpowers:using-superpowers`를 매 세
   여기에 `using-superpowers`의 "1%라도 해당되면 스킬"과 ecc 리뷰어의 "MUST BE USED"가 겹치면 위임이 불어난다.
   → BUILD 기본은 `executing-plans`(같은 세션), 리뷰는 기능 단위로 REVIEW에서 1회. 상한은 `model-routing.md` "위임 여부".
   리뷰어 서브에이전트를 띄우는 스킬(`requesting-code-review`, `/code-review`, 언어별 리뷰어)은 정확성 리뷰 1회 안에서 하나만.
-- **질문 방식**: ponytail "기본값으로 진행하고 같은 응답에서 묻는다" vs ETHOS 1 "방향 전환은 한 번에 하나".
-  → 범위 안의 구현 결정은 ponytail 방식, **범위·방향 변경은 ETHOS 1**.
+- **질문 방식**: ponytail "기본값으로 진행하고 같은 응답에서 묻는다" vs 전역 CLAUDE.md "해석에 따라 결과물이 크게 달라질 때만 묻는다" (구 ETHOS 1 "방향 전환은 한 번에 하나".
+  → 범위 안의 구현 결정은 ponytail 방식, **범위·방향 변경은 한 번에 하나씩 묻는다**.
 - **서브에이전트 주입**: ponytail 훅은 모든 서브에이전트에 사다리를 넣는다. REVIEW·GATE 판정자가 "짧은 쪽 선호" 편향을
   가질 수 있다. 판정 프롬프트에 "길이는 품질이 아니다"가 있어야 한다 (autopilot `judge-prompt.md`에 있음).
   코딩 에이전트로 한정하려면 `PONYTAIL_SUBAGENT_MATCHER` 환경변수.

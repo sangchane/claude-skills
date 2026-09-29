@@ -12,7 +12,7 @@
 
 | 층 | 무엇 | 하는 일 |
 |---|---|---|
-| **전역 CLAUDE.md** (항상 로드) | `_tools/CLAUDE.global.md`를 `~/.claude/CLAUDE.md`에 넣는다 | 요청마다 규모를 S·M·L로 판정하고 맞는 스킬로 보낸다. 모델·effort·위임 규칙 |
+| **전역 CLAUDE.md** (항상 로드) | `_tools/CLAUDE.global.md`를 `~/.claude/CLAUDE.md`로 복사 | 작업 원칙(Karpathy 가이드라인의 Opus 5.5판), 규모 판정, superpowers 경계, 모델·위임 규칙 |
 | **NEXT.md** (프로젝트 루트) | 스킬이 단계마다 덮어쓰는 "지금 어디까지 왔나" 블록 | "다음 진행해"·"이어서"가 여기서 이어진다. catch-up 훅이 세션 시작 때 주입 |
 | **스킬** (필요할 때만 로드) | autopilot · 구현 워크플로우 · 프론트 취향 | 단계별 절차 |
 
@@ -36,7 +36,7 @@
 | `frontend-design-taste` | 웹 UI의 AI 티 제거, 하드룰 강제 | 자동(프론트 작업 시) |
 | `catch-up` | 프로젝트에 CLAUDE.md·AGENTS.md·NEXT.md·세션 훅 구조를 1회 세팅 | `/catch-up` |
 | `sk` | 맞는 스킬 최대 3개 추천 | `/sk 문구` |
-| `_tools/CLAUDE.global.md` | 전역 CLAUDE.md에 넣는 이어가기·규모 판정·superpowers 경계·모델·위임 규칙 | 항상 |
+| `_tools/CLAUDE.global.md` | 전역 `~/.claude/CLAUDE.md` 원본: 작업 원칙·이어가기·규모 판정·superpowers 경계·모델·위임 (32줄) | 항상 |
 | `_tools/agents/` | 서브에이전트 정의(fresh-reviewer·deep-worker·quick-worker) | 위임할 때 |
 | `_tools/skill_catalog.py` | 설치 스킬 카탈로그 + 라우팅 표 정합성 검사 | 수동 |
 | `learned/` | `ecc:continuous-learning`이 세션 패턴에서 뽑은 스킬이 쌓이는 자리(현재 비어 있음) | — |
@@ -99,37 +99,24 @@
 
 ---
 
-## 2. service-prompt-workflow — 구현 실행 워크플로우
+## 2. service-prompt-workflow — 구현 워크플로우 (superpowers 위의 얇은 층)
 
-**"뭘 만들지 아는" 순간부터 배포까지, AI 코딩 에이전트에게 낭비 없이 명령하는 9단계 실행 하네스.**
-각 단계에 하드 게이트가 있어 못 넘으면 다음 단계로 안 간다.
+**실행 절차는 superpowers가 맡고, 이 스킬은 규모에 맞게 단계를 고르고 단계마다 어떤 스킬을 붙일지만 정한다.** (0.7.0, 77줄)
 
-- **파이프라인**: 0 BASE → 1 FRAME → 2 EXPLORE → 3 SPEC → 4 PLAN → 5 BUILD → 6 VERIFY → 7 REVIEW → 8 SHIP → 9 REFLECT.
 - **등급별 경로**: S는 이 스킬 없이 처리. M은 FRAME 3줄 → 1쪽 SPEC → BUILD → VERIFY → REVIEW 1회 → SHIP
   (게임·도구 프로토타입은 버리는 프로토타입으로 핵심 가설부터). L 신규는 autopilot 뒤 SPEC부터, 첫 작업 3개는 버티컬 슬라이스.
-  L 변경(기존 저장소의 결제·인증 등)은 전체 경로 + 보안 리뷰. 버그는 디버깅 분기.
-- **라우터 내장**: "구현해" → BUILD, "리뷰해줘" → REVIEW, "커밋해" → SHIP, "다음 진행해" → NEXT.md에 적힌 단계.
-- **위임은 기본이 아니다** (`references/model-routing.md` "위임 여부"): 기본은 메인 세션에서 직접 구현한다. 크고 독립적인 작업·대용량 읽기·
-  다른 등급이 분명히 이득인 작업만 위임하고, 테스트 실행(VERIFY)·몇 번의 편집으로 끝나는 일·자기 작업 재확인은 위임하지 않는다.
-  상한은 동시 3개, 요청당 새로 띄우는 서브에이전트 5개.
-- **작업 클래스별 모델 라우팅**: 위임할 때의 모델을 PLAN에서 tasks.md에 `model:` 태그로 단다
-  (불변식·동시성·인증·마이그레이션=`opus`, CRUD·화면·RED 테스트·설정=`sonnet`, 리네임·문구·포맷=`haiku`).
-  REVIEW 정확성은 `opus` fresh 1회. 같은 작업 2회 실패 시 한 등급 승급, 그래도 실패면 SPEC으로.
-- **superpowers가 실행 엔진** (설치 시): PLAN `superpowers:writing-plans`, BUILD `superpowers:executing-plans`(같은 세션, 기본) —
-  `subagent-driven-development`(작업마다 구현 1 + 리뷰 2 서브에이전트)는 크고 독립적인 작업이 한 세션에 안 들어갈 때만,
-  BUILD 테스트 `test-driven-development`, VERIFY `verification-before-completion`, 실패 시 `systematic-debugging`, REVIEW `requesting/receiving-code-review`
-  + `/code-review` + `ponytail:ponytail-review`, SHIP `finishing-a-development-branch`. 이 스킬은 라우터·ETHOS·배선만 맡는다.
-  **직접 부를 일은 없다** — "구현해·리뷰해줘·커밋해"에 자동으로 뜬다. 미설치 PC에서는 `prompt-templates.md` 블록이 대체.
-- **PLAN 순서 규칙**: 첫 작업 3개는 워킹 스켈레톤(핵심 여정을 끝까지 얇게), 그다음 위험 큰 것부터. 로그인·화면은 보통 마지막.
-- **단계별 스킬 라우팅** (`references/skill-routing.md`): FRAME은 bounded면 `superpowers:brainstorming`, 새 서비스면 `service-autopilot`.
-- **ponytail 배선**: BUILD 진입 시 결정 사다리(필요한가 → 이미 있나 → 표준 라이브러리 → 네이티브 → 설치된 의존성 → 한 줄 → 최소 코드)를
-  코드 작성 전에 탄다. 플러그인이 있으면 훅이 자동 주입하고, 없으면 템플릿의 `<ladder>` 블록이 같은 역할을 한다.
-  REVIEW는 정확성 1회 + 과잉설계 1회를 넘기지 않는다.
-- **복붙 프롬프트 템플릿**: `references/prompt-templates.md`.
+  L 변경(기존 저장소의 결제·인증 등)은 전체 경로 + `/security-review`. 버그는 `superpowers:systematic-debugging`.
+- **단계별로 붙이는 것**: PLAN `superpowers:writing-plans`, BUILD `superpowers:executing-plans`(같은 세션) + TDD + `ponytail:ponytail` 사다리
+  (+ 화면이면 `frontend-design-taste`), VERIFY `verification-before-completion`, REVIEW `/code-review` 1회(+ `ponytail-review` 선택),
+  SHIP `finishing-a-development-branch`. FRAME이 `brainstorming`을 대신한다.
+- **위임**: 기본은 메인 세션. `subagent-driven-development`는 크고 독립적인 작업만, 요청당 작업 1개. 상한·모델은 `references/model-routing.md`.
+- **SPEC 템플릿**: `references/spec-template.md` (M 1쪽 / L 전체). 옛 단계별 복붙 템플릿은 superpowers와 겹쳐 삭제했다(git 기록에 있음).
+- **이어가기**: 단계마다 루트 `NEXT.md` 갱신, "다음 진행해"는 거기 적힌 단계로.
 
 ```
-> 이 스펙대로 구현해            ← BUILD 진입, 사다리 적용
-> 이거 진짜 되는지 확인해       ← VERIFY 진입
+> 테트리스 만들어줘             ← M: 프로토타입 → 1쪽 SPEC → 구현
+> 이 스펙대로 구현해            ← BUILD
+> 결제 모듈 버그 고쳐줘         ← 버그 경로
 ```
 
 ---
@@ -172,9 +159,12 @@ service-prompt-workflow의 BUILD·REVIEW에 프론트가 포함되면 자동 참
 
 ## _tools/ — 전역 규칙·에이전트·정비 도구
 
-**`CLAUDE.global.md`** — 전역 CLAUDE.md에 넣는 규칙. 이어가기(NEXT.md) · 규모 판정(S·M·L 신규/변경·버그) · superpowers 경계 · 모델·effort·위임.
-superpowers와의 경계(M의 FRAME과 L의 autopilot이 brainstorming을 대신)도 여기 들어 있어 새 PC에서도 따로 챙길 게 없다.
-기존 `~/.claude/CLAUDE.md`에 예전 경계 규칙이 있으면 이 내용으로 교체한다.
+**`CLAUDE.global.md`** — 전역 `~/.claude/CLAUDE.md` 원본(32줄). 이 파일 전체를 복사해 쓴다.
+- **작업 원칙 6줄**: Karpathy 가이드라인을 Anthropic "Prompting Claude Opus 5/5.5" 권장 문구에 맞춰 줄였다. 범위대로 하기 · 해석이 크게 갈릴 때만 묻기 ·
+  최소 코드 · 외과적 변경 · 영향 있는 오류만 정정 · 할 수 있는 다음 단계는 멈추지 않고 진행. "검증될 때까지 반복"은 뺐다(모델이 스스로 검증하고,
+  명시 지시는 과잉 검증을 낳는다는 Opus 5 가이드). 단순함의 세부 기준은 ponytail이, 검증 절차는 superpowers가 맡는다.
+- **이어가기 · 규모 판정 · superpowers 경계 · 모델·effort·위임**: 위 "쓰는 법" 참고.
+- 프로젝트 CLAUDE.md에는 행동 규칙을 두지 않는다(catch-up 템플릿이 전역 포인터 + `@AGENTS.md`만 만든다). 예전 프로젝트에 Karpathy 4절이 있으면 지운다.
 
 **`agents/`** — `~/.claude/agents/`에 복사해 쓴다. effort는 Agent 호출로 못 주므로 이 파일로 주고, 모델은 호출할 때 지정한다.
 
@@ -216,7 +206,7 @@ Remote Control 세션에서는 `/plugin`이 막혀 있으므로 같은 PC의 터
 ```bash
 git clone https://github.com/sangchane/claude-skills "$HOME/.claude/skills"
 mkdir -p ~/.claude/agents && cp ~/.claude/skills/_tools/agents/*.md ~/.claude/agents/
-cat ~/.claude/skills/_tools/CLAUDE.global.md >> ~/.claude/CLAUDE.md
+cp ~/.claude/skills/_tools/CLAUDE.global.md ~/.claude/CLAUDE.md   # 기존 파일은 먼저 백업
 ```
 
 Windows PowerShell:
@@ -224,7 +214,7 @@ Windows PowerShell:
 ```powershell
 git clone https://github.com/sangchane/claude-skills "$env:USERPROFILE\.claude\skills"
 Copy-Item "$env:USERPROFILE\.claude\skills\_tools\agents\*.md" "$env:USERPROFILE\.claude\agents\"
-Get-Content "$env:USERPROFILE\.claude\skills\_tools\CLAUDE.global.md" | Add-Content "$env:USERPROFILE\.claude\CLAUDE.md"
+Copy-Item "$env:USERPROFILE\.claude\skills\_tools\CLAUDE.global.md" "$env:USERPROFILE\.claude\CLAUDE.md"
 ```
 
 프로젝트마다 한 번 `/catch-up`을 돌리면 NEXT.md 세션 훅이 깔린다(없어도 전역 CLAUDE.md가 NEXT.md를 확인하게 한다).
@@ -234,11 +224,15 @@ Get-Content "$env:USERPROFILE\.claude\skills\_tools\CLAUDE.global.md" | Add-Cont
 ## 평소 동기화 루틴
 
 - 스킬을 **고친 PC에서**: `git add . && git commit -m "무엇을 왜" && git push`
-- **다른 PC에서** 세션 시작 전: `git pull`. `_tools/agents/`나 `CLAUDE.global.md`가 바뀌었으면 다시 복사한다(CLAUDE.md는 해당 절을 교체).
+- **다른 PC에서** 세션 시작 전: `git pull`. `_tools/agents/`나 `CLAUDE.global.md`가 바뀌었으면 다시 복사한다.
 - 원칙: 원본은 GitHub 하나. 두 PC에서 동시에 같은 스킬을 고치지 않는다.
 - 스킬을 고치면 회귀 평가: autopilot은 `eval/PROTOCOL.md` 스모크(시드 3개), prompt-workflow는 `eval/` 대리 A/B.
 
 ## 변경 이력
+
+**2026-09-29 — 중복 정리.** 전역 CLAUDE.md의 Karpathy 4절을 Opus 5.5판 작업 원칙 6줄로 바꿔 `CLAUDE.global.md` 하나로 합쳤다
+(§4 "검증될 때까지 반복" 삭제, §1 "불확실하면 멈춘다" → "해석이 크게 갈릴 때만 묻는다"). catch-up 프로젝트 템플릿에서 행동 규칙 제거.
+service-prompt-workflow를 superpowers 위의 얇은 층으로 줄였다(135 → 77줄, 단계별 복붙 템플릿 221줄 삭제 → 1쪽 SPEC 템플릿).
 
 **2026-09-29 — 규모 등급 구조.** 현업 조사(위 "현업 근거")를 바탕으로 개편.
 - S·M·L 등급 도입: 전역 CLAUDE.md가 판정, autopilot은 L 신규 전용, 기존 저장소의 위험 변경은 L 변경 경로, 구현 워크플로우는 등급별로 단계 생략.

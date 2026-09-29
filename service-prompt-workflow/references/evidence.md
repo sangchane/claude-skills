@@ -73,6 +73,14 @@ Google eng-practices "Small CLs"(약 100줄), Amazon Type 1/Type 2 결정, Basec
 - 반영: 등급별 경로 표(S 문서·리뷰 없음, M 1쪽 SPEC + 리뷰 1회, L 전체), 게임·도구 프로토타입은 버리는 프로토타입 먼저, NEXT.md 갱신, "다음 진행해" 라우팅.
 - 미실행: `eval/` 대리 A/B. 다음 M 작업에서 단계 수·토큰을 이전 기록과 비교한다.
 
+## 얇은 층으로 축소 (0.7.0, 2026-09-29)
+
+- 근거: superpowers(obra/superpowers)가 계획·TDD·디버깅·검증·리뷰·브랜치 마무리를 이미 제공한다. 이 스킬의 고유 가치는 등급별 단계 선택,
+  autopilot 핸드오프, ponytail·프론트 배선뿐이라 나머지를 지웠다. 단계별 복붙 템플릿(221줄)은 superpowers 없는 PC용 대체였는데 모든 PC에 설치하므로 삭제.
+- ETHOS 1~3 삭제: 1(사용자 주권)·3(증거로 완료)은 전역 CLAUDE.md 작업 원칙과 superpowers verification이, 2(파일이 진실원)는 "상태 기록" 절이 대신한다.
+- SPEC 자기채점 루프(7/10 미만이면 최대 3회 재작성) 삭제: "Prompting Claude Opus 5" — 이 세대는 스스로 검증하며 명시적 재확인 지시는 비용만 늘린다.
+- evals.json 1·2번 단언을 새 경로에 맞게 수정. 회귀 미실행.
+
 ## 주의(변동 사항)
 
 - Anthropic의 고전 "프리필(assistant 턴 미리 채우기)" 기법은 **Claude 4.6+에서 미지원**.
