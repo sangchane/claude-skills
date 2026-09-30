@@ -84,8 +84,8 @@ claude plugin enable ecc --scope project        # 설계하는 프로젝트 폴�
 
 ### 가끔 내가 할 일
 
-- Claude가 `/effort high`를 권하면 그대로 입력한다. 위험한 작업 확인 질문에는 답한다.
-- 전혀 다른 일을 시작할 때는 `/clear` 또는 새 세션. 같은 문제를 두 번 고쳐도 안 되면 새 세션에서 더 구체적으로 다시 말한다.
+- Claude가 권하는 명령(`/effort high`, `/clear`, `/rewind`)을 그대로 입력한다. 언제 칠지는 Claude가 알려 준다. 위험한 작업 확인 질문에는 답한다.
+- 스킬·규칙을 고쳤거나 한 달에 한 번 `/doctor prompt-audit` — 규칙끼리 부딪치거나 옛 모델용 문구가 남았는지 점검한다. 한도가 빨리 줄면 `/usage`.
 
 ### 안 해도 되는 것
 
@@ -324,11 +324,17 @@ python tools/export.py                     # 규칙·스킬을 Codex·Antigravit
 5. **겹침**: `--unassigned`와 라우팅 표를 보고 이미 같은 역할을 하는 스킬이 있으면 둘 중 하나만 남긴다.
 6. **컨텍스트 비용**: description이 항상 로드된다. 플러그인 하나가 수십 개 스킬을 들여오면 `--catalog`로 토큰 추정치를 보고 결정.
 
+검토 후 넣지 않음(2026-09-30, 팁 영상 5편): OmniRoute(다른 모델로 우회 — Opus 유지 원칙과 충돌, 코드가 제3자 게이트웨이를 거침), Headroom(프롬프트를 압축하는 프록시 — 프롬프트 캐시와 충돌),
+task-observer·프로젝트 맵류(NEXT.md·auto memory와 겹침), claude-code-setup(공식이지만 `/dev:setup`·`/dev:guide`와 겹침), ECC 호출법(이미 design이 L 설계 때 직접 부름).
+넣은 것: 절대 규칙은 훅·deny로(setup), 읽기 명령 허용 목록(setup), `/clear`·`/rewind`를 알맞은 때 권하기(규칙), `/doctor prompt-audit` 정기 점검(README).
+
 흡수 완료: `ponytail`(121k★, 2026-09-04), `superpowers`(281k★, 2026-09-07 — 구현 단계 엔진으로 배선). 후보(미설치): `skill-creator`(공식 마켓, 스킬 평가 도구).
 플러그인 사이 경계(누가 설계하고 누가 구현하나)는 dev 규칙(`rules.md`)에 사용자 지시로 둔다 — superpowers가 "사용자 지시 > 스킬"이라 명시하기 때문. 플러그인을 설치하면 같이 들어온다.
 Remote Control 세션에서는 `/plugin`이 막혀 있으므로 같은 PC의 터미널에서 `claude plugin marketplace add <repo>` → `claude plugin install <name>@<marketplace>`를 쓴다.
 
 ## 변경 이력
+
+**2026-09-30 — 팁 영상 반영 (1.3.0).** 사람이 기억해야 하던 팁을 Claude가 알맞은 때 권하거나(규칙 "세션 관리"), 프로젝트 준비 때 한 번에 설정하게(setup: 허용 목록·절대 규칙 훅) 바꿨다. 겹치는 도구는 넣지 않았다(외부 스킬 흡수 기준 참고).
 
 **2026-09-29 — superpowers·ponytail 자동 설치 (1.2.0).** `plugin.json`의 `dependencies`로 선언하고, 두 플러그인을 원본 GitHub 저장소 그대로 sangchane 마켓플레이스에 올렸다. 설치가 두 줄로 줄었다.
 

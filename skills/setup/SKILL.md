@@ -10,7 +10,7 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 disable-model-invocation: true
 argument-hint: "[--tools antigravity,cursor]"
 metadata:
-  version: "2.0.0"
+  version: "2.1.0"
   updated: "2026-09-29"
 ---
 
@@ -45,6 +45,7 @@ metadata:
 ## 절차 (5 페이즈 — 순서대로, 각 끝에 사용자 확인)
 
 ### 1. SCAN — 현황 파악
+- 사용자에게 한 번만 묻는다: "이 프로젝트에서 **절대** 하면 안 되는 것이 있나요? (예: `.env` 수정, 마이그레이션 파일 수정, main에 직접 push)". 없으면 넘어간다.
 - Glob/Grep로 탐지: 기존 `CLAUDE.md`·`AGENTS.md`·`GEMINI.md`, `.claude/settings.json`의 예전 SessionStart 훅(`print_next_action.py`),
   `NEXT.md`/`WORKLOG.md`(위치 여러 곳 가능), 상위 폴더 목록, `.env`/키 등 시크릿 패턴, `git` 저장소 여부.
 - 리포트: 무엇이 이미 있고 무엇이 없나 + **기존형**(큰 CLAUDE.md 있음) vs **신규형**(거의 없음) 판정.
@@ -64,6 +65,8 @@ metadata:
 - `WORKLOG.md` ← `templates/WORKLOG.md.tmpl` (Current State + History). 기존 히스토리를 옮길 때도 결정·제약·버린 대안·미결·정확한 이름과 숫자는 줄이지 않는다.
 - 스코프별 `<scope>/CLAUDE.md` ← `templates/scope-CLAUDE.md.tmpl`
 - (선택 `--tools antigravity,cursor`) `GEMINI.md` 포인터 / `.cursor/rules` 포인터
+- `.claude/settings.json`: `permissions.allow`에 읽기 전용 명령(`git status`·`git diff`·`git log`와 SCAN에서 찾은 테스트·린트 명령)을 넣어 매번 묻지 않게 한다.
+  1단계에서 받은 절대 규칙이 있으면 `permissions.deny` 또는 PreToolUse 훅으로 만든다. CLAUDE.md 문장은 강제가 아니고, 막아야 하는 것은 설정·훅만 확실히 막는다.
 - **이관 무손실 체크리스트**(원본 섹션 ↔ 목적지)를 함께 제시한다.
 
 ### 4. APPLY — 승인 후에만
