@@ -8,7 +8,7 @@ description: |
   Godot 모바일 게임 UI(Control·Theme·노치·터치, 폰 해상도 스크린샷 확인)도 다룬다.
   MengTo/Skills의 design-taste-frontend를 이식·일반화. dev:build의 BUILD·REVIEW가 참조.
 metadata:
-  version: "0.3.0"
+  version: "0.3.1"
   updated: "2026-09-30"
 ---
 
@@ -94,7 +94,8 @@ metadata:
 ## 5. Pre-Flight Check (완료 선언 전)
 
 - [ ] 빈/로딩/에러(+실시간이면 stale) 상태가 모두 있나?
-- [ ] 모바일에서 접히나(반응형 보장)?
+- [ ] 모바일에서 접히나(반응형 보장)? 폰 너비(390×844)로 스크린샷을 찍어 Read로 봤나(쓸 수 있는 브라우저 도구나 Playwright로)?
+- [ ] 폰 너비에서 가로 스크롤이 없나(`document.documentElement.scrollWidth`가 390 이하)? `-mx-*`·고정 바·가로 스크롤 줄이 흔한 원인이다.
 - [ ] 숫자는 `font-mono`인가? 세리프를 안 썼나?
 - [ ] 색이 테마 토큰(하드코드 아님)인가? 순수 #000·네온을 안 썼나?
 - [ ] 동적 클래스명 대신 룩업맵인가(퍼지 안전)?

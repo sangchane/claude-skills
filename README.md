@@ -346,6 +346,7 @@ UI 후보(2026-09-30 조사, 미설치 — 웹·모바일 웹 프로젝트에서
 `vercel-labs/agent-skills`(31.5k★ — `web-design-guidelines` 터치·접근성 100여 규칙, `react-native-guidelines`),
 `pbakaus/impeccable`(72k★ — AI 티 탐지 규칙 61개). `Leonxlnx/taste-skill`(70.1k★)은 ui 스킬의 원본 계열이라 중복.
 시험 방법: `claude plugin install <이름> --scope project`로 그 프로젝트에만 켜고, 같은 화면을 켜기 전·후로 만들어 스크린샷 비교.
+시험 결과(2026-09-30, 모바일 필라테스 예약 랜딩 1회): ui-ux-pro-max가 dev:ui보다 낫지 않았고(폰에서 가로 18px 밀림 버그, 날짜 선택이 고정 바에 가림), 스킬 7개·30MB라 연결하지 않음. 대신 ui Pre-Flight에 폰 스크린샷·가로 스크롤 확인을 추가.
 Godot 게임 UI 쪽은 1만★ 넘는 스킬이 없어(godot-mcp 5.6k, awesome-gamedev-agent-skills 1.2k, GodotPrompter 370) ui 스킬 7절로 직접 만들었다.
 
 흡수 완료: `ponytail`(121k★, 2026-09-04), `superpowers`(281k★, 2026-09-07 — 구현 단계 엔진으로 배선). 후보(미설치): `skill-creator`(공식 마켓, 스킬 평가 도구).
@@ -353,6 +354,8 @@ Godot 게임 UI 쪽은 1만★ 넘는 스킬이 없어(godot-mcp 5.6k, awesome-g
 Remote Control 세션에서는 `/plugin`이 막혀 있으므로 같은 PC의 터미널에서 `claude plugin marketplace add <repo>` → `claude plugin install <name>@<marketplace>`를 쓴다.
 
 ## 변경 이력
+
+**2026-09-30 — 1.5.4.** 웹 UI 후보 ui-ux-pro-max를 dev:ui와 같은 요청으로 비교 → 낫지 않아 미연결. ui Pre-Flight에 폰 너비 스크린샷·가로 스크롤 확인 추가.
 
 **2026-09-30 — 1.5.3.** `export.py --project <폴더>`: 원격·클라우드 Codex용으로 저장소 안(AGENTS.md 블록, `.agents/skills`)에 설치. 빈 홈 폴더의 Codex CLI 0.158에서 규칙·스킬 로드 확인.
 
