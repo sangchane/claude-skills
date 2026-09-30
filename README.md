@@ -155,6 +155,12 @@ python tools/export.py              # 둘 다. 하나만: python tools/export.py
 | Codex | `~/.codex/AGENTS.md` (기존 내용은 두고 `dev:start~end` 블록만 교체) | `~/.agents/skills/` | `$ui`, `$setup` 또는 그냥 말하기 |
 | Antigravity | `~/.gemini/config/rules/dev.md` | `~/.gemini/config/skills/` | 그냥 말하기 |
 
+**원격·클라우드 Codex(작업마다 새 컨테이너)** 는 홈 폴더가 매번 비므로, 작업할 저장소 안에 넣고 커밋한다.
+```bash
+python tools/export.py codex --project <게임 저장소 경로>   # AGENTS.md에 dev 블록 + .agents/skills/ui·setup
+```
+기존 AGENTS.md 내용은 그대로 두고 `dev:start~end` 블록만 넣거나 바꾼다. 스킬을 업데이트하려면 같은 명령을 다시 돌리고 커밋한다.
+
 - 저장소가 바뀌면 `git pull` 후 같은 명령을 다시 돌린다. 같은 이름의 **다른** 스킬이 이미 있으면 덮어쓰지 않고 "건너뜀"이라고 알려 준다.
 - Claude Code와 다른 점: 세션 시작 훅이 없어서 NEXT.md는 에이전트가 규칙대로 직접 읽는다. design·build는 Claude 전용 절차(superpowers·서브에이전트)가 많아 스킬로 보내지 않고,
   규칙의 등급별 단계(SPEC → 구현 → 검증 → 리뷰, L 신규는 설계 문서 먼저)를 에이전트가 직접 한다. guide와 reviewer·deep·quick 에이전트도 없다.
@@ -347,6 +353,8 @@ Godot 게임 UI 쪽은 1만★ 넘는 스킬이 없어(godot-mcp 5.6k, awesome-g
 Remote Control 세션에서는 `/plugin`이 막혀 있으므로 같은 PC의 터미널에서 `claude plugin marketplace add <repo>` → `claude plugin install <name>@<marketplace>`를 쓴다.
 
 ## 변경 이력
+
+**2026-09-30 — 1.5.3.** `export.py --project <폴더>`: 원격·클라우드 Codex용으로 저장소 안(AGENTS.md 블록, `.agents/skills`)에 설치. 빈 홈 폴더의 Codex CLI 0.158에서 규칙·스킬 로드 확인.
 
 **2026-09-30 — 1.5.2.** Godot 모바일: 참조·아트가 없으면 색을 혼자 정하지 않고 색만 바꾼 시안 2~3개를 찍어 고르게 한다. 팔레트는 한 곳에, 광고 게임 색(채도 최대 배경+형광 강조) 피하기.
 

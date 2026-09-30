@@ -1,4 +1,4 @@
-# dev 규칙(rules.md)과 스킬을 Codex·Antigravity 전역 설정으로 내보낸다. 다시 실행하면 최신본으로 덮어쓴다.
+# dev 규칙(rules.md)과 스킬을 Codex·Antigravity 전역 설정(또는 --project <폴더>면 그 저장소)으로 내보낸다. 다시 실행하면 최신본으로 덮어쓴다.
 import os, re, shutil, sys
 from pathlib import Path
 
@@ -55,11 +55,23 @@ def copy_skills(dest):
         print(f"  스킬: {d}")
 
 
-def main(tools):
+def main(tools, project=None):
     home = Path.home()
     for tool in tools:
         print(tool)
-        if tool == "codex":
+        if project:  # 원격·클라우드 에이전트용: 저장소 안에 넣어 커밋하면 매 작업 컨테이너에서 읽힌다
+            if tool == "codex":
+                write_block(project / "AGENTS.md", rules_for(tool))
+                print(f"  규칙: {project / 'AGENTS.md'}")
+            elif tool == "antigravity":
+                p = project / ".agents" / "rules" / "dev.md"
+                p.parent.mkdir(parents=True, exist_ok=True)
+                p.write_text("---\ntrigger: always_on\n---\n\n" + rules_for(tool), encoding="utf-8")
+                print(f"  규칙: {p}")
+            else:
+                sys.exit(f"알 수 없는 도구: {tool} (codex, antigravity 중에서)")
+            copy_skills(project / ".agents" / "skills")
+        elif tool == "codex":
             codex = Path(os.environ.get("CODEX_HOME", home / ".codex"))
             write_block(codex / "AGENTS.md", rules_for(tool))
             print(f"  규칙: {codex / 'AGENTS.md'}")
@@ -75,4 +87,10 @@ def main(tools):
 
 
 if __name__ == "__main__":
-    main(sys.argv[1:] or ["codex", "antigravity"])
+    args = sys.argv[1:]
+    project = None
+    if "--project" in args:
+        i = args.index("--project")
+        project = Path(args[i + 1]).resolve()
+        del args[i:i + 2]
+    main(args or ["codex", "antigravity"], project)
