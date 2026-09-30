@@ -7,28 +7,29 @@ Claude Code에게 **평소 말투로 개발을 시키면, 일의 크기에 맞�
 
 ## 1. 설치
 
-Claude Code **대화창에** 입력한다.
+Claude Code **대화창에** 입력한다. 첫 줄은 Anthropic 공식 마켓이다(이미 있으면 그냥 넘어간다).
 
 ```
+/plugin marketplace add anthropics/claude-plugins-official
 /plugin marketplace add sangchane/claude-skills
 /plugin install dev@sangchane
 ```
 
-함께 쓰는 superpowers(구현 절차)와 ponytail(코드 적게 쓰기)은 **자동으로 같이 설치된다.** 설치가 끝나면 **새 세션**을 연다.
+함께 쓰는 superpowers(구현 절차, 공식 마켓)와 ponytail(코드 적게 쓰기)은 **자동으로 같이 설치된다.** 설치가 끝나면 **새 세션**을 연다.
 
 <details>
-<summary>superpowers·ponytail을 예전에 따로 설치했다면</summary>
+<summary>1.4.0 이전 버전에서 업데이트했더니 dev가 "failed to load"라면</summary>
 
-같은 플러그인이 두 벌이 되니 새 것을 설치하고 예전 것을 지운다. 터미널에서 한 번.
-(`plugin update`만으로는 새 의존성이 설치되지 않아 dev가 "failed to load"로 꺼져 있을 수 있다.)
+`plugin update`는 새로 생긴 의존성을 설치하지 않는다. 터미널에서 한 번.
 
 ```bash
-claude plugin install superpowers@sangchane
+claude plugin marketplace update sangchane
+claude plugin update dev@sangchane
+claude plugin install superpowers@claude-plugins-official
 claude plugin install ponytail@sangchane
-claude plugin uninstall superpowers@superpowers-marketplace
-claude plugin uninstall ponytail@ponytail
 claude plugin list        # dev@sangchane가 enabled인지 확인
 ```
+`superpowers@superpowers-marketplace`나 `ponytail@ponytail`이 목록에 남아 있으면 `claude plugin uninstall <이름>`으로 지운다(두 벌 방지).
 </details>
 
 <details>
@@ -338,6 +339,8 @@ task-observer·프로젝트 맵류(NEXT.md·auto memory와 겹침), claude-code-
 Remote Control 세션에서는 `/plugin`이 막혀 있으므로 같은 PC의 터미널에서 `claude plugin marketplace add <repo>` → `claude plugin install <name>@<marketplace>`를 쓴다.
 
 ## 변경 이력
+
+**2026-09-30 — 1.4.1.** superpowers는 공식 마켓(claude-plugins-official) 것을 의존성으로 쓴다(이미 설치한 사람과 두 벌이 되지 않게). ponytail은 HTTPS 주소로 받는다(`github` 방식은 SSH 키가 없는 PC에서 실패).
 
 **2026-09-30 — 재정비 경로 (1.4.0).** 막히거나 지지부진한 기존 프로젝트를 build가 실행 기반으로 진단하고, 원인(버그·회귀·결정 공백·범위 팽창)에 맞는 경로로 넘긴다.
 

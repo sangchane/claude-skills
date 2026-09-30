@@ -4,6 +4,9 @@
   "owner": {
     "name": "sangchane"
   },
+  "allowCrossMarketplaceDependenciesOn": [
+    "claude-plugins-official"
+  ],
   "plugins": [
     {
       "name": "dev",
@@ -11,18 +14,10 @@
       "description": "말로 시키는 개발 키트: 일 크기에 맞춘 설계·구현·검증·리뷰, 세션 이어가기"
     },
     {
-      "name": "superpowers",
-      "source": {
-        "source": "github",
-        "repo": "obra/superpowers"
-      },
-      "description": "obra/superpowers 원본. dev가 구현 절차로 쓴다(dev 설치 시 자동)"
-    },
-    {
       "name": "ponytail",
       "source": {
-        "source": "github",
-        "repo": "DietrichGebert/ponytail"
+        "source": "url",
+        "url": "https://github.com/DietrichGebert/ponytail.git"
       },
       "description": "DietrichGebert/ponytail 원본. dev가 코드 적게 쓰기로 쓴다(dev 설치 시 자동)"
     }

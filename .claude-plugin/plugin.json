@@ -1,13 +1,16 @@
 {
   "name": "dev",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "말로 시키는 개발 키트: 일 크기에 맞춘 설계·구현·검증·리뷰, 세션 이어가기",
   "author": {
     "name": "sangchane"
   },
   "repository": "https://github.com/sangchane/claude-skills",
   "dependencies": [
-    "superpowers",
+    {
+      "name": "superpowers",
+      "marketplace": "claude-plugins-official"
+    },
     "ponytail"
   ],
   "keywords": [

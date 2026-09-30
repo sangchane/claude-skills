@@ -14,7 +14,7 @@ dev:design(L 신규 설계)에서만 켠다 — 언어별 패턴·리뷰어 변�
 
 ## ponytail 배선 (BUILD·REVIEW)
 
-- **설치**: dev 플러그인의 의존성이라 dev를 설치하면 같이 설치된다(`ponytail@sangchane`).
+- **설치**: dev 플러그인의 의존성이라 dev를 설치하면 같이 설치된다(`ponytail@sangchane`). superpowers는 `superpowers@claude-plugins-official`.
   훅이 매 세션·매 서브에이전트에 사다리를 주입하고 `/ponytail lite|full|ultra|off`로 강도를 바꾼다. 기본 full.
 - **BUILD**: 문제를 다 읽은 뒤, 코드를 쓰기 전에 사다리를 탄다. 사다리는 해법을 줄이지 읽기를 줄이지 않는다.
 - **REVIEW**: `/code-review`로 정확성을 본 뒤, 원하면 `ponytail:ponytail-review`로 삭제 후보만 받는다 (`net: -N lines`).
