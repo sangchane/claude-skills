@@ -19,11 +19,15 @@ Claude Code **대화창에** 입력한다.
 <details>
 <summary>superpowers·ponytail을 예전에 따로 설치했다면</summary>
 
-같은 플러그인이 두 벌이 되니 예전 것을 지운다. 터미널에서 한 번.
+같은 플러그인이 두 벌이 되니 새 것을 설치하고 예전 것을 지운다. 터미널에서 한 번.
+(`plugin update`만으로는 새 의존성이 설치되지 않아 dev가 "failed to load"로 꺼져 있을 수 있다.)
 
 ```bash
+claude plugin install superpowers@sangchane
+claude plugin install ponytail@sangchane
 claude plugin uninstall superpowers@superpowers-marketplace
 claude plugin uninstall ponytail@ponytail
+claude plugin list        # dev@sangchane가 enabled인지 확인
 ```
 </details>
 
