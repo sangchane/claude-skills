@@ -334,11 +334,21 @@ python tools/export.py                     # 규칙·스킬을 Codex·Antigravit
 task-observer·프로젝트 맵류(NEXT.md·auto memory와 겹침), claude-code-setup(공식이지만 `/dev:setup`·`/dev:guide`와 겹침), ECC 호출법(이미 design이 L 설계 때 직접 부름).
 넣은 것: 절대 규칙은 훅·deny로(setup), 읽기 명령 허용 목록(setup), `/clear`·`/rewind`를 알맞은 때 권하기(규칙), `/doctor prompt-audit` 정기 점검(README).
 
+UI 후보(2026-09-30 조사, 미설치 — 웹·모바일 웹 프로젝트에서 한 번 켜 보고 비교 후 결정):
+`nextlevelbuilder/ui-ux-pro-max-skill`(131.5k★, MIT — 스타일·팔레트·폰트 데이터로 디자인 시스템부터 정함, 웹·SwiftUI·Compose·RN·Flutter. 다른 글에서는 55.8k★로 적혀 있어 급증한 저장소),
+`emilkowalski/skills`(42k★ — `mobile-native`: 웹을 폰에서 앱처럼, 안전 영역·탭 반응),
+`vercel-labs/agent-skills`(31.5k★ — `web-design-guidelines` 터치·접근성 100여 규칙, `react-native-guidelines`),
+`pbakaus/impeccable`(72k★ — AI 티 탐지 규칙 61개). `Leonxlnx/taste-skill`(70.1k★)은 ui 스킬의 원본 계열이라 중복.
+시험 방법: `claude plugin install <이름> --scope project`로 그 프로젝트에만 켜고, 같은 화면을 켜기 전·후로 만들어 스크린샷 비교.
+Godot 게임 UI 쪽은 1만★ 넘는 스킬이 없어(godot-mcp 5.6k, awesome-gamedev-agent-skills 1.2k, GodotPrompter 370) ui 스킬 7절로 직접 만들었다.
+
 흡수 완료: `ponytail`(121k★, 2026-09-04), `superpowers`(281k★, 2026-09-07 — 구현 단계 엔진으로 배선). 후보(미설치): `skill-creator`(공식 마켓, 스킬 평가 도구).
 플러그인 사이 경계(누가 설계하고 누가 구현하나)는 dev 규칙(`rules.md`)에 사용자 지시로 둔다 — superpowers가 "사용자 지시 > 스킬"이라 명시하기 때문. 플러그인을 설치하면 같이 들어온다.
 Remote Control 세션에서는 `/plugin`이 막혀 있으므로 같은 PC의 터미널에서 `claude plugin marketplace add <repo>` → `claude plugin install <name>@<marketplace>`를 쓴다.
 
 ## 변경 이력
+
+**2026-09-30 — ui에 Godot 모바일 (1.5.0).** Godot 프로젝트면 웹 규칙 대신 `references/godot-mobile.md`(Theme·컨테이너·노치 SafeArea·터치 48dp·글자 크기·반응감)를 따르고, `scripts/godot_shots.gd`로 폰 2종·태블릿 1종 스크린샷을 찍어 보며 고친다(Godot 4.4.1에서 확인). 웹 UI 후보는 외부 스킬 흡수 기준에 정리.
 
 **2026-09-30 — 1.4.2 (헤드리스 실측으로 고침).** "헬스장 회원 관리 서비스" 같은 작은 새 서비스가 M으로 판정돼 설계를 건너뛰던 것을 고쳤다. 새 서비스는 기능 수와 상관없이 L 신규이고, 크기는 design의 lite·spike가 조절한다. `/rewind` 권유 문구를 구체적으로 바꿨다(이전 문구로는 두 번 되돌려도 권유가 안 나왔다).
 

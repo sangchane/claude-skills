@@ -5,10 +5,11 @@ description: |
   React·Tailwind·Zustand 스택에 특화(다른 스택도 적용 가능). 대시보드·관제·SaaS 내부화면·랜딩 등
   화면을 만들거나 다시 디자인할 때, 색/그림자/타이포/레이아웃/모션을 정할 때, "디자인이 밋밋하다/
   AI스럽다"를 고칠 때 사용. 프로젝트별로 밀도·모션 "dial"을 정하고, 하드룰과 anti-slop을 강제한다.
+  Godot 모바일 게임 UI(Control·Theme·노치·터치, 폰 해상도 스크린샷 확인)도 다룬다.
   MengTo/Skills의 design-taste-frontend를 이식·일반화. dev:build의 BUILD·REVIEW가 참조.
 metadata:
-  version: "0.2.0"
-  updated: "2026-09-08"
+  version: "0.3.0"
+  updated: "2026-09-30"
 ---
 
 # Frontend Design Taste (프론트엔드 디자인 취향)
@@ -109,8 +110,22 @@ metadata:
 - **REVIEW(7)**: 이 스킬의 Pre-Flight + `dev:build`의 `anti-patterns.md` C절을 리뷰 루브릭으로 함께 적용.
 - 두 스킬은 겹치는 anti-slop을 공유하되, 이 스킬은 **적극적 "이렇게 만들라"**(dial·토큰), 저쪽은 **소극적 "하지 말라"** 담당.
 
+## 7. Godot 모바일 게임
+
+프로젝트에 `project.godot`이 있으면 3절(웹 하드룰)과 5절(웹 Pre-Flight) 대신 `references/godot-mobile.md`를 읽고 따른다. dial과 4절의 취지는 그대로 쓴다.
+화면을 만들거나 고칠 때마다 폰 해상도 스크린샷을 찍어 Read로 보고 고친다.
+
+```bash
+godot --path <프로젝트> --script "${CLAUDE_PLUGIN_ROOT}/skills/ui/scripts/godot_shots.gd" -- scene=res://ui/main.tscn
+# 결과: <프로젝트>/shots/main_1080x2400.png, main_720x1600.png, main_1536x2048.png (빨간 띠 = 노치·홈 바)
+```
+- `${CLAUDE_PLUGIN_ROOT}`가 풀리지 않는 도구(Codex 등)에서는 이 스킬 폴더의 `scripts/godot_shots.gd` 절대경로를 쓴다.
+- Godot 실행 파일 경로를 모르면 사용자에게 한 번 묻고 프로젝트 AGENTS.md에 적어 둔다. `shots/`는 `.gitignore`에 넣는다.
+
 ## 참조
 - `references/tokens.md` — 그림자 3종·의미 상태색쌍·룩업맵 패턴·폰트 페어링 (복붙). 프론트 구현/리뷰 시 읽는다.
+- `references/godot-mobile.md` — Godot 모바일 게임 UI 규칙·SafeArea·확인 절차. Godot 프로젝트에서만 읽는다.
+- `scripts/godot_shots.gd` — Godot 씬을 폰·태블릿 해상도로 찍는 스크립트.
 
 출처: MengTo/Skills `design-taste-frontend`·`tailwindcss`·`beautiful-shadows`·`minimalist-ui` 이식·일반화.
 버전은 프론트매터 `metadata`.
