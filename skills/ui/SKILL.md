@@ -9,7 +9,7 @@ description: |
   Godot 모바일 게임 UI(Control·Theme·노치·터치, 폰 해상도 스크린샷 확인)도 다룬다.
   MengTo/Skills의 design-taste-frontend를 이식·일반화. dev:build의 BUILD·REVIEW가 참조.
 metadata:
-  version: "0.4.0"
+  version: "0.5.0"
   updated: "2026-10-08"
 ---
 
@@ -58,6 +58,15 @@ metadata:
 3. 우선순위: 기능 하드룰(레이아웃·숫자 정렬·빈/로딩/에러 상태·퍼지 안전·성능·폰 가로 스크롤) > DESIGN.md > `references/tokens.md`.
    색·서체 취향 하드룰(세리프·순수 검정·글로우)이 DESIGN.md와 부딪히면 DESIGN.md를 따른다. 단, 데이터 표·지표 숫자 영역은 산세리프와 모노를 지킨다.
 
+### 화면 패턴과 레퍼런스 (DESIGN.md 다음, 화면마다)
+
+DESIGN.md는 "어떻게 보이나"(색·서체)를 정하고, 이 단계는 "무엇을 어디에 얼마나 두고 무엇을 숨기나"(정보 구조)를 정한다. 토큰이 좋아도 정보 구조가 틀리면 "숫자만 늘어놓아 모르겠다"가 된다.
+
+1. `references/patterns/README.md` 표에서 만들 화면에 맞는 패턴 파일 2~3개를 골라 읽고, 그 "규칙(측정 가능)"을 체크리스트로 쓴다.
+2. 같은 일을 하는 실제 제품 화면 2~3개를 본다. 출처는 `references/patterns/sources.md`(무료·약관 확인). SaaSUI.design MCP가 연결돼 있으면 한 단어로 검색한다. 이미지는 저장하지 않고 링크·관찰만 남긴다.
+3. 화면마다 **결정 근거** 몇 줄을 DESIGN.md(없으면 SPEC)에 남긴다: 빌린 패턴·레퍼런스 · 왜(위계·가독성·과업) · 버린 대안. 다음 수정이 근거 없이 흔들리지 않게 한다.
+4. "다시 디자인"·L 등급의 핵심 화면은 2안을 나란히(Artifact 또는 로컬 페이지) 보여 고르게 한다. 그 밖에는 하지 않는다.
+
 ## 3. 하드룰
 
 각 줄은 이유가 있다. 이유가 사라지면 룰도 지운다.
@@ -71,6 +80,12 @@ metadata:
 - 대시보드·소프트웨어 UI는 산세리프 페어링 (`Geist`+`Geist Mono`, `Satoshi`+`JetBrains Mono` 등 — `references/tokens.md`). 세리프는 데이터 화면에서 판독성이 떨어진다.
 - 숫자는 전부 `font-mono` — 자릿수가 정렬돼야 표와 지표를 읽을 수 있다. 관제에서 특히.
 - H1은 화면 역할에 맞는 크기로, 폰트 하나에 기대지 않는다 (기본값 `Inter` 하나로 전체를 덮으면 템플릿 티가 난다).
+
+### 정보 구조 (근거: `references/patterns/` — 2026-10 실제 사용자 지적에서)
+- 지표·판정 묶음은 맨 위에 **결론 1줄**(충족/미달 + 이유) — 결론 없이 숫자만 나열하면 사용자가 판단을 대신해야 한다.
+- 값은 **기준 대비**로 보인다: 값 · 기준선 · 여유/부족 차이를 한 줄(불릿 차트 등). 색만으로 상태를 말하지 않는다(WCAG 1.4.1).
+- 설명·근거·계산식·정의는 **기본 접힘**(공개 단계 최대 2). 기본으로 보이는 것은 결론·값·상태.
+- 핵심 화면(지도·차트)은 위 띠·배너에 밀리지 않는다: 배너는 페이지당 1개·2줄, 항목 상태는 배지, 지도·차트 위 라벨·범례는 구석 작은 카드.
 
 ### Cockpit 모드 (VISUAL_DENSITY ≥ 8)
 - 작은 패딩, 1px 선(`border-t`/`divide-y`)과 여백으로 논리 그룹화. 카드 박스는 z-index로 띄울 실제 이유가 있을 때만 — 박스가 겹치면 밀도가 죽는다.
@@ -90,6 +105,8 @@ metadata:
 - Tailwind 버전은 `package.json`에서 먼저 확인한다. v3 프로젝트에 v4 문법은 동작하지 않고, v4는 `postcss.config.js`에 `@tailwindcss/postcss`(또는 Vite 플러그인)를 쓴다.
 
 ### 모션 & 성능
+- 수치·쓰는 곳은 `references/motion.md`(MOTION dial별 duration·easing, Carbon·M3 근거). 제품·관제 화면은 사용자 동작에 대한 응답 모션만, 랜딩만 페이지 로드 오케스트레이션 1회.
+- `prefers-reduced-motion`이면 이동·패럴랙스·자동재생을 끄고 opacity·색만 남긴다(WCAG 2.3.3). 5초 넘는 자동 움직임·자동 갱신에는 일시정지(WCAG 2.2.2).
 - 애니메이션은 `transform`/`opacity`만 — `top/left/width/height`는 매 프레임 리플로우를 일으킨다.
 - grain/noise는 `fixed … pointer-events-none` 레이어에만.
 - z-index는 소수의 단계로 관리한다 (`z-50` 남발은 겹침 버그의 원인). 스크롤 감지는 `IntersectionObserver`. `useEffect`는 cleanup을 반환한다.
@@ -102,6 +119,11 @@ metadata:
 | "Elevate/Seamless/Unleash", "직관적인", "간편한" 같은 필러 카피 | 구체적 동사와 대상 |
 | `"text-" + color` 동적 클래스명 (Tailwind 퍼지 시 사라진다) | 룩업맵 (`references/tokens.md`) |
 | 정상 상태만 있는 화면 | 빈 / 로딩 / 에러 / (실시간이면) stale 상태까지 구현 — 관제 데이터는 끊긴다 |
+| 크림 배경 + 세리프 + 테라코타, 장식 그라디언트 배경 (Anthropic 공식 스킬이 꼽은 AI 티) | DESIGN.md 팔레트. 배경 한 레이어는 랜딩(VARIANCE ≥ 6) 히어로에만 |
+| ALL-CAPS 아이브로, `A · B · C` 나열, 버튼 끝 `→`, 순서도 아닌데 01/02/03 번호 | 평범한 문장형 라벨, 번호는 실제 순서에만 |
+| 모든 카드 같은 반경·같은 회색 그림자, 모든 섹션 fade+slide-up·모든 카드 hover | 위계에 따라 다르게, 모션은 동작 응답만(`references/motion.md`) |
+| "제출/확인" 버튼, 사과형 오류("죄송합니다") | 일어나는 일 그대로("변경 저장"), 오류는 원인+해결 |
+| 숫자·문장 나열로 끝나는 판정·지표 화면 | 결론 1줄 + 기준 대비 막대 + 근거 접기(`references/patterns/verdict-score-report.md`) |
 
 > 정성 표현("토스처럼", "고급스럽게")이 요구사항에 있으면 **측정 가능 기준으로 변환**한 뒤 진행.
 
@@ -119,6 +141,9 @@ metadata:
 - [ ] 애니는 transform/opacity만인가? `useEffect` 정리를 했나?
 - [ ] 전역 상태가 prop-drilling 회피 목적인가(남용 아님)?
 - [ ] 가짜 데이터·필러 카피가 없나?
+- [ ] 지표·판정 묶음 맨 위에 결론 1줄이 있고, 값이 기준 대비(기준선·여유/부족)로 보이나? 설명 문장은 기본 접힘인가?
+- [ ] 고른 패턴 파일(`references/patterns/`)의 체크 항목을 돌았고, 결정 근거를 남겼나?
+- [ ] 키보드 포커스가 `:focus-visible` 링으로 보이나? `prefers-reduced-motion`에서 이동·자동재생이 꺼지나?
 
 ## 6. dev:build와 통합
 
@@ -141,6 +166,10 @@ godot --path <프로젝트> --script "${CLAUDE_PLUGIN_ROOT}/skills/ui/scripts/go
 ## 참조
 - `references/design-md.md` — DESIGN.md 받는 법·프로젝트에 맞게 고치기·프로파일별 추천·전체 slug. DESIGN.md가 없는 새 화면에서 읽는다.
 - `references/tokens.md` — 그림자 3종·의미 상태색쌍·룩업맵 패턴·폰트 페어링 (복붙). DESIGN.md도 기존 테마도 없을 때의 기본값. 프론트 구현/리뷰 시 읽는다.
+- `references/patterns/README.md` — 화면 패턴 카탈로그 11군(판정·점수 리포트, KPI, 표, 목록+지도, 점진적 공개, 상태, 필터, 폼, 범례·주석, 알림·배지, 모바일) — 측정 가능한 규칙·실제 예시·출처. 화면을 만들기 전에 해당 파일을 읽는다.
+- `references/patterns/sources.md` — 무료 UI 레퍼런스 출처(실제 화면 갤러리·디자인 시스템·MCP)와 약관·라이선스. 레퍼런스를 찾을 때 읽는다.
+- `references/official-guides.md` — Anthropic 공식 프론트엔드·디자인 권장과 dev:ui 대조·충돌 판정. 규칙을 바꿀 때 읽는다.
+- `references/motion.md` — MOTION dial별 모션 수치·reduced-motion·모션 그래픽(코드로 프레임 렌더) 범위. 애니메이션을 넣을 때 읽는다.
 - `references/godot-mobile.md` — Godot 모바일 게임 UI 규칙·SafeArea·확인 절차. Godot 프로젝트에서만 읽는다.
 - `scripts/godot_shots.gd` — Godot 씬을 폰·태블릿 해상도로 찍는 스크립트.
 

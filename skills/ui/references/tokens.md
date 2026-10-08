@@ -76,9 +76,10 @@ const alarmTone: Record<AlarmLevel, string> = {
 |---|---|
 | `Geist` | `Geist Mono` |
 | `Satoshi` | `JetBrains Mono` |
-| `Inter Tight`(대안) | `IBM Plex Mono` |
+| `IBM Plex Sans`(대안) | `IBM Plex Mono` |
 
 - 숫자·측정값·ID·시각은 항상 모노(`font-mono` 또는 위 모노 페이스).
+- Inter·Roboto·Open Sans·Lato·시스템 폰트 하나로 덮지 않는다(Anthropic 공식 frontend-design 금지 목록, `official-guides.md` C1). 단 DESIGN.md가 정한 서체가 우선.
 - 폰트는 로컬/셀프호스트로 반입(폐쇄망·오프라인 대비 — 외부 CDN 의존 금지).
 
 ---

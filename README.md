@@ -356,6 +356,8 @@ Remote Control 세션에서는 `/plugin`이 막혀 있으므로 같은 PC의 터
 
 ## 변경 이력
 
+**2026-10-08 — 1.5.6.** dev:ui에 화면 패턴 층 추가. `references/patterns/`(11개 패턴군 — 측정 가능한 규칙·실제 예시·출처 236건, 무료 레퍼런스 출처 표 `sources.md`)를 화면마다 읽고 레퍼런스 2~3개·결정 근거를 남기는 단계, 정보 구조 하드룰(결론 1줄·기준 대비·설명 접기·핵심 화면 우선), Anthropic 공식 frontend-design 대조(`official-guides.md`)로 AI 티 4행·Pre-Flight 3줄·서체 대안 교체(Inter Tight → IBM Plex Sans), 모션 수치 `motion.md`. 계기: 부동산 판정 앱에서 "숫자만 나열·결론 없음·설명 상시 노출·핵심 화면이 밀림" 지적이 반복 — DESIGN.md(토큰)로는 못 막았다. Mobbin(유료) 대신 무료 SaaSUI.design MCP를 선택 연결로.
+
 **2026-10-08 — 1.5.5.** dev:ui에 DESIGN.md 단계 추가: 프로젝트 루트 DESIGN.md를 디자인 기준으로 따르고, 없으면 VoltAgent/awesome-design-md(MIT, 74개)에서 프로파일별 추천 1개를 받아 브랜드 제거·한글 서체·토큰화·데이터 화면 보정 후 사용. 우선순위는 기능 하드룰 > DESIGN.md > tokens.md. 기존 테마가 있는 화면 수정에는 들이지 않는다.
 
 **2026-09-30 — 1.5.4.** 웹 UI 후보 ui-ux-pro-max를 dev:ui와 같은 요청으로 비교 → 낫지 않아 미연결. ui Pre-Flight에 폰 너비 스크린샷·가로 스크롤 확인 추가.
