@@ -275,6 +275,7 @@ docs/                           과거 분석 기록
 
 **웹 UI에서 "AI가 만든 티(slop)"를 없애고 의도된 고급 결과를 강제하는 취향 하네스.** React·Tailwind·Zustand 특화.
 3개 dial(밀도·모션·파격)과 프로파일(관제 8 / 제품 UI 5 / 랜딩 3)을 정하고, 하드룰 위반은 반려한다.
+색·서체·컴포넌트 모양은 프로젝트 루트 `DESIGN.md` 한 장에 고정한다. 없으면 [awesome-design-md](https://github.com/VoltAgent/awesome-design-md)(74개 사이트)에서 프로파일에 맞는 것을 받아 브랜드를 지우고 한글 서체를 붙여 쓴다.
 dev:build의 BUILD·REVIEW에 프론트가 포함되면 자동 참조된다.
 
 ---
@@ -354,6 +355,8 @@ Godot 게임 UI 쪽은 1만★ 넘는 스킬이 없어(godot-mcp 5.6k, awesome-g
 Remote Control 세션에서는 `/plugin`이 막혀 있으므로 같은 PC의 터미널에서 `claude plugin marketplace add <repo>` → `claude plugin install <name>@<marketplace>`를 쓴다.
 
 ## 변경 이력
+
+**2026-10-08 — 1.5.5.** dev:ui에 DESIGN.md 단계 추가: 프로젝트 루트 DESIGN.md를 디자인 기준으로 따르고, 없으면 VoltAgent/awesome-design-md(MIT, 74개)에서 프로파일별 추천 1개를 받아 브랜드 제거·한글 서체·토큰화·데이터 화면 보정 후 사용. 우선순위는 기능 하드룰 > DESIGN.md > tokens.md. 기존 테마가 있는 화면 수정에는 들이지 않는다.
 
 **2026-09-30 — 1.5.4.** 웹 UI 후보 ui-ux-pro-max를 dev:ui와 같은 요청으로 비교 → 낫지 않아 미연결. ui Pre-Flight에 폰 너비 스크린샷·가로 스크롤 확인 추가.
 
