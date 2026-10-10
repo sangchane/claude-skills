@@ -53,7 +53,7 @@ superpowers가 실행 엔진이다. 이 스킬은 **규모에 맞게 단계를 �
 | 단계 | 하는 일 | 스킬 |
 |---|---|---|
 | FRAME | 사용자·문제·성공 기준·안 할 것을 3줄로. `superpowers:brainstorming`을 대신한다 | 없음 |
-| EXPLORE | 관련 코드를 직접 읽고 file:line으로 인용. 여러 모듈을 넓게 훑을 때만 Explore 서브에이전트 | 없음 |
+| EXPLORE | 관련 코드를 직접 읽고 file:line으로 인용. 여러 모듈을 넓게 훑을 때만 Explore 서브에이전트. 바깥 자료(라이브러리 이슈·공식 문서·영상 자막)가 필요하면 원문으로 읽는다 | `agent-reach`(설치돼 있으면, 없으면 WebFetch) |
 | SPEC | `references/spec-template.md` (M 1쪽 / L 전체) | 화면이 있으면 `dev:ui` |
 | PLAN | 작업 분해. 첫 3개는 버티컬 슬라이스, 그다음 위험 큰 것부터 | `superpowers:writing-plans` |
 | BUILD | 같은 세션에서 구현. 코드 전에 ponytail 사다리 | `superpowers:executing-plans` · `superpowers:test-driven-development` · `ponytail:ponytail` · 화면이면 `dev:ui` |

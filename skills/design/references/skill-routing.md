@@ -43,8 +43,8 @@ A1 RECON이 도메인 전체를 조사한다. 이후 단계는 **그 단계의 �
 | 단계 | 1순위 스킬 | 대체 (미설치·부적합 시) | 무엇을 더 정확하게 만드나 |
 |---|---|---|---|
 | A0 SEED | 없음 | — | 정규화는 모델만으로 충분하다. 스킬 호출은 낭비 |
-| A1 RECON | `ecc:research-ops` (현재 시점 사실·비교, 근거 우선) · `ecc:market-research` (경쟁·시장, 출처 표기) | WebSearch/WebFetch + `evidence-map.md` 절차 | 조사 시점 기록, 교차 확인, 출처 URL 강제 |
-| A1 스택 후보 | `ecc:search-first` (커스텀 코드 전에 기존 도구·라이브러리 탐색) | `evidence-map.md` fit_score | "만들지 말고 사라" 판단. 인기≠적합 |
+| A1 RECON | `ecc:research-ops` (현재 시점 사실·비교, 근거 우선) · `ecc:market-research` (경쟁·시장, 출처 표기) · `agent-reach` (설치돼 있으면 — 유튜브 자막·레딧·트위터·GitHub·임의 웹페이지 원문 읽기) | WebSearch/WebFetch + `evidence-map.md` 절차 | 조사 시점 기록, 교차 확인, 출처 URL 강제. 사용자 목소리(커뮤니티 반응·리뷰 영상)를 원문으로 |
+| A1 스택 후보 | `ecc:search-first` (커스텀 코드 전에 기존 도구·라이브러리 탐색) · `agent-reach` GitHub 경로(저장소·이슈 원문) | `evidence-map.md` fit_score | "만들지 말고 사라" 판단. 인기≠적합 |
 | A2 INTERROGATE | `ecc:product-lens` (만들기 전 "왜" 검증) | `blindspot-checklists.md`만 | 질문 후보의 Impact 판단 보강. 질문 형식·1회 배치 규칙은 이 스킬이 우선 |
 | A3 PRD | `ecc:product-capability` (PRD 의도 → 제약·불변식·인터페이스가 드러난 계획) | `stage-templates.md` A3 | 요구사항 풀의 불변식·제약 누락 방지 |
 | A3 화면 있으면 | `dev:ui` (dial·프로파일) | `ux-principles-kr.md` | UI 방향을 측정 가능한 dial로 고정 |
@@ -65,6 +65,7 @@ A1 RECON이 도메인 전체를 조사한다. 이후 단계는 **그 단계의 �
 - **커버리지**: `ecc:tdd-workflow`의 "80%+" 일률 목표 대신 A6의 리스크 기반 목표 (P0 경로·위협모델 상위 리스크 상향, 나머지 최소).
 - **산출물 중복**: ADR 스킬이 요구하는 별도 파일은 `decision-log.md`에 같은 형식으로 흡수한다.
 - **연구 스킬 MCP 의존**: `ecc:deep-research`는 firecrawl/exa MCP가 필요하다. 없으면 `ecc:research-ops`로 대체한다.
+- **agent-reach**: 가져오기 전용이다(요약·판단·출처 규칙은 이 스킬이 맡는다). 설치 `pip install https://github.com/Panniantong/agent-reach/archive/main.zip` → `agent-reach install --env=auto --system` → `agent-reach skill --install`(PyPI 같은 이름 패키지는 다른 것). 로그인이 필요한 채널(트위터·레딧 등)은 `agent-reach doctor`로 확인하고, 막히면 WebSearch/WebFetch로 대체한다. 그 스킬의 「업데이트 알림」 줄은 결과 보고에 넣지 않는다.
 
 ## 갱신 절차
 
