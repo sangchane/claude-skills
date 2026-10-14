@@ -8,7 +8,7 @@ description: |
   도메인을 모르는 새 서비스는 먼저 dev:design.
 argument-hint: "[요청 한 문장 또는 단계명]"
 metadata:
-  version: "0.9.0"
+  version: "0.10.0"
   updated: "2026-10-14"
 ---
 
@@ -16,6 +16,16 @@ metadata:
 
 superpowers가 실행 엔진이다. 이 스킬은 **규모에 맞게 단계를 고르고, 단계마다 어떤 스킬을 붙일지**만 정한다.
 공통 작업 원칙·규모 판정·위임 상한은 dev 규칙(`rules.md`, 세션 시작 때 자동으로 들어온다)을 따른다.
+
+## 목표와 검증 — 모든 등급 공통
+
+세상에 없는 제품을 만들 때 사용자가 세부를 다 정해 줄 수 없다. 그래서 이 네 가지는 등급과 상관없이 내가 먼저 한다.
+근거·사건은 `references/evidence.md` "2026-10-14 덧대기·검증 공백".
+
+1. **목표 대조.** 요청을 `docs/goals.md`(목표 한 장)의 번호에 붙인다. 목표를 바꾸는 말이면 goals.md부터 고친다(rules.md). goals.md가 없는 기존 제품이면 사용자 말을 날짜·원문으로 모아 먼저 만든다.
+2. **전제 도전.** 기능 요청을 받으면 만들기 전에, 도메인 조사(실무자·공식 자료)로 "이게 목표에 맞는 문제인가, 더 나은 형태가 있나"를 한 단락 제안한다. 사용자도 그 분야를 모르면 화면·기능 전에 **의미 표**(보여 줄 정보 → 그걸로 무엇을 판단하나 → 무엇과 비교해야 의미가 생기나 → 근거 출처)를 만든다. 이유: 요청을 그대로 받아 만들면 사용자가 기획자 역할을 떠안고, 데이터만 나열된 화면이 된다. (gstack `/office-hours`·`/plan-ceo-review` 방식)
+3. **정답지 채점.** goals.md 완료 기준마다 *실제 세계의 정답*(실제 사례·공식 값·실무자 판정)과 대조하는 검증이 있어야 완료다. 내가 쓴 SPEC에서 만든 테스트는 "코드가 내 생각대로 도는가"만 보므로 완료 근거가 아니다. 정답지가 없으면 정답지를 모으는 것이 첫 작업이다. 결과는 맞은 수/전체로 보고한다. (BMAD TEA trace 방식: 요구 → 증명하는 검증을 표로 잇고 통과/우려/실패)
+4. **눈가린 점검.** 화면이나 판정이 있는 기능은 REVIEW에서, 코드·SPEC·diff를 주지 않은 새 에이전트(`dev:reviewer`)에게 goals.md와 돌아가는 앱만 준다. 실제 브라우저로 "이 화면만 보고 목표의 판단을 할 수 있나, 어디서 막히나"를 스크린샷 증거와 함께 보고받는다. 이유: 내 SPEC을 아는 리뷰는 내 맹점을 그대로 공유한다. (gstack `/qa-only` 방식) 기능당 1회 — 같은 코드를 다시 확인하는 용도가 아니다.
 
 ## 등급별 경로
 
@@ -44,6 +54,8 @@ superpowers가 실행 엔진이다. 이 스킬은 **규모에 맞게 단계를 �
    | 회귀 | 한 곳을 고치면 다른 곳이 깨짐, 테스트가 없거나 적음 | 지금 동작을 특성 테스트로 먼저 고정한 뒤 M(돈·인증·개인정보면 L 변경) |
    | 결정 공백 | 도메인·요구를 몰라 무엇이 맞는지 정하지 못함 | 그 부분만 `dev:design lite` |
    | 범위 팽창 | 반쯤 된 기능이 여러 개, 끝이 안 보임 | 남은 것 중 출시에 꼭 필요한 3개로 M SPEC, 나머지는 NEXT.md "보류"로 |
+   | 목표 표류 | 사용자 말마다 SPEC이 새로 생김(SPEC 폴더가 목표 수보다 훨씬 많음), 사용자가 "같은 말을 반복한다" | goals.md를 사용자 원문으로 다시 만들고 열린 일을 거기 대조 |
+   | 검증 공백 | 테스트는 통과하는데 결과가 실제와 맞는지 잰 적이 없음, 사용자가 "의미를 모르겠다" | 정답지 채점과 눈가린 점검부터. 기능 추가는 그 뒤 |
 
 4. **확인 1회**: 진단 보고와 고른 경로·순서를 보여 주고 한 번 확인받는다. 방향이 크게 갈리는 결정이라서다. 그 뒤에는 넘긴 경로대로 진행하고 NEXT.md 블록에 등급·경로·다음 할 일을 적는다.
 - "전부 다시 짜기"는 진단에서 되는 것이 거의 없고 사용자가 원할 때만 제안한다.
@@ -57,9 +69,9 @@ superpowers가 실행 엔진이다. 이 스킬은 **규모에 맞게 단계를 �
 | SPEC | `references/spec-template.md` (M 1쪽 / L 전체) | 화면이 있으면 `dev:ui` |
 | PLAN | 작업 분해. 첫 3개는 버티컬 슬라이스, 그다음 위험 큰 것부터 | `superpowers:writing-plans` |
 | BUILD | 같은 세션에서 구현. 코드 전에 ponytail 사다리 | `superpowers:executing-plans` · `superpowers:test-driven-development` · `ponytail:ponytail` · 화면이면 `dev:ui` |
-| VERIFY | 테스트·빌드·린트·(UI면) 스크린샷을 실행하고 결과를 붙인다. 실패하면 근본 원인 | `superpowers:verification-before-completion` · 실패 시 `superpowers:systematic-debugging` |
-| REVIEW | diff와 SPEC만 주고 새 컨텍스트에서 정확성 1회. 과잉설계는 선택 | `/code-review` · `ponytail:ponytail-review` · 고위험 `/security-review` |
-| SHIP | 작은 커밋, 한글 설명형 메시지, PR | `superpowers:finishing-a-development-branch` |
+| VERIFY | 테스트·빌드·린트·(UI면) 스크린샷을 실행하고 결과를 붙인다. 완료 기준에 정답지 채점이 있으면 맞은 수/전체를 붙인다. 사용자 손이 필요한 확인은 스케줄·로그로 돌게 해 두고 다음에 내가 읽는다. 실패하면 근본 원인 | `superpowers:verification-before-completion` · 실패 시 `superpowers:systematic-debugging` |
+| REVIEW | diff·SPEC·goals.md를 주고 새 컨텍스트에서 정확성 1회 + 화면·판정이 있으면 눈가린 점검 1회(위 공통 4). 과잉설계는 선택 | `/code-review` · `ponytail:ponytail-review` · 고위험 `/security-review` |
+| SHIP | 작은 커밋, 한글 설명형 메시지, PR. 배포는 남은 작업 묶음 끝에 한 번 — 뒷작업이 남았는데 배포를 앞에 두면 두 번 배포한다 | `superpowers:finishing-a-development-branch` |
 | REFLECT | 다음에도 쓸 규칙만 CLAUDE.md·AGENTS.md에, 결정은 decision-log에 | 없음 |
 
 - `superpowers:subagent-driven-development`(작업마다 구현 1 + 리뷰 2 서브에이전트)는 크고 서로 독립인 작업이 한 세션에 안 들어갈 때만,

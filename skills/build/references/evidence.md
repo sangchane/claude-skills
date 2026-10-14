@@ -93,3 +93,22 @@ Google eng-practices "Small CLs"(약 100줄), Amazon Type 1/Type 2 결정, Basec
 - Anthropic의 고전 "프리필(assistant 턴 미리 채우기)" 기법은 **Claude 4.6+에서 미지원**.
   대체: 시스템 프롬프트 직접 지시 / 구조화 출력 / 도구 호출. 템플릿은 프리필을 쓰지 않는다.
 - 스타 수·버전은 조사 시점(2026-07, ponytail·ecc·Anthropic 행은 2026-09-03) 값이며 규칙의 근거는 "수렴"이지 "인기"가 아니다.
+
+## 2026-10-14 덧대기·검증 공백 (1.6.0)
+
+사건(search-real-estate, 2026-10-07 design 뒤 1주): 사용자 말마다 M SPEC을 새로 열어 기능 SPEC 폴더 20개·"검토 대기" 15개, NEXT.md 24KB(덮어쓰기 규칙 위반).
+테스트(Node 11 suite·pytest)와 리뷰는 매번 통과했지만 전부 내가 쓴 SPEC 대비였고, PRD 성공 기준(SC-001~005)은 한 번도 측정하지 않았다.
+세로축 값이 없는 시세 차트, 블록 23줄 나열, 뜻 없는 "참고 점수"가 리뷰를 통과했다. 이미 정한 결정(배포는 마지막에 한 번)을 다시 앞에 내놓아 사용자가 같은 말을 반복했다.
+사용자 원문: 「내가 하는 멘트마다 거기에 덧대듯이 일을 하는거라면 기획스킬이든 뭔가 잘못 된거 아니야」 · 「리뷰한다고 한거도 다 너 보고싶은곳만 리뷰한거고 테스트 과정이나 검증이 전혀 없는거야」 · 「세상에 없는 서비스를 만들어 내는건데 내가 디테일을 잡아서 시키는일만 하는게 말이 되나?」
+
+원인(규칙 원문): rules.md 첫 원칙이 "요청한 범위대로"뿐이고 목표 대조 단계가 없었다. design은 한 번 돌고 끝(목표 갱신 경로 없음). REVIEW 입력이 diff+SPEC뿐이라 생성자의 맹점을 공유. 동시 작업 수 제한 없음.
+
+반영:
+- rules.md: 목표 대조(goals.md)·기존 결정 재검토 금지·검증을 사용자에게 넘기지 않기·일상어·동시 작업 1+2·NEXT 덮어쓰기 강조, 모델별 지침 절.
+- rules-models/<계열>-<버전>.md + 훅이 세션 모델로 골라 붙임. 문구는 Claude Code 번들 claude-api 2.1.296(모델 표 2026-10-06) shared/model-migration.md에서:
+  Fable 5.1 = "Migrating to Claude Fable 5.1 › Behavioral shifts"(act/re-litigate, ground progress claims, give the reason, readability) + "… from Fable 5 › Behavioral shifts"(Delivering work 범위, scope and test coverage, surgical edits).
+  Opus 5.5 = "Migrating to Claude Opus 5.5 › Behavioral shifts"(Opus 5 지침을 출발점으로 재확인, 프론트는 피할 패턴을 이름으로) + "Migrating to Claude Opus 5 › Behavioral shifts"(task scope expansion, self-check trap, communicating, deliverable length).
+- build: 목표와 검증 공통 4가지(목표 대조·전제 도전·정답지 채점·눈가린 점검), 재정비 원인 2개(목표 표류·검증 공백), VERIFY·REVIEW·SHIP 줄. spec-template: 목표 연결·정답지 기준. design 규칙 11(goals.md·정답지 출처·목표 갱신 lite). ui: 의미 표 먼저, 차트 세로축 눈금·단위 확인.
+- 외부 근거(별 수 2026-10-14 GitHub API): garrytan/gstack ★136k — `/office-hours`(전제에 반박, 좁은 첫 버전 제안)·`/plan-ceo-review`("Rethink the problem. Find the 10-star product hiding inside the request")·`/qa`·`/qa-only`(실제 브라우저, 재현→실패 테스트→수정). bmad-code-org/BMAD-METHOD ★54k + TEA 모듈(trace: 요구↔테스트 추적표, 게이트 PASS/CONCERNS/FAIL/WAIVED). github/spec-kit ★141k — checklist = "UNIT TESTS FOR REQUIREMENTS WRITING"(요구 문장 품질 점검). 통째 설치는 안 함: gstack 도구 30여 개가 build의 REVIEW·SHIP·ui와 겹쳐 규칙 충돌.
+- 상충 처리: Opus 5 가이드는 "verify를 시키거나 서브에이전트로 재확인시키면 과잉 검증"이라 하고, Fable 5.1 가이드는 "fresh-context verifier sub-agents tend to outperform self-critique"라 한다. 눈가린 점검은 같은 코드를 다시 확인하는 일이 아니라 생성자가 모르는 관점(목표+앱만)의 인수 점검이라 기능당 1회로 두고, "한 번 더 확인" 류 지시는 넣지 않는다.
+- 미실행: eval/ 회귀.

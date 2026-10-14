@@ -22,7 +22,7 @@ COMMON = "- `build`·`design`은 이 도구에 스킬로 없다. 그 등급의 �
 def rules_for(tool):
     t = (REPO / "rules.md").read_text(encoding="utf-8")
     t = re.sub(r"<!--.*?-->\n*", "", t, flags=re.S)
-    t = t.split("## 모델·effort·위임")[0]
+    t = t.split("## 모델별 지침")[0]   # 모델별 지침·위임은 Claude Code 전용
     t = t.replace("(dev 플러그인 세션 시작 훅이 이미 넣어 둔다)", "").replace("`dev:", "`")
     t = re.sub(r"- superpowers 스킬은.*\n", "", t)
     return t.rstrip() + "\n\n" + TOOL[tool] + "\n" + COMMON + "\n"

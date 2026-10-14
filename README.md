@@ -183,6 +183,7 @@ python tools/export.py codex --project <게임 저장소 경로>   # AGENTS.md�
 .claude-plugin/plugin.json      플러그인 정보(이름 dev, 버전)
 .claude-plugin/marketplace.json 마켓플레이스 정보(이름 sangchane)
 rules.md                        작업 규칙 (훅이 주입)
+rules-models/                   모델별 지침 (훅이 세션 모델로 골라 주입)
 hooks/                          세션 시작 훅
 skills/design|build|ui|setup|guide
 agents/reviewer|deep|quick
@@ -355,6 +356,16 @@ Godot 게임 UI 쪽은 1만★ 넘는 스킬이 없어(godot-mcp 5.6k, awesome-g
 Remote Control 세션에서는 `/plugin`이 막혀 있으므로 같은 PC의 터미널에서 `claude plugin marketplace add <repo>` → `claude plugin install <name>@<marketplace>`를 쓴다.
 
 ## 변경 이력
+
+**2026-10-14 — 1.6.0 덧대기·검증 공백.** 실제 프로젝트에서 사용자 말마다 기능을 덧대고(SPEC 20개), 테스트·리뷰가 내 SPEC만 확인해 "의미 없는 화면"이 통과한 사건에서.
+- 목표 한 장(`docs/goals.md`) — 모든 요청을 대조, 목표가 바뀌면 거기부터. design이 만들고 목표 갱신(lite)으로 고친다.
+- build 공통 4가지: 목표 대조 · 전제 도전(만들기 전에 도메인 조사로 "맞는 문제인가" 제안, 의미 표) · 정답지 채점(실제 사례와 대조해야 완료) · 눈가린 점검(코드·SPEC 없이 목표+앱만 본 새 에이전트가 실제 브라우저로).
+- 모델별 지침: `rules-models/<계열>-<버전>.md`를 훅이 세션 모델로 골라 붙인다(Opus 5.5·Fable 5.1, Anthropic 모델별 프롬프팅 가이드 문구).
+- 근거·외부 저장소(gstack·BMAD TEA·spec-kit): `skills/build/references/evidence.md`.
+
+**모델 지침 갱신(새 모델이 나오면).** 훅이 "전용 지침 파일이 없어 …를 붙였다"를 띄우면: Claude Code 번들 `claude-api` 스킬의
+`shared/model-migration.md`에서 그 모델의 "Migrating to … › Behavioral shifts (prompt-tunable)" 절을 읽고, 이전 파일을 복사해
+`rules-models/<계열>-<버전>.md`로 만든 뒤 바뀐 버릇만 고친다(공식 문구는 그대로). 그다음 `/claude-api prompt-audit`으로 rules.md와 새 파일을 점검하고 evidence.md에 출처·날짜를 적는다.
 
 **2026-10-14 — 1.5.9.** 남의 앱·웹 동작 파악 연결 — `morluto/rea`(Reverse Engineer Anything MCP, MIT ★20.8만): build EXPLORE·design A1에서 설치돼 있으면 사용. `skills/build/references/reverse-engineering.md`에 관문(robots·약관·봇 차단 → 허용/애매/금지, 우회·대량 수집 금지)과 덜 침습적인 순서(공유 URL 파싱 → 사용자가 연 페이지 읽기 → 공식 API → REA로 구조 파악)를 둠. 계기: 부동산 판정 앱에서 "네이버·KB·직방 어느 사이트 매물인지, 아직 있는지 추적" 요청 — 2026-10-14 확인 시 land.naver.com·kbland.kr robots 전면 금지, 직방 CloudFront 봇 차단, fin.land.naver.com은 /articles 허용.
 
