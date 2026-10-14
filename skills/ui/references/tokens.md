@@ -70,7 +70,7 @@ const alarmTone: Record<AlarmLevel, string> = {
 
 ## 4. 폰트 페어링 (대시보드/소프트웨어 UI)
 
-세리프 금지. 산세리프 본문 + 모노 숫자.
+세리프 금지. 산세리프 본문 + 등폭(tabular) 숫자, 모노는 코드·ID에만.
 
 | 본문 | 숫자/코드 |
 |---|---|
@@ -78,7 +78,7 @@ const alarmTone: Record<AlarmLevel, string> = {
 | `Satoshi` | `JetBrains Mono` |
 | `IBM Plex Sans`(대안) | `IBM Plex Mono` |
 
-- 숫자·측정값·ID·시각은 항상 모노(`font-mono` 또는 위 모노 페이스).
+- 숫자·측정값·시각은 `tabular-nums`로 자릿수를 맞춘다. 모노 페이스는 ID·코드·좌표에만 — 한글 본문 옆 모노 숫자는 폭·굵기가 어긋난다(2026-10-14 개정).
 - Inter·Roboto·Open Sans·Lato·시스템 폰트 하나로 덮지 않는다(Anthropic 공식 frontend-design 금지 목록, `official-guides.md` C1). 단 DESIGN.md가 정한 서체가 우선.
 - 폰트는 로컬/셀프호스트로 반입(폐쇄망·오프라인 대비 — 외부 CDN 의존 금지).
 
@@ -92,5 +92,5 @@ const alarmTone: Record<AlarmLevel, string> = {
   <div class="grid grid-cols-4 gap-4 py-2">…행…</div>
 </section>
 ```
-- 지표 라벨은 작게·저대비, 값은 크게·모노.
+- 지표 라벨은 작게·저대비, 값은 크게·`tabular-nums`.
 - z-index로 실제로 띄울 이유(드롭다운·모달)가 있을 때만 카드+그림자.

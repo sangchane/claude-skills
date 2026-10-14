@@ -19,6 +19,13 @@ curl -fsSL https://raw.githubusercontent.com/VoltAgent/awesome-design-md/main/de
   사용자가 고르기 어려워하면 후보 2~3개의 이 주소를 보여 준다.
 - 파일은 약 20~25KB다. YAML 토큰 → Do's and Don'ts → Responsive Behavior → Components 순으로 읽으면 충분하다.
 
+### 목록에 없는 사이트를 따라 하고 싶을 때
+- 사용자에게 [bergside/design-md-chrome](https://github.com/bergside/design-md-chrome)(MIT, ★3천, 2026-10-14 확인) 크롬 확장을 권한다: `chrome://extensions` → 개발자 모드 → "압축 해제된 확장 프로그램 로드" → 그 사이트 탭에서 Auto-extract → Generate `DESIGN.md` → Download. 결과 파일을 프로젝트 루트에 둔다.
+  - 화면에 보이는 요소 약 280개의 계산된 스타일(서체·색·간격·반경·그림자·모션)을 모아 [TypeUI DESIGN.md](https://www.typeui.sh/design-md) 형식으로 쓴다. 사이트 구조가 복잡하면 빠지는 값이 있다.
+  - 형식이 Stitch 형식과 달라(Mission·Style Foundations·Rules: Do/Don't…) 아래 "고치기" 3단계에서 토큰 이름을 이 프로젝트의 역할 이름으로 맞춘다.
+- 확장은 사용자가 직접 설치·실행한다(에이전트가 대신 깔지 않는다). 사용자가 원하지 않으면 그 사이트를 브라우저 도구로 열어 `getComputedStyle`로 주요 요소 몇 개(본문·제목·버튼·카드·표)의 색·서체·반경만 읽어 같은 4단계를 거친다.
+- [VoltAgent/awesome-claude-design](https://github.com/VoltAgent/awesome-claude-design)(MIT, ★4천)은 같은 getdesign.md 원본에서 68개를 골라 Claude Design 작업공간용으로 묶은 것이다. 위 74개 목록과 겹치니 따로 받지 않는다.
+
 ## 프로젝트에 맞게 고치기 (받은 그대로 쓰지 않는다)
 
 1. **브랜드를 지운다.** 로고, 브랜드 이름, 브랜드 전용 서체 이름(LamboType, SoDoSans 등)을 빼고, 문서의 "Font Substitutes"나 비슷한 공개 서체로 바꾼다.

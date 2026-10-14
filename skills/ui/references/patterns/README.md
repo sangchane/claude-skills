@@ -22,6 +22,7 @@
 | 빈·로딩·에러·계산 중·오래된 데이터 | `states.md` | `notification-badge.md` |
 | 필터 바·검색·정렬·적용된 필터 칩 | `filter-search-sort.md` | `forms.md`, `mobile-adaptation.md` |
 | 입력 폼·설정 화면·검증 오류 | `forms.md` | `states.md` |
+| 차트 종류 고르기·두 계열 겹치기(가격 선 + 거래량 막대)·드문/빈 구간 | `charts.md` | `legend-annotation.md`, `mobile-adaptation.md` |
 | 차트 범례·지도 범례·기준선 주석·핀 라벨 | `legend-annotation.md` | `verdict-score-report.md` |
 | 배너·토스트·인라인 알림·상태 배지·카운트 | `notification-badge.md` | `states.md` |
 | 폰에서 표·차트·지도 접기, 바텀시트, 터치 크기 | `mobile-adaptation.md` | 해당 화면 파일 |
@@ -35,6 +36,7 @@
 | 숫자만 늘어놓아 기준 충족·강점·약점이 한눈에 안 보인다 | `verdict-score-report.md` §1(결론 1줄)·§3(값·기준·차이)·§4(강점/약점 최대 3개) |
 | 설명 문장은 궁금해서 클릭했을 때만 | `verdict-score-report.md` §5, `progressive-disclosure.md`(기본 접힘·2단계 이내) |
 | 아이콘·글씨가 커서 지도가 안 보인다 → 구석에 작은 카드 태그로 | `list-map-detail.md`(지도 오버레이), `legend-annotation.md`(지도 범례·핀 라벨 크기) |
+| 시세 추이 차트부터 엉망 — 선과 막대가 같은 무게로 겹치고 드문 분기가 추세처럼 보임 (2026-10-14) | `charts.md` §2·§3, 기존 화면은 `../audit.md` 절차 |
 | 중요한 화면(지도)이 덜 중요한 띠 때문에 밑으로 밀린다 | `list-map-detail.md`(헤더·필터 바 높이 상한), `notification-badge.md`(배너 높이·개수), `kpi-dashboard.md`(위계) |
 
 ## 패턴 항목 형식 (모든 파일 공통)

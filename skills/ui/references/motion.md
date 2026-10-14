@@ -89,6 +89,26 @@ Carbon의 두 스타일 정의: **productive** = "efficiency and responsiveness"
 - 삭제: 항목 opacity 110ms exit → 빈 자리 150ms 닫힘. 되돌리기 토스트.
 - 실시간 데이터(관제): 값은 즉시 갱신. 바뀐 셀에 배경 110ms 페이드 1회(지속 하이라이트 금지). stale이면 모션이 아니라 **색·라벨**로.
 
+### 쓸 때 자주 틀리는 기본값 (출처 24)
+- 키보드로 일으킨 동작(단축키·Enter)은 애니메이션하지 않는다 — 키보드 사용자는 속도를 원한다.
+- `scale(0)`에서 시작하지 않는다 → `scale(0.9)` 이상. 기본 `ease`·`ease-in-out` 대신 위 easing 토큰.
+- 나갈 때는 들어올 때보다 작게·짧게(이동 거리·시간 모두) — 주의가 이미 다음으로 옮겨 갔다.
+- 사용자가 빠르게 다시 누를 수 있는 것은 `@keyframes` 대신 상태 기반 `transition`(도중에 방향을 바꿀 수 있어야 한다).
+- 기존 코드베이스의 모션 관례(길이·곡선)를 먼저 따른다. 그 관례가 고칠 대상일 때만 바꾼다.
+
+### AI 티 모션 점검 — 기존 화면 감사용 임계값 (출처 24 `anti-checklist.md`)
+한 번 쓰면 다듬기, 화면 전체에 똑같이 뿌리면 AI 티다. 같은 화면(view)에서 센다.
+
+| 패턴 | 지적 기준 | 대신 |
+|---|---|---|
+| 깜빡이는 표시(`animate-pulse`·`pulse/glow/breathe` 무한 루프 점·배지·"실시간" 표시) | **1개라도** (설계 근거가 문서에 적힌 브랜드 요소 1개만 예외) | 정적인 점 + 라벨 |
+| 카드·버튼마다 `hover:scale-105` | 서로 다른 구성요소 **3개 이상**이 같은 값 | 배경·테두리 색 변화, 확대는 주요 CTA 1곳 |
+| 목록 순차 등장(stagger) | 한 화면 목록 **2개 이상** | 바로 표시. 순차 등장은 의도한 순간 1번 |
+| 같은 페이드+위로 슬라이드 | 구성요소 **4개 이상**이 같은 값 | 위계에 따라 다르게, 대부분은 즉시 |
+| 블러 등장(`filter: blur`) | **3개 이상** 같은 값, 또는 글자 블록에 | 모달·핵심 1곳만 |
+| 유틸 동작(드롭다운·토글·메뉴·모달)에 튕기는 spring | **1개라도** bounce > 0 | 곡선 easing, 120~200ms |
+| 제목·문단·내비에 등장 애니메이션 | **1개라도**(등장 자체가 목적이면) | 즉시 표시 |
+
 ## 5. reduced-motion
 
 근거
@@ -212,3 +232,4 @@ dev:ui는 **UI의 모션**(상태 변화를 설명하는 150~700ms)을 다룬다
 21. Remotion skills — https://www.remotion.dev/docs/ai/skills · LICENSE.md raw
 22. Motion MCP 문서 — https://docs.motion.so/guides/mcp · https://docs.motion.so/guides/credits · https://motion.so
 23. pasqualepillitteri.it — https://pasqualepillitteri.it/en/news/19007/opus-5-5-motion-design-video-en **(접속 실패 3회, 미확인 — 검색 요약만 사용)**
+24. kylezantos/design-motion-principles(MIT, ★1.3천) `references/creation-gotchas.md`·`anti-checklist.md` — https://github.com/kylezantos/design-motion-principles (확인일 2026-10-14)

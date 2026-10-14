@@ -4,13 +4,13 @@ description: |
   웹 UI를 설계·구현할 때 "AI 티 안 나는" 고급 프론트엔드 결과를 내기 위한 디자인 취향 하네스.
   React·Tailwind·Zustand 스택에 특화(다른 스택도 적용 가능). 대시보드·관제·SaaS 내부화면·랜딩 등
   화면을 만들거나 다시 디자인할 때, 색/그림자/타이포/레이아웃/모션을 정할 때, "디자인이 밋밋하다/
-  AI스럽다"를 고칠 때 사용. 프로젝트별로 밀도·모션 "dial"을 정하고, 디자인 기준을 DESIGN.md 한 장에 고정하며
+  AI스럽다·지저분하다"를 고칠 때(기존 화면은 찍고-재고-3개만 고치는 감사 절차), 차트를 고르고 구성할 때 사용. 프로젝트별로 밀도·모션 "dial"을 정하고, 디자인 기준을 DESIGN.md 한 장에 고정하며
   (VoltAgent/awesome-design-md 74개 사이트에서 골라 받음), 하드룰과 anti-slop을 강제한다.
   Godot 모바일 게임 UI(Control·Theme·노치·터치, 폰 해상도 스크린샷 확인)도 다룬다.
   MengTo/Skills의 design-taste-frontend를 이식·일반화. dev:build의 BUILD·REVIEW가 참조.
 metadata:
-  version: "0.5.0"
-  updated: "2026-10-08"
+  version: "0.6.0"
+  updated: "2026-10-14"
 ---
 
 # Frontend Design Taste (프론트엔드 디자인 취향)
@@ -24,7 +24,7 @@ metadata:
 
 - 새 화면/컴포넌트를 만들거나 기존 UI를 다시 디자인할 때
 - 색·그림자·타이포·간격·레이아웃·모션을 정해야 할 때
-- "밋밋하다 / AI가 만든 것 같다 / 정보가 안 읽힌다"를 고칠 때
+- "밋밋하다 / AI가 만든 것 같다 / 정보가 안 읽힌다 / 지저분하다"를 고칠 때 — 이미 있는 화면이면 아래 "기존 화면 개선"부터
 - `dev:build`의 BUILD·REVIEW에서 프론트가 포함될 때 (자동 참조)
 
 ## 1. Dial 정하기 (프로젝트 시작 시 한 번)
@@ -66,6 +66,12 @@ DESIGN.md는 "어떻게 보이나"(색·서체)를 정하고, 이 단계는 "무
 2. 같은 일을 하는 실제 제품 화면 2~3개를 본다. 출처는 `references/patterns/sources.md`(무료·약관 확인). SaaSUI.design MCP가 연결돼 있으면 한 단어로 검색한다. 이미지는 저장하지 않고 링크·관찰만 남긴다.
 3. 화면마다 **결정 근거** 몇 줄을 DESIGN.md(없으면 SPEC)에 남긴다: 빌린 패턴·레퍼런스 · 왜(위계·가독성·과업) · 버린 대안. 다음 수정이 근거 없이 흔들리지 않게 한다.
 4. "다시 디자인"·L 등급의 핵심 화면은 2안을 나란히(Artifact 또는 로컬 페이지) 보여 고르게 한다. 그 밖에는 하지 않는다.
+5. 차트가 있으면 `references/patterns/charts.md`(종류·겹치기·빈 구간)를 읽는다. 이 환경에 `dataviz` 스킬이 있으면 색·마크 규격은 그 스킬을 먼저 읽는다.
+
+### 기존 화면 개선 (사용자가 "엉망·지저분·AI 같다"고 한 이미 있는 화면)
+
+새로 짜지 않고 `references/audit.md` 절차를 따른다: 1440·390 스크린샷 → 패스(1초·실눈·시작선·간격·글자·색·차트·충돌·반복·모션) → **상위 문제 3개만** 기록·수정(위계 → 구성 → 글자 → 색 → 상태 → 모션 순) → 다시 찍기, **최대 3라운드**.
+스택·라우트·API 필드명·요소 id·테스트 셀렉터는 요청 없이 바꾸지 않는다. 한 번에 전부 뜯어고치면 기능이 깨지고 무엇이 나아졌는지 말할 수 없다.
 
 ## 3. 하드룰
 
@@ -74,11 +80,15 @@ DESIGN.md는 "어떻게 보이나"(색·서체)를 정하고, 이 단계는 "무
 ### 레이아웃
 - 전체 높이는 `min-h-[100dvh]` — `h-screen`은 모바일 주소창 높이를 빼지 못해 잘린다.
 - 다열 레이아웃은 CSS Grid (`grid grid-cols-1 md:grid-cols-3 gap-6`) — flex 퍼센트 계산은 gap과 합쳐지면 줄바꿈이 깨진다.
-- 폭은 컨테이너로 잡는다 (`max-w-7xl mx-auto`). 모바일에서 접히는지 확인한다.
+- 읽는 화면(문서·폼·설정)은 컨테이너로 폭을 잡는다 (`max-w-7xl mx-auto`). 목록+지도+상세 같은 앱 셸은 전폭 패널로 나눈다 — 가운데 1200px에 가두면 지도·표가 좁아진다(taste-skill `layout.md`).
+- 간격: 관련 요소는 가깝게, 패널·섹션 사이 간격은 그 안의 어떤 간격보다 크게, 제목 위 간격은 아래의 2배 이상. 패널마다 텍스트 시작선(왼쪽 x)은 3개 이하, 나란한 카드의 같은 역할 요소(제목·가격·배지)는 같은 높이에 — "지저분하다"의 가장 흔한 원인이 간격·정렬 불균형이다.
+- flex·grid 자식 텍스트·차트 컨테이너는 `min-width: 0`, 긴 이름은 `overflow-wrap: anywhere`(`break-all` 금지) — 긴 한글 이름·SVG가 폰 가로 스크롤을 만든다(ui-ux-pro-max ux #111).
+- 늦게 오는 데이터(차트·점수·배지) 자리는 높이를 미리 잡는다 — 그려지며 아래를 밀면 화면이 흔들린다(ux #19).
 
 ### 타이포그래피
 - 대시보드·소프트웨어 UI는 산세리프 페어링 (`Geist`+`Geist Mono`, `Satoshi`+`JetBrains Mono` 등 — `references/tokens.md`). 세리프는 데이터 화면에서 판독성이 떨어진다.
-- 숫자는 전부 `font-mono` — 자릿수가 정렬돼야 표와 지표를 읽을 수 있다. 관제에서 특히.
+- 표·지표·차트 숫자는 `font-variant-numeric: tabular-nums`(Tailwind `tabular-nums`) — 자릿수가 정렬돼야 읽힌다. 모노 서체는 ID·코드·좌표에만 — 한글 본문 옆 모노 숫자는 폭·굵기가 어긋난다(2026-10-14 개정, 이전엔 숫자 전부 모노).
+- 한 화면 글자 크기는 5개 이하 — 그보다 많으면 전부 중간 크기라 위계가 사라진다(taste-skill `critique.md` 패스 6).
 - H1은 화면 역할에 맞는 크기로, 폰트 하나에 기대지 않는다 (기본값 `Inter` 하나로 전체를 덮으면 템플릿 티가 난다).
 
 ### 정보 구조 (근거: `references/patterns/` — 2026-10 실제 사용자 지적에서)
@@ -90,10 +100,12 @@ DESIGN.md는 "어떻게 보이나"(색·서체)를 정하고, 이 단계는 "무
 ### Cockpit 모드 (VISUAL_DENSITY ≥ 8)
 - 작은 패딩, 1px 선(`border-t`/`divide-y`)과 여백으로 논리 그룹화. 카드 박스는 z-index로 띄울 실제 이유가 있을 때만 — 박스가 겹치면 밀도가 죽는다.
 - 지표는 박스에 가두지 않고 촘촘히 배치한다.
+- 쉬는 상태 요소에는 그림자를 쓰지 않는다. 표면은 배경 색조 단계로 구분하고, 그림자는 떠 있는 메뉴·모달·지도 위 카드에만.
 
 ### 색 & 테마
 - 무채색은 Zinc-950 계열 — 순수 `#000000`은 대비가 과해 눈이 피로하다.
 - 글로우·그라디언트는 강조 한 곳에만.
+- 강조색은 한 화면에 1개, 주요 행동 1곳 + 디테일 1곳. 상태색(통과·주의·위험)·증감색은 강조색과 별개 쌍. 본문 글자·숫자는 진한 잉크, 회색은 보조 라벨에만, 회색 계열은 1종 — 점수 막대·배지·차트 선이 저마다 색을 쓰면 어디를 볼지 사라진다.
 - 프로젝트에 CSS 변수 테마가 있으면 하드코드 색 대신 그 토큰을 쓴다 (예: NEUROS는 `var(--color-*)` + `data-theme` 다크/라이트).
 - 상태색(정상/경고/위험/정보)은 `references/tokens.md`의 의미쌍.
 
@@ -133,7 +145,11 @@ DESIGN.md는 "어떻게 보이나"(색·서체)를 정하고, 이 단계는 "무
 - [ ] 모바일에서 접히나(반응형 보장)? 폰 너비(390×844)로 스크린샷을 찍어 Read로 봤나(쓸 수 있는 브라우저 도구나 Playwright로)?
 - [ ] 폰 너비에서 가로 스크롤이 없나(`document.documentElement.scrollWidth`가 390 이하)? `-mx-*`·고정 바·가로 스크롤 줄이 흔한 원인이다.
 - [ ] DESIGN.md가 있으면 그 색·서체·반경·컴포넌트 토큰을 썼나? 문서의 Don't를 어기지 않았나? 브랜드 로고·이름·전용 서체가 남지 않았나?
-- [ ] 숫자는 `font-mono`인가? 데이터 표·지표에 세리프를 안 썼나?
+- [ ] 숫자는 `tabular-nums`인가(모노는 ID·코드만)? 데이터 표·지표에 세리프를 안 썼나? 글자 크기 5개 이하인가?
+- [ ] 강조색이 주요 행동 1곳 + 디테일 1곳뿐인가? 상태색과 섞이지 않았나?
+- [ ] 차트가 있으면 `patterns/charts.md` 체크(점 4개 미만은 숫자로·겹친 보조 계열은 아래·옅게·빈 구간 끊기·표 보기)를 돌았나?
+- [ ] 늦게 오는 데이터 자리의 높이를 잡아 화면이 밀리지 않나? flex·grid 자식에 `min-width: 0`이 있나?
+- [ ] 기존 화면 개선이었다면 전후 스크린샷이 있고, 라운드마다 상위 3개만 고쳤나(`references/audit.md`)?
 - [ ] 색이 테마 토큰(하드코드 아님)인가? 순수 #000·네온을 안 썼나(DESIGN.md가 정한 색은 예외)?
 - [ ] 동적 클래스명 대신 룩업맵인가(퍼지 안전)?
 - [ ] `min-h-[100dvh]`·Grid를 썼나? `h-screen`·flex 퍼센트를 안 썼나?
@@ -166,7 +182,9 @@ godot --path <프로젝트> --script "${CLAUDE_PLUGIN_ROOT}/skills/ui/scripts/go
 ## 참조
 - `references/design-md.md` — DESIGN.md 받는 법·프로젝트에 맞게 고치기·프로파일별 추천·전체 slug. DESIGN.md가 없는 새 화면에서 읽는다.
 - `references/tokens.md` — 그림자 3종·의미 상태색쌍·룩업맵 패턴·폰트 페어링 (복붙). DESIGN.md도 기존 테마도 없을 때의 기본값. 프론트 구현/리뷰 시 읽는다.
-- `references/patterns/README.md` — 화면 패턴 카탈로그 11군(판정·점수 리포트, KPI, 표, 목록+지도, 점진적 공개, 상태, 필터, 폼, 범례·주석, 알림·배지, 모바일) — 측정 가능한 규칙·실제 예시·출처. 화면을 만들기 전에 해당 파일을 읽는다.
+- `references/audit.md` — 기존 화면 개선 감사 절차(스크린샷 → 패스 10개 → 상위 3개 → 고치는 순서 → 보존 규칙 → 3라운드). 이미 있는 화면을 고칠 때 읽는다.
+- `references/patterns/charts.md` — 차트 종류 고르기·두 계열 겹치기(가격 선 + 거래량 막대)·드문/빈 구간·높이 예약·표 대체. 차트를 만들거나 고칠 때 읽는다.
+- `references/patterns/README.md` — 화면 패턴 카탈로그 12군(판정·점수 리포트, KPI, 표, 목록+지도, 점진적 공개, 상태, 필터, 폼, 범례·주석, 알림·배지, 모바일) — 측정 가능한 규칙·실제 예시·출처. 화면을 만들기 전에 해당 파일을 읽는다.
 - `references/patterns/sources.md` — 무료 UI 레퍼런스 출처(실제 화면 갤러리·디자인 시스템·MCP)와 약관·라이선스. 레퍼런스를 찾을 때 읽는다.
 - `references/official-guides.md` — Anthropic 공식 프론트엔드·디자인 권장과 dev:ui 대조·충돌 판정. 규칙을 바꿀 때 읽는다.
 - `references/motion.md` — MOTION dial별 모션 수치·reduced-motion·모션 그래픽(코드로 프레임 렌더) 범위. 애니메이션을 넣을 때 읽는다.
@@ -174,4 +192,5 @@ godot --path <프로젝트> --script "${CLAUDE_PLUGIN_ROOT}/skills/ui/scripts/go
 - `scripts/godot_shots.gd` — Godot 씬을 폰·태블릿 해상도로 찍는 스크립트.
 
 출처: MengTo/Skills `design-taste-frontend`·`tailwindcss`·`beautiful-shadows`·`minimalist-ui` 이식·일반화. DESIGN.md 레퍼런스: VoltAgent/awesome-design-md(MIT).
+2026-10-14 보강(전부 MIT, 데이터 화면에 맞는 것만 증류 — 랜딩·이미지 생성 지침은 가져오지 않음): Leonxlnx/taste-skill(감사 패스·고치는 순서·간격·색 비율·숫자), nextlevelbuilder/ui-ux-pro-max-skill(charts.csv·ux-guidelines.csv), kylezantos/design-motion-principles(모션 AI 티 임계값), bergside/design-md-chrome(사이트 → DESIGN.md 추출).
 버전은 프론트매터 `metadata`.
