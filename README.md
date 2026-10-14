@@ -356,6 +356,8 @@ Remote Control 세션에서는 `/plugin`이 막혀 있으므로 같은 PC의 터
 
 ## 변경 이력
 
+**2026-10-14 — 1.5.9.** 남의 앱·웹 동작 파악 연결 — `morluto/rea`(Reverse Engineer Anything MCP, MIT ★20.8만): build EXPLORE·design A1에서 설치돼 있으면 사용. `skills/build/references/reverse-engineering.md`에 관문(robots·약관·봇 차단 → 허용/애매/금지, 우회·대량 수집 금지)과 덜 침습적인 순서(공유 URL 파싱 → 사용자가 연 페이지 읽기 → 공식 API → REA로 구조 파악)를 둠. 계기: 부동산 판정 앱에서 "네이버·KB·직방 어느 사이트 매물인지, 아직 있는지 추적" 요청 — 2026-10-14 확인 시 land.naver.com·kbland.kr robots 전면 금지, 직방 CloudFront 봇 차단, fin.land.naver.com은 /articles 허용.
+
 **2026-10-14 — 1.5.8.** dev:ui 데이터 화면 보강. 기존 화면 개선 감사 절차 `references/audit.md`(1440·390 스크린샷 → 패스 10개 → 상위 3개만 → 위계→구성→글자→색→상태→모션 순 → 최대 3라운드, 스택·라우트·셀렉터 보존), 차트 패턴 `references/patterns/charts.md`(종류 고르기·가격 선 + 거래량 막대 겹치기·드문/빈 구간 끊기·높이 예약·표 보기), 하드룰(앱 셸 전폭·간격/시작선·`min-width:0`·높이 예약·숫자 `tabular-nums`(모노는 ID·코드만)·글자 크기 5개 이하·강조색 1곳·밀집 화면 쉬는 그림자 금지), 모션 AI 티 임계값(`motion.md`), 사이트 → DESIGN.md 추출기(`design-md.md`). 출처(전부 MIT): Leonxlnx/taste-skill ★9.6만, nextlevelbuilder/ui-ux-pro-max-skill ★13.5만, kylezantos/design-motion-principles, bergside/design-md-chrome, VoltAgent/awesome-claude-design(awesome-design-md와 겹쳐 미채택). 랜딩·이미지 생성 지침은 가져오지 않음. 계기: 부동산 판정 앱 "시세 추이 차트부터 엉망".
 
 **2026-10-08 — 1.5.6.** dev:ui에 화면 패턴 층 추가. `references/patterns/`(11개 패턴군 — 측정 가능한 규칙·실제 예시·출처 236건, 무료 레퍼런스 출처 표 `sources.md`)를 화면마다 읽고 레퍼런스 2~3개·결정 근거를 남기는 단계, 정보 구조 하드룰(결론 1줄·기준 대비·설명 접기·핵심 화면 우선), Anthropic 공식 frontend-design 대조(`official-guides.md`)로 AI 티 4행·Pre-Flight 3줄·서체 대안 교체(Inter Tight → IBM Plex Sans), 모션 수치 `motion.md`. 계기: 부동산 판정 앱에서 "숫자만 나열·결론 없음·설명 상시 노출·핵심 화면이 밀림" 지적이 반복 — DESIGN.md(토큰)로는 못 막았다. Mobbin(유료) 대신 무료 SaaSUI.design MCP를 선택 연결로.

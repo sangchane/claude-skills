@@ -8,8 +8,8 @@ description: |
   도메인을 모르는 새 서비스는 먼저 dev:design.
 argument-hint: "[요청 한 문장 또는 단계명]"
 metadata:
-  version: "0.8.0"
-  updated: "2026-09-30"
+  version: "0.9.0"
+  updated: "2026-10-14"
 ---
 
 # dev:build
@@ -53,7 +53,7 @@ superpowers가 실행 엔진이다. 이 스킬은 **규모에 맞게 단계를 �
 | 단계 | 하는 일 | 스킬 |
 |---|---|---|
 | FRAME | 사용자·문제·성공 기준·안 할 것을 3줄로. `superpowers:brainstorming`을 대신한다 | 없음 |
-| EXPLORE | 관련 코드를 직접 읽고 file:line으로 인용. 여러 모듈을 넓게 훑을 때만 Explore 서브에이전트. 바깥 자료(라이브러리 이슈·공식 문서·영상 자막)가 필요하면 원문으로 읽는다 | `agent-reach`(설치돼 있으면, 없으면 WebFetch) |
+| EXPLORE | 관련 코드를 직접 읽고 file:line으로 인용. 여러 모듈을 넓게 훑을 때만 Explore 서브에이전트. 바깥 자료(라이브러리 이슈·공식 문서·영상 자막)가 필요하면 원문으로 읽는다. 연동·재현할 기능이 남의 앱·웹 안에 있으면 `references/reverse-engineering.md` 관문(robots·약관·봇 차단)부터 | `agent-reach`(설치돼 있으면, 없으면 WebFetch) · 남의 앱·웹 동작은 `rea`(설치돼 있으면) |
 | SPEC | `references/spec-template.md` (M 1쪽 / L 전체) | 화면이 있으면 `dev:ui` |
 | PLAN | 작업 분해. 첫 3개는 버티컬 슬라이스, 그다음 위험 큰 것부터 | `superpowers:writing-plans` |
 | BUILD | 같은 세션에서 구현. 코드 전에 ponytail 사다리 | `superpowers:executing-plans` · `superpowers:test-driven-development` · `ponytail:ponytail` · 화면이면 `dev:ui` |
@@ -92,4 +92,5 @@ SPEC.md와 tasks.md가 진실원이고, 구현은 새 세션에서 그 파일을
 - `references/model-routing.md` — 위임 여부·상한, 작업 클래스별 모델. 서브에이전트를 띄우기 전에 읽는다.
 - `references/skill-routing.md` — ponytail 배선과 스킬 간 충돌 우선순위. 설치 스킬이 바뀌었을 때 읽는다.
 - `references/anti-patterns.md` — 거짓 진척·프론트 slop 체크리스트. REVIEW와 프론트 작업 때 읽는다.
+- `references/reverse-engineering.md` — 남의 앱·웹 동작 파악: 관문(robots·약관·봇 차단 → 허용·애매·금지) → 공유 URL·사용자가 연 페이지 읽기 → 필요할 때만 REA. EXPLORE에서 외부 서비스 데이터가 필요할 때 읽는다.
 - `references/evidence.md` — 규칙별 출처. 규칙을 바꿀 때 읽는다.
