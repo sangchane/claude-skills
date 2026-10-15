@@ -112,3 +112,12 @@ Google eng-practices "Small CLs"(약 100줄), Amazon Type 1/Type 2 결정, Basec
 - 외부 근거(별 수 2026-10-14 GitHub API): garrytan/gstack ★136k — `/office-hours`(전제에 반박, 좁은 첫 버전 제안)·`/plan-ceo-review`("Rethink the problem. Find the 10-star product hiding inside the request")·`/qa`·`/qa-only`(실제 브라우저, 재현→실패 테스트→수정). bmad-code-org/BMAD-METHOD ★54k + TEA 모듈(trace: 요구↔테스트 추적표, 게이트 PASS/CONCERNS/FAIL/WAIVED). github/spec-kit ★141k — checklist = "UNIT TESTS FOR REQUIREMENTS WRITING"(요구 문장 품질 점검). 통째 설치는 안 함: gstack 도구 30여 개가 build의 REVIEW·SHIP·ui와 겹쳐 규칙 충돌.
 - 상충 처리: Opus 5 가이드는 "verify를 시키거나 서브에이전트로 재확인시키면 과잉 검증"이라 하고, Fable 5.1 가이드는 "fresh-context verifier sub-agents tend to outperform self-critique"라 한다. 눈가린 점검은 같은 코드를 다시 확인하는 일이 아니라 생성자가 모르는 관점(목표+앱만)의 인수 점검이라 기능당 1회로 두고, "한 번 더 확인" 류 지시는 넣지 않는다.
 - 미실행: eval/ 회귀.
+
+## 2026-10-16 받아쓰기 목표 (1.6.1)
+
+사건: 1.6.0 규칙대로 기존 게임 프로젝트에 goals.md가 없어 "사용자 말을 날짜·원문으로 모아" 만들었다 — 조사 없이 NEXT.md·WORKLOG의 원문을 옮겨 적은 목표 5개.
+사용자 원문: 「목표 문서 내가 요구한 내용을 토대로 딥 리서치를 해서 현재 모델에 맞는 프롬프트나 스킬을 적용해서 기획 설계를 해야지 곧이곧대로 하고 그렇게 말해서 말한대로 해준거다 같은 되지도 않는 방식으로 할거 같은 의도면 스킬 수정해라」
+
+원인(규칙 원문): rules.md "goals.md — 사용자가 말한 목표를 날짜·원문으로 모은 것", build 목표 대조 "사용자 말을 날짜·원문으로 모아 먼저 만든다", design 규칙 11 "사용자가 한 말을 날짜·원문으로". 1.6.0이 막으려던 "시키는 일만 한다"를 목표 문서에서 그대로 되풀이했다.
+
+반영: goals.md 정의를 "원문을 입력으로 깊이 조사해 세운 목표·완료 기준·정답지"로(rules.md·build·design 11). 기존 제품도 dev:design 목표 수립(lite)로 — 목표마다 A1 깊은 조사(deep-research 스킬 우선), 조사 프롬프트는 rules-models 「지금 모델」 지침대로. 안티패턴 A "받아쓰기 기획".

@@ -43,7 +43,7 @@ A1 RECON이 도메인 전체를 조사한다. 이후 단계는 **그 단계의 �
 | 단계 | 1순위 스킬 | 대체 (미설치·부적합 시) | 무엇을 더 정확하게 만드나 |
 |---|---|---|---|
 | A0 SEED | 없음 | — | 정규화는 모델만으로 충분하다. 스킬 호출은 낭비 |
-| A1 RECON | `ecc:research-ops` (현재 시점 사실·비교, 근거 우선) · `ecc:market-research` (경쟁·시장, 출처 표기) · `agent-reach` (설치돼 있으면 — 유튜브 자막·레딧·트위터·GitHub·임의 웹페이지 원문 읽기) · `rea` (설치돼 있으면 — 유사 솔루션 앱·웹이 기능을 어떻게 구현했나, 증거·한계 포함. 관문은 dev:build `references/reverse-engineering.md`) | WebSearch/WebFetch + `evidence-map.md` 절차 | 조사 시점 기록, 교차 확인, 출처 URL 강제. 사용자 목소리(커뮤니티 반응·리뷰 영상)를 원문으로 |
+| A1 RECON | `anthropic-skills:deep-research` (설치돼 있으면 — 목표 수립·갱신의 목표별 깊은 조사) · `ecc:research-ops` (현재 시점 사실·비교, 근거 우선) · `ecc:market-research` (경쟁·시장, 출처 표기) · `agent-reach` (설치돼 있으면 — 유튜브 자막·레딧·트위터·GitHub·임의 웹페이지 원문 읽기) · `rea` (설치돼 있으면 — 유사 솔루션 앱·웹이 기능을 어떻게 구현했나, 증거·한계 포함. 관문은 dev:build `references/reverse-engineering.md`) | WebSearch/WebFetch + `evidence-map.md` 절차 | 조사 시점 기록, 교차 확인, 출처 URL 강제. 사용자 목소리(커뮤니티 반응·리뷰 영상)를 원문으로 |
 | A1 스택 후보 | `ecc:search-first` (커스텀 코드 전에 기존 도구·라이브러리 탐색) · `agent-reach` GitHub 경로(저장소·이슈 원문) | `evidence-map.md` fit_score | "만들지 말고 사라" 판단. 인기≠적합 |
 | A2 INTERROGATE | `ecc:product-lens` (만들기 전 "왜" 검증) | `blindspot-checklists.md`만 | 질문 후보의 Impact 판단 보강. 질문 형식·1회 배치 규칙은 이 스킬이 우선 |
 | A3 PRD | `ecc:product-capability` (PRD 의도 → 제약·불변식·인터페이스가 드러난 계획) | `stage-templates.md` A3 | 요구사항 풀의 불변식·제약 누락 방지 |
