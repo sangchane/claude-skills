@@ -95,8 +95,8 @@ def main(d: Path):
     if unmarked:
         high.append(f"C5 마킹 없는 축 {len(unmarked)}건: " + " / ".join(unmarked[:5]))
     asked = len(re.findall(r"(?m)^#+\s*Q\d\b", section(reg, "질문 배치") or ""))  # 제목만 센다(본문의 Q1·Q2 언급 제외)
-    if asked > 5:
-        crit.append(f"C5 질문 {asked}문항 — 상한 5")
+    if asked > 5 and "사용자 결정 목록" not in reg:   # 규칙 3 예외: 사용자가 받기로 한 목록이면 출처를 register에 적는다
+        crit.append(f"C5 질문 {asked}문항 — 상한 5 (사용자가 받기로 한 목록이면 register에 「사용자 결정 목록: <출처>」를 적는다)")
     info.append(f"C5 축 행 {len(rows)}, 마킹 {len(rows) - len(unmarked)}, 질문 {asked}")
 
     # C6 버전 전파
