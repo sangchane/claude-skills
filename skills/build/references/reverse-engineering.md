@@ -41,16 +41,25 @@
 
 rea 의 Ghidra 경로만으로는 빈 곳이 생긴다. 2026-10-16 원작 게임 클라이언트(32비트 윈도우 exe) 시험에서 확인한 것:
 - **함수 목록표(vtable)로만 불리는 함수를 Ghidra 가 함수로 못 잡는다** → 되살린 코드·어셈블리 둘 다 없음. 창별 패킷 처리가 통째로 빠졌다.
-- `procedure_callers` 가 "complete" 라고 표시하면서 **부르는 쪽이 함수 밖이면 조용히 뺀다**(58개 중 1개 누락, 경고 없음).
+- `procedure_callers` 가 "complete" 라고 표시하면서 **부르는 쪽이 함수 밖이면 조용히 뺀다**(실제 113곳 중 56곳 누락, 경고 없음 — 처음엔 생성자 58개 중 1개만 빠진 줄 알았다).
 - rea 의 `inspect_with_objdump disassemble` 는 응답 한도를 넘고, 증거 묶음으로 꺼내도 16MiB 에서 잘린다(주소 범위 옵션 없음).
 
-그래서 판마다:
-1. **rea + Ghidra**(`GHIDRA_INSTALL_DIR`) — 함수·호출 관계·글자·표로 기능별 진입점을 잡는다.
-2. **로컬 `objdump -d` 전체 풀이 + 스크립트** — `call X → cmp → je` 같은 분기 사슬, 특정 `push` 값 세기로 1의 목록을 맞춰 본다. 수 초면 끝난다.
-3. **IDA Free**(설치돼 있으면) — 1이 함수로 못 잡은 곳만 다시 본다. 목록표로만 불리는 함수를 Ghidra 보다 잘 잡는 편이고, x86·x64 는 클라우드 디컴파일러가 있다(네트워크 필요). rea 에 붙이려면 `0xshlomil/ida-free-mcp`(native bridge) → 등록 JSON(`"mode":"attached","protocol":"native","url":"http://127.0.0.1:13337/mcp"`)을 `REA_IDA_MCP_CONFIG` 로, `REA_ANALYSIS_PROVIDER=ida`(rea `docs/ida-provider.md`). IDA Free 는 Hex-Rays 계정이 있어야 받으므로 **설치는 사용자**가 한다. 없으면 1+2 로 끝낸다. 받은 zip 은 서명(Hex-Rays SA)을 확인하고 `…/Contents/MacOS/osx-arm64 --mode unattended` 로 창 없이 설치된다(첫 실행 로그인은 사용자). **플러그인 완성본은 `0.0.0.0` 에 인증 없이 열린다**(같은 와이파이 누구나 접속) → 소스(1.1.3 이상)에서 `HOST` 를 `127.0.0.1` 로 고쳐 빌드해 `~/.idapro/plugins/` 에 넣는다. 쓸 때는 IDA 창에서 대상 파일을 열고 Edit > Plugins > MCP(Ctrl+Alt+M)로 켠다.
-4. 둘이 다르면 **기계어가 정답**이다. 어느 분석기의 어떤 목록이 틀렸는지 결과 문서에 적는다.
+같은 복사본을 세 분석기로 비교(2026-10-17, 정답은 objdump 로 센 값): 기반 생성자를 부르는 곳 113곳 중 **Ghidra 57 · IDA Free 113 · Hopper 113**. Ghidra 가 함수로 못 잡은 지도 창 함수도 IDA·Hopper 는 잡았다. 되살린 코드는 IDA 가 읽기 쉽고(351줄), Hopper 는 레지스터를 그대로 옮겨 길다(1,313줄). 함수 시작은 IDA 가 맞았고 Hopper 는 앞 채움 2바이트(`mov esi,esi`)를 넣었다.
 
-Hopper 는 유료(시험판은 30분마다 꺼지고 저장 불가)이고 Ghidra·IDA 와 겹쳐 기본 경로에 넣지 않는다. 이미 설치돼 있으면 rea `hopper` provider 로 3 대신 쓸 수 있다.
+그래서 판마다:
+1. **rea + Ghidra**(`GHIDRA_INSTALL_DIR`) — 함수·호출 관계·글자·표로 기능별 진입점을 잡는다. 창 없이 돈다.
+2. **rea + IDA Free**(`--provider ida`, 설치돼 있으면) — 1의 목록을 맞춰 보고 빈 곳을 메운다. 목록표로만 불리는 함수까지 잡는다.
+3. **로컬 `objdump -d` 전체 풀이 + 스크립트** — 「몇 곳인가」 같은 수 세기의 정답. 수 초면 끝난다.
+4. 셋째 의견이 필요하면 **rea + Hopper 데모**(`--provider hopper`).
+5. 서로 다르면 **기계어가 정답**이다. 어느 분석기의 어떤 목록이 틀렸는지 결과 문서에 적는다.
+
+IDA Free 설치·연결(macOS):
+- 받는 것은 사용자(Hex-Rays 계정) — 설치 zip 과 라이선스 `idafree_<번호>.hexlic`. zip 은 서명(Hex-Rays SA)을 확인하고 `…/Contents/MacOS/osx-arm64 --mode unattended` 로 창 없이 설치된다. 라이선스 파일은 **`~/.idapro/`** 에 둔다(모든 프로젝트가 같이 쓴다). 첫 실행의 약관 동의는 사용자.
+- 연결 플러그인 [0xshlomil/ida-free-mcp](https://github.com/0xshlomil/ida-free-mcp) 은 **완성본이 `0.0.0.0` 에 인증 없이 열린다**(같은 와이파이 누구나 접속) → 소스 1.1.3 이상에서 `HOST` 를 `127.0.0.1` 로 고쳐 빌드(`cmake`)해 `~/.idapro/plugins/` 에 넣는다.
+- 무료판은 자동 실행(`-A`)·명령줄 스크립트(`-S`)를 막는다. 플러그인 `init()` 에 `if (getenv("IDA_MCP_AUTOSTART")) mod->run(0);` 을 더해 빌드하면, `IDA_MCP_AUTOSTART=1 "<IDA>.app/Contents/MacOS/ida" <대상>` 으로 창을 열고 「Load a new file」 OK(Enter) 하나로 연결이 열린다. 로그의 「The initial autoanalysis has been finished」를 기다린 뒤 묻는다.
+- rea 등록: `{"mode":"attached","protocol":"native","url":"http://127.0.0.1:13337/mcp"}` 파일을 `REA_IDA_MCP_CONFIG` 로(rea MCP 서버 env 에도 넣는다). IDA 창은 rea 가 물을 때마다 화면이 옮겨 다닌다.
+
+Hopper 데모: 기한 없이 쓸 수 있다(제한은 30분마다 꺼짐 · 저장·내보내기 안 됨 · 디버거 없음). `brew install --cask hopper-disassembler` 뒤 `HOPPER_LAUNCHER_PATH="/Applications/Hopper Disassembler.app/Contents/MacOS/hopper"` — rea 가 물을 때마다 Hopper 를 열어 처음부터 분석한다. 첫 실행에서 데모 선택은 사용자. 한 번에 몰아 묻고 끝나면 닫는다.
 결과는 기능마다 **어느 도구로 확인했는지**(rea 함수 · objdump 스캔 · IDA) 근거 칸을 붙인다. 사용자가 "어떤 도구를 썼나"를 물으면 그 칸으로 답한다.
 
 ## 3-2. 브라우저 직접 조작 — 보이는 브라우저(Aside) 기본

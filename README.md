@@ -357,6 +357,8 @@ Remote Control 세션에서는 `/plugin`이 막혀 있으므로 같은 PC의 터
 
 ## 변경 이력
 
+**2026-10-17 — 1.6.4 세 분석기 실측.** 같은 exe 를 Ghidra·IDA Free·Hopper 데모로 rea 에 물어 objdump 정답과 비교 — 생성자 호출 113곳 중 57·113·113. 실행 파일은 rea+Ghidra → rea+IDA Free 로 빈 곳 → objdump 로 수 세기 → 필요하면 Hopper. IDA Free 맥 설정(라이선스 `~/.idapro`, 연결 플러그인 127.0.0.1 빌드, 무료판 자동 실행 막힘 → `IDA_MCP_AUTOSTART`)과 Hopper 데모(기한 없음, 30분·저장 불가)를 `reverse-engineering.md` 3-1 에.
+
 **2026-10-17 — 1.6.3 보이는 브라우저 기본.** 브라우저를 직접 눌러야 하는 일은 Aside(보이는 브라우저)가 기본이고, 사이트가 Aside 조작을 받지 않거나 창이 필요 없을 때(사진 한 장·수십 번 되풀이)만 헤드리스. 캡차·봇 차단·robots·약관 금지는 헤드리스로 바꿔 넘지 않는다(우회). 계기: 사용자 「사이트가 허락 안할때만 헤드리스로 전환하는 방식으로」.
 
 **2026-10-17 — 1.6.2 역공학 도구 보강.** 실행 파일은 rea+Ghidra 하나를 「전부」로 믿지 않고 objdump 전체 풀이로 맞춰 보며, Ghidra 가 못 잡은 곳은 IDA Free(설치돼 있으면, rea native bridge)로 다시 본다 — 근거 칸에 도구를 적는다. 로그인한 화면을 직접 눌러야 하면 Aside CLI(`aside exec`·`aside repl`, 보이는 창이라 헤드리스로 안 될 때만). `skills/build/references/reverse-engineering.md` 3-1·3-2. 계기: 게임 클라이언트 역공학에서 Ghidra 가 vtable 함수·호출자 1개를 조용히 빠뜨림, 사용자 「ghidra, ida, hooper 를 모두 사용해서 분석을 했는지」.
