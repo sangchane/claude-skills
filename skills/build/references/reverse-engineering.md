@@ -2,6 +2,7 @@
 
 > 연동·재현하려는 기능이 **남의 앱·웹사이트 안**에 있을 때 읽는다(예: 부동산 포털 매물 페이지에서 매물 ID·가격·등록일이 어디서 오나).
 > 도구: [morluto/rea](https://github.com/morluto/rea) — "Reverse Engineer Anything" MCP(MIT, ★20.8만, 2026-10-14 확인). 웹사이트(페이지 구조·스크립트·네트워크 관찰), 저장한 HAR, Android APK·기기, JS/Electron, .NET, 네이티브 바이너리를 **증거와 한계를 붙여** 돌려준다.
+> 실행 파일(exe·dll) 풀이는 3-1절(디스어셈블러 둘 이상), 로그인된 화면을 직접 눌러야 하면 3-2절(Aside).
 > 순서: **관문 → 가장 덜 침습적인 방법 → 필요할 때만 REA**. 관문을 건너뛰면 기능을 다 만든 뒤 법·차단 때문에 버리게 된다.
 
 ## 1. 관문 (코드 전에, SPEC "안 할 것·제약"에 기록)
@@ -35,6 +36,33 @@
 - 웹: 사용자가 **자기 브라우저에서 평소처럼 연 페이지**를 브라우저 분석하거나, 사용자가 저장한 HAR을 넘겨받는다. HAR은 쿠키·인증 헤더를 지운 뒤 받는다(`docs/web-network-captures.md`).
 - 앱: APK 정적 분석(JADX)은 "어떤 화면이 어떤 데이터를 쓰나"를 아는 데까지만. 인증서 고정 해제·트래픽 가로채기는 1절 금지 항목에 걸리면 하지 않는다.
 - 결과는 REA 형식 그대로 **증거·한계**를 붙여 SPEC에 남긴다: 필드 대응표(사이트 필드 → 우리 필드), 식별자(매물 ID·URL 패턴), 변경·삭제를 알 수 있는 신호, 그 신호가 틀릴 수 있는 경우.
+
+## 3-1. 실행 파일(exe·dll) — 한 분석기를 「전부」로 믿지 않는다
+
+rea 의 Ghidra 경로만으로는 빈 곳이 생긴다. 2026-10-16 원작 게임 클라이언트(32비트 윈도우 exe) 시험에서 확인한 것:
+- **함수 목록표(vtable)로만 불리는 함수를 Ghidra 가 함수로 못 잡는다** → 되살린 코드·어셈블리 둘 다 없음. 창별 패킷 처리가 통째로 빠졌다.
+- `procedure_callers` 가 "complete" 라고 표시하면서 **부르는 쪽이 함수 밖이면 조용히 뺀다**(58개 중 1개 누락, 경고 없음).
+- rea 의 `inspect_with_objdump disassemble` 는 응답 한도를 넘고, 증거 묶음으로 꺼내도 16MiB 에서 잘린다(주소 범위 옵션 없음).
+
+그래서 판마다:
+1. **rea + Ghidra**(`GHIDRA_INSTALL_DIR`) — 함수·호출 관계·글자·표로 기능별 진입점을 잡는다.
+2. **로컬 `objdump -d` 전체 풀이 + 스크립트** — `call X → cmp → je` 같은 분기 사슬, 특정 `push` 값 세기로 1의 목록을 맞춰 본다. 수 초면 끝난다.
+3. **IDA Free**(설치돼 있으면) — 1이 함수로 못 잡은 곳만 다시 본다. 목록표로만 불리는 함수를 Ghidra 보다 잘 잡는 편이고, x86·x64 는 클라우드 디컴파일러가 있다(네트워크 필요). rea 에 붙이려면 `0xshlomil/ida-free-mcp`(native bridge) → 등록 JSON(`"mode":"attached","protocol":"native","url":"http://127.0.0.1:13337/mcp"`)을 `REA_IDA_MCP_CONFIG` 로, `REA_ANALYSIS_PROVIDER=ida`(rea `docs/ida-provider.md`). IDA Free 는 Hex-Rays 계정이 있어야 받으므로 **설치는 사용자**가 한다. 없으면 1+2 로 끝낸다.
+4. 둘이 다르면 **기계어가 정답**이다. 어느 분석기의 어떤 목록이 틀렸는지 결과 문서에 적는다.
+
+Hopper 는 유료(시험판은 30분마다 꺼지고 저장 불가)이고 Ghidra·IDA 와 겹쳐 기본 경로에 넣지 않는다. 이미 설치돼 있으면 rea `hopper` provider 로 3 대신 쓸 수 있다.
+결과는 기능마다 **어느 도구로 확인했는지**(rea 함수 · objdump 스캔 · IDA) 근거 칸을 붙인다. 사용자가 "어떤 도구를 썼나"를 물으면 그 칸으로 답한다.
+
+## 3-2. 브라우저 직접 조작 — Aside (필요할 때만)
+
+rea 의 웹 분석·헤드리스 브라우저(Playwright)로 안 될 때만 쓴다: 사용자가 **로그인한 상태로 이미 연 페이지**를 읽어야 할 때, 여러 화면을 눌러 지나가야 동작이 드러날 때, 스크린샷과 DOM 을 함께 봐야 할 때. 1절 관문은 그대로다 — 봇 차단·캡차·로그인 우회, 대량 수집은 Aside 로도 하지 않는다.
+
+- 정체: [Aside](https://aside.com) — 에이전트가 든 macOS 브라우저(15.0+). CLI 가 그 브라우저를 조작한다. **보이는 창이고 사용자의 로그인·쿠키를 쓴다** → 헤드리스로 되는 일에는 쓰지 않는다. 사용자가 "보이는 브라우저 금지"를 정해 둔 프로젝트면 쓰기 전에 한 줄로 알린다.
+- 설치: CLI `curl -fsSL https://releases.aside.com/install.sh | bash`(받아서 먼저 읽고 실행 — `~/.aside/cli` 에 풀고 `~/.local/bin/aside` 를 만든다. 그 폴더가 PATH 에 없으면 넣는다) + 앱 `brew install --cask aside`. 앱을 열고 로그인하는 것은 **사용자**(`aside login` → 앱 Settings > Account > Devices 에서 승인). 앱이 꺼져 있으면 CLI 가 "Aside isn't running" 을 낸다 → 사용자에게 앱을 켜 달라고 한다.
+- 쓰기 전에 `aside guide`, `aside guide repl` 을 읽는다(판마다 바뀐다). 맞는 사이트 스킬이 있으면 `aside skills list` → `aside skills show <이름>` 을 먼저.
+- `aside exec "<할 일>"` — Aside 의 에이전트에게 맡긴다(하위 에이전트처럼). 결과만 필요할 때.
+- `aside repl "<JS>"` — Playwright 식 JS 로 직접 조작(120초 한도, `const` 가 이어지니 새 이름을 쓴다, `console.log` 로 값을 돌려받음). 사용자가 연 탭은 `listBrowserTabs()` → `attachBrowserTab(id)`/`attachActiveBrowserTab()`, 새 페이지는 `openTab(url)`, 읽기는 `snapshot(page, { interactive: true })`, 확인은 `page.screenshot()`. 사용자가 연 탭에 붙는 것이 2절 ②(사용자가 연 페이지 읽기)와 같은 범위다.
+- `aside memory` 는 사용자의 개인 맥락이다 — 필요한 것만 읽고 저장소에 옮겨 적지 않는다. 결제·보내기·삭제처럼 되돌리기 어려운 클릭은 하기 전에 사용자에게 확인한다.
 
 ## 4. 만든 뒤
 

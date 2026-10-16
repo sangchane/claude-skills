@@ -121,3 +121,12 @@ Google eng-practices "Small CLs"(약 100줄), Amazon Type 1/Type 2 결정, Basec
 원인(규칙 원문): rules.md "goals.md — 사용자가 말한 목표를 날짜·원문으로 모은 것", build 목표 대조 "사용자 말을 날짜·원문으로 모아 먼저 만든다", design 규칙 11 "사용자가 한 말을 날짜·원문으로". 1.6.0이 막으려던 "시키는 일만 한다"를 목표 문서에서 그대로 되풀이했다.
 
 반영: goals.md 정의를 "원문을 입력으로 깊이 조사해 세운 목표·완료 기준·정답지"로(rules.md·build·design 11). 기존 제품도 dev:design 목표 수립(lite)로 — 목표마다 A1 깊은 조사(deep-research 스킬 우선), 조사 프롬프트는 rules-models 「지금 모델」 지침대로. 안티패턴 A "받아쓰기 기획".
+
+## 2026-10-17 역공학 도구 보강 (1.6.2)
+
+사건: 게임 원작 클라이언트(32비트 윈도우 exe)를 rea + Ghidra 12.1.4 로 풀었더니 vtable 로만 불리는 창별 패킷 처리 함수를 함수로 못 잡았고, `procedure_callers` 가 "complete" 표시와 함께 생성자 1개를 빠뜨렸으며, rea objdump 출력은 16MiB 에서 잘렸다. 로컬 `objdump -d` + 스크립트로 메웠다.
+사용자 원문: 「Rea 말이야 ghidra, ida, hooper 를 모두 사용해서 분석을 했는지 알려줄래」 → 「지금 추천 내용과 우리스킬에 aside cli 설치도해서 웹페이지 rea 할때같은 브라우저 직접조작이 필요할때 할 수 있게 sangchane 스킬 업데이트 해줄래」
+
+출처(2026-10-17 확인): rea `docs/ida-provider.md`(IDA Pro attached·headless = mrexodia/ida-pro-mcp, IDA Free = 0xshlomil/ida-free-mcp native bridge, `REA_IDA_MCP_CONFIG`·`REA_ANALYSIS_PROVIDER=ida`) · `rea doctor` 의 provider 목록(ghidra·ida·hopper) · Aside 개발자 문서 docs.aside.com/help/developers(설치 스크립트, exec·repl·mcp) · `aside guide`·`aside guide repl`(CLI 1.26.1015.732) · gstack 이슈 #2902(`~/.local/bin` PATH, 앱이 켜져 있어야 함).
+반영: reverse-engineering.md 3-1(분석기 둘 이상 · 기계어가 정답 · 근거 칸) · 3-2(Aside — 헤드리스로 안 될 때만, 관문 그대로, 설치·로그인은 사용자) · build EXPLORE 표 · design A1.
+미실행: IDA Free 설치·rea 연결(사용자 계정 필요) · Aside 앱 로그인 뒤 `aside repl` 실제 조작.
