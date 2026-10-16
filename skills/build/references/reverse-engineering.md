@@ -2,7 +2,7 @@
 
 > 연동·재현하려는 기능이 **남의 앱·웹사이트 안**에 있을 때 읽는다(예: 부동산 포털 매물 페이지에서 매물 ID·가격·등록일이 어디서 오나).
 > 도구: [morluto/rea](https://github.com/morluto/rea) — "Reverse Engineer Anything" MCP(MIT, ★20.8만, 2026-10-14 확인). 웹사이트(페이지 구조·스크립트·네트워크 관찰), 저장한 HAR, Android APK·기기, JS/Electron, .NET, 네이티브 바이너리를 **증거와 한계를 붙여** 돌려준다.
-> 실행 파일(exe·dll) 풀이는 3-1절(디스어셈블러 둘 이상), 로그인된 화면을 직접 눌러야 하면 3-2절(Aside).
+> 실행 파일(exe·dll) 풀이는 3-1절(디스어셈블러 둘 이상), 브라우저를 직접 눌러야 하면 3-2절(Aside 기본, 사이트가 안 받으면 헤드리스).
 > 순서: **관문 → 가장 덜 침습적인 방법 → 필요할 때만 REA**. 관문을 건너뛰면 기능을 다 만든 뒤 법·차단 때문에 버리게 된다.
 
 ## 1. 관문 (코드 전에, SPEC "안 할 것·제약"에 기록)
@@ -47,17 +47,19 @@ rea 의 Ghidra 경로만으로는 빈 곳이 생긴다. 2026-10-16 원작 게임
 그래서 판마다:
 1. **rea + Ghidra**(`GHIDRA_INSTALL_DIR`) — 함수·호출 관계·글자·표로 기능별 진입점을 잡는다.
 2. **로컬 `objdump -d` 전체 풀이 + 스크립트** — `call X → cmp → je` 같은 분기 사슬, 특정 `push` 값 세기로 1의 목록을 맞춰 본다. 수 초면 끝난다.
-3. **IDA Free**(설치돼 있으면) — 1이 함수로 못 잡은 곳만 다시 본다. 목록표로만 불리는 함수를 Ghidra 보다 잘 잡는 편이고, x86·x64 는 클라우드 디컴파일러가 있다(네트워크 필요). rea 에 붙이려면 `0xshlomil/ida-free-mcp`(native bridge) → 등록 JSON(`"mode":"attached","protocol":"native","url":"http://127.0.0.1:13337/mcp"`)을 `REA_IDA_MCP_CONFIG` 로, `REA_ANALYSIS_PROVIDER=ida`(rea `docs/ida-provider.md`). IDA Free 는 Hex-Rays 계정이 있어야 받으므로 **설치는 사용자**가 한다. 없으면 1+2 로 끝낸다.
+3. **IDA Free**(설치돼 있으면) — 1이 함수로 못 잡은 곳만 다시 본다. 목록표로만 불리는 함수를 Ghidra 보다 잘 잡는 편이고, x86·x64 는 클라우드 디컴파일러가 있다(네트워크 필요). rea 에 붙이려면 `0xshlomil/ida-free-mcp`(native bridge) → 등록 JSON(`"mode":"attached","protocol":"native","url":"http://127.0.0.1:13337/mcp"`)을 `REA_IDA_MCP_CONFIG` 로, `REA_ANALYSIS_PROVIDER=ida`(rea `docs/ida-provider.md`). IDA Free 는 Hex-Rays 계정이 있어야 받으므로 **설치는 사용자**가 한다. 없으면 1+2 로 끝낸다. 받은 zip 은 서명(Hex-Rays SA)을 확인하고 `…/Contents/MacOS/osx-arm64 --mode unattended` 로 창 없이 설치된다(첫 실행 로그인은 사용자). **플러그인 완성본은 `0.0.0.0` 에 인증 없이 열린다**(같은 와이파이 누구나 접속) → 소스(1.1.3 이상)에서 `HOST` 를 `127.0.0.1` 로 고쳐 빌드해 `~/.idapro/plugins/` 에 넣는다. 쓸 때는 IDA 창에서 대상 파일을 열고 Edit > Plugins > MCP(Ctrl+Alt+M)로 켠다.
 4. 둘이 다르면 **기계어가 정답**이다. 어느 분석기의 어떤 목록이 틀렸는지 결과 문서에 적는다.
 
 Hopper 는 유료(시험판은 30분마다 꺼지고 저장 불가)이고 Ghidra·IDA 와 겹쳐 기본 경로에 넣지 않는다. 이미 설치돼 있으면 rea `hopper` provider 로 3 대신 쓸 수 있다.
 결과는 기능마다 **어느 도구로 확인했는지**(rea 함수 · objdump 스캔 · IDA) 근거 칸을 붙인다. 사용자가 "어떤 도구를 썼나"를 물으면 그 칸으로 답한다.
 
-## 3-2. 브라우저 직접 조작 — Aside (필요할 때만)
+## 3-2. 브라우저 직접 조작 — 보이는 브라우저(Aside) 기본
 
-rea 의 웹 분석·헤드리스 브라우저(Playwright)로 안 될 때만 쓴다: 사용자가 **로그인한 상태로 이미 연 페이지**를 읽어야 할 때, 여러 화면을 눌러 지나가야 동작이 드러날 때, 스크린샷과 DOM 을 함께 봐야 할 때. 1절 관문은 그대로다 — 봇 차단·캡차·로그인 우회, 대량 수집은 Aside 로도 하지 않는다.
+페이지를 보고 눌러야 하는 일은 **보이는 브라우저(Aside)가 기본**이다 — 사용자가 로그인해 둔 브라우저라 사람이 하는 것과 같은 화면이 나오고, 사용자가 옆에서 볼 수 있다. 사용자가 **이미 연 페이지**, 여러 화면을 눌러 지나가야 드러나는 동작, 스크린샷과 DOM 을 함께 봐야 할 때 특히.
+- **헤드리스(Playwright)로 바꾸는 때**: 그 사이트가 Aside 의 조작을 받지 않을 때(Aside 가 거절하거나 조작이 안 됨), 우리가 만든 페이지를 사진 한 장으로 확인하는 것처럼 창이 필요 없을 때, 같은 확인을 수십 번 되풀이할 때(창이 앞 화면을 계속 빼앗는다).
+- **바꾸지 않는 때**: 캡차·403·봇 차단·robots·약관 금지로 막힌 것은 헤드리스로 바꿔 넘지 않는다 — 그것은 우회다. 1절 판정대로 멈추고 사용자에게 알린다. 대량 수집은 어느 브라우저로도 하지 않는다.
 
-- 정체: [Aside](https://aside.com) — 에이전트가 든 macOS 브라우저(15.0+). CLI 가 그 브라우저를 조작한다. **보이는 창이고 사용자의 로그인·쿠키를 쓴다** → 헤드리스로 되는 일에는 쓰지 않는다. 사용자가 "보이는 브라우저 금지"를 정해 둔 프로젝트면 쓰기 전에 한 줄로 알린다.
+- 정체: [Aside](https://aside.com) — 에이전트가 든 macOS 브라우저(15.0+). CLI 가 그 브라우저를 조작한다. **보이는 창이고 사용자의 로그인·쿠키를 쓴다** → 사용자 계정으로 하는 일이 된다. 사용자가 보이는 창을 꺼리는 프로젝트(메모리·CLAUDE.md)면 그 규칙이 먼저다.
 - 설치: CLI `curl -fsSL https://releases.aside.com/install.sh | bash`(받아서 먼저 읽고 실행 — `~/.aside/cli` 에 풀고 `~/.local/bin/aside` 를 만든다. 그 폴더가 PATH 에 없으면 넣는다) + 앱 `brew install --cask aside`. 앱을 열고 로그인하는 것은 **사용자**(`aside login` → 앱 Settings > Account > Devices 에서 승인). 앱이 꺼져 있으면 CLI 가 "Aside isn't running" 을 낸다 → 사용자에게 앱을 켜 달라고 한다.
 - 쓰기 전에 `aside guide`, `aside guide repl` 을 읽는다(판마다 바뀐다). 맞는 사이트 스킬이 있으면 `aside skills list` → `aside skills show <이름>` 을 먼저.
 - `aside exec "<할 일>"` — Aside 의 에이전트에게 맡긴다(하위 에이전트처럼). 결과만 필요할 때.

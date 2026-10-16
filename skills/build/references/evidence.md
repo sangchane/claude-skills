@@ -130,3 +130,8 @@ Google eng-practices "Small CLs"(약 100줄), Amazon Type 1/Type 2 결정, Basec
 출처(2026-10-17 확인): rea `docs/ida-provider.md`(IDA Pro attached·headless = mrexodia/ida-pro-mcp, IDA Free = 0xshlomil/ida-free-mcp native bridge, `REA_IDA_MCP_CONFIG`·`REA_ANALYSIS_PROVIDER=ida`) · `rea doctor` 의 provider 목록(ghidra·ida·hopper) · Aside 개발자 문서 docs.aside.com/help/developers(설치 스크립트, exec·repl·mcp) · `aside guide`·`aside guide repl`(CLI 1.26.1015.732) · gstack 이슈 #2902(`~/.local/bin` PATH, 앱이 켜져 있어야 함).
 반영: reverse-engineering.md 3-1(분석기 둘 이상 · 기계어가 정답 · 근거 칸) · 3-2(Aside — 헤드리스로 안 될 때만, 관문 그대로, 설치·로그인은 사용자) · build EXPLORE 표 · design A1.
 미실행: IDA Free 설치·rea 연결(사용자 계정 필요) · Aside 앱 로그인 뒤 `aside repl` 실제 조작.
+
+## 2026-10-17 보이는 브라우저 기본 (1.6.3)
+
+사용자 원문: 「보이는 브라우저 금지는 왜 그런 규칙 생긴지 모르겠거든 사이트가 허락 안할때만 헤드리스로 전환하는 방식으로 규칙 수정이 필요한 부분일거같다」. 옛 금지는 한 프로젝트 메모리(2026-09-24, 확인용 크롬 창이 자꾸 떠 앞 화면을 가림)였고 1.6.2 가 그것을 일반 규칙처럼 옮겼다.
+반영: 3-2 를 「Aside 기본 → 사이트가 안 받으면·창이 필요 없으면 헤드리스」로. 해석 하나: 사이트가 **자동 조작 자체를 막는 것**(캡차·403·robots·약관)은 헤드리스로 바꾸면 우회가 되므로 바꾸지 않고 1절대로 멈춘다 — 「허락 안 할 때」를 Aside 가 그 사이트에서 거절·조작 불가인 경우로 읽었다.
