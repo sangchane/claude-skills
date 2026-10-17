@@ -128,6 +128,15 @@ def main(d: Path):
     if loose:
         info.append(f"C9 상수 표 밖 단위 숫자 {len(loose)}줄(상수 이름으로 바꾸거나 근거 인용인지 확인): " + ", ".join(loose[:8]))
 
+    # C10 현업 바닥선(규칙 14) — 04 「코드 구조」·05 「저장소 설계」가 없으면 구현이 한 파일로 시작한다
+    arch = docs["04-architecture"] or ""
+    if arch and not section(arch, "코드 구조") and not re.search(r"코드 구조[^\n]*해당 ?없음", arch):
+        high.append("C10 04에 「코드 구조」 절 없음 — 계층·폴더·오류·로그·주석 규약(engineering-baseline 1~5·10)")
+    if api and not section(api, "저장소 설계") and not re.search(r"저장소 설계[^\n]*해당 ?없음", api):
+        high.append("C10 05에 「저장소 설계」 절 없음 — 마이그레이션·쿼리별 색인 대조표·제약·풀(engineering-baseline 6·7)")
+    if reg and "현업 바닥선" not in reg:
+        high.append("C10 register에 12축 「현업 바닥선」 행이 없음 — engineering-baseline 1~17을 마킹")
+
     # C8 개정 노트 배지
     for f, t in docs.items():
         if t and re.search(r"개정 노트 R\d+[^\n]*적용 대기", t[:800]):
