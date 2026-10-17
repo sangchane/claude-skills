@@ -151,3 +151,18 @@ Google eng-practices "Small CLs"(약 100줄), Amazon Type 1/Type 2 결정, Basec
 사용자 원문: 「IDA 로그인했어 rea로 분석 돌려봐」 · 「우선 그럼 hooper 까지 써서 비교는 해봐 그럼」 · 「테스트끝나는데로 스킬 플러그인 업데이트도 진행」.
 측정(원작 게임 클라이언트 32비트 PE, rea 6.5.0): `rea xrefs <exe> 0x63b7d0 --provider ghidra|ida|hopper` → 57 · 113 · 113, objdump `call 0x63b7d0` 113. `rea function … 0x547230` → Ghidra 함수 아님 · IDA 0xb29 바이트 351줄 · Hopper 시작 0x54722e(채움 포함) 1,313줄.
 찾은 함정: IDA Free 9.3 은 `-A` 에 「does not support the batch mode」, `-S` 에 「Unknown switch」 → 플러그인 환경 변수 자동 시작. 약관 동의 전에는 「License not yet accepted」. ida-free-mcp 1.1.2·1.1.3 완성본 `HOST = "0.0.0.0"`(rea 문서도 경고) → 127.0.0.1 빌드.
+
+## 2026-10-17 위임과 메인 컨텍스트 (1.6.8)
+
+사용자 원문: 「그런데 루프 엔지니어링이랑 하네스? 보면 작업별로 서브에이전트에서 해서 메인 컨텍스트는 차지 안하게 하던데 효과적인게 맞다면 적용해서 스킬 패치해」.
+판정(조사 에이전트 sonnet, 원문 인용 대조): **조건부로만 효과**. 「작업마다 무조건 위임」이 낫다는 1차 근거는 없다.
+근거(2026-10-17 확인):
+- Anthropic "Effective context engineering for AI agents" — 서브에이전트는 수만 토큰을 쓰고 1,000~2,000 토큰 요약만 돌려준다(메인 컨텍스트 절약의 실제 기전).
+- Claude Code 문서 sub-agents — 곁가지 일이 다시 안 볼 검색 결과·로그·파일 내용으로 메인을 덮을 때, 스스로 끝나고 요약을 돌려줄 수 있을 때 쓴다. 잦은 왕복·계획·구현·시험이 맥락을 공유하는 단계·빠른 소규모 수정은 메인에서.
+- Anthropic "How we built our multi-agent research system" — 멀티에이전트는 채팅의 약 15배 토큰. 의존이 많거나 같은 맥락을 공유해야 하는 일은 맞지 않고, 코딩은 연구보다 병렬화할 몫이 적다. 브리프가 부실하면 중복·누락.
+- Cognition "Don't Build Multi-Agents" — 행동에는 암묵적 결정이 실리고, 나뉜 에이전트의 결정이 어긋나면 결과가 나빠진다.
+- obra/superpowers subagent-driven-development — 작업마다 새 서브에이전트 + 리뷰를 쓰지만 비용을 스스로 적고, 구현 서브에이전트 병렬은 금지.
+- Anthropic "Effective harnesses for long-running agents" — 핵심은 세션마다 새 컨텍스트 + 진행 파일·git 으로 상태 복구 + 한 번에 기능 하나. 이 플러그인의 NEXT.md·`/clear` 권하기가 이미 같은 일을 한다.
+반영: 위임하는 경우에 「출력이 길고 다시 볼 일 없는 일」, 위임하지 않는 경우에 「맥락을 이어 가는 연속 구현 단계」, 같은 파일·같은 결정 병렬 위임 금지, 브리프(목표·범위·정한 결정·형식·길이 상한)와 반환 확인(핵심은 경로·줄로).
+반영 안 함: 작업마다 무조건 위임(비용 배수·결정 어긋남, 위 근거) · 요청당 5개 상한 삭제(조사는 수치 근거가 없다고 했지만 2026-09-29 사용자 관찰 「에이전트가 필요 이상으로 돈다」가 계기라 유지).
+회귀 미실행: `eval/` 대리 A/B 를 돌리지 않았다.
