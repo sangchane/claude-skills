@@ -13,6 +13,7 @@
   C6 버전 헤더: 03에 `버전: vX`가 있고 04~07이 그 버전을 `기준 03 vX`로 참조 (S4: 03 v1.1이 04~07에 미전파)
   C7 03 상수 표에서 근거가 '미확인'인 상수가 성공 기준(SC) 절에 쓰임 (한삼국: 인물 120명 목표 vs 사료 실측 16명)
   C8 문서 머리의 `개정 노트 R# 적용 대기` 배지 — 상류 개정이 아직 전파되지 않은 문서
+  C9 04~07의 상수 표 밖 단위 숫자(INFO — 오탐 있음)
 """
 import re
 import sys
@@ -118,6 +119,14 @@ def main(d: Path):
     if used:
         crit.append(f"C7 근거 '미확인' 상수가 성공 기준에 쓰임 {len(used)}건: {', '.join(used)} — 실측·출처를 붙이거나 SC에서 빼라")
     info.append(f"C7 상수 {len(names)}개 근거 미확인" if names else "C7 근거 미확인 상수 없음")
+
+    # C9 상수 표 밖의 단위 숫자 — 04~07에 값이 직접 쓰이면 03과 어긋나기 쉽다(규칙 9). 근거 인용 줄(File:줄)은 뺀다
+    unit_num = re.compile(r"(?<![\w.`])\d+(?:\.\d+)?\s*(?:ms|초|분|시간|px|%|일|회|마리|비트|바이트)(?![\w`])")
+    loose = [f"{f}:{i}" for f in ["04-architecture", "05-api-contract", "06-test-design", "07-ops-design"]
+             for i, line in enumerate((docs[f] or "").splitlines(), 1)
+             if unit_num.search(line) and not re.search(r"\.\w+:\d|근거:|^#", line)]
+    if loose:
+        info.append(f"C9 상수 표 밖 단위 숫자 {len(loose)}줄(상수 이름으로 바꾸거나 근거 인용인지 확인): " + ", ".join(loose[:8]))
 
     # C8 개정 노트 배지
     for f, t in docs.items():
