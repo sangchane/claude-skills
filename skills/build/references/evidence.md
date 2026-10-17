@@ -136,6 +136,16 @@ Google eng-practices "Small CLs"(약 100줄), Amazon Type 1/Type 2 결정, Basec
 사용자 원문: 「보이는 브라우저 금지는 왜 그런 규칙 생긴지 모르겠거든 사이트가 허락 안할때만 헤드리스로 전환하는 방식으로 규칙 수정이 필요한 부분일거같다」. 옛 금지는 한 프로젝트 메모리(2026-09-24, 확인용 크롬 창이 자꾸 떠 앞 화면을 가림)였고 1.6.2 가 그것을 일반 규칙처럼 옮겼다.
 반영: 3-2 를 「Aside 기본 → 사이트가 안 받으면·창이 필요 없으면 헤드리스」로. 해석 하나: 사이트가 **자동 조작 자체를 막는 것**(캡차·403·robots·약관)은 헤드리스로 바꾸면 우회가 되므로 바꾸지 않고 1절대로 멈춘다 — 「허락 안 할 때」를 Aside 가 그 사이트에서 거절·조작 불가인 경우로 읽었다.
 
+## 2026-10-17 하네스·루프 — 외부 신호 게이트 (1.6.7)
+
+사용자 원문: 「현재 스킬대로 할때 하네스, 루프 엔지니어링이 적용되는 구조인지 그렇지 않다면 딥 리서치로 github 스타 10만개 이상 수준의 방법을 찾아서 적용하는게 효과적이라면 적용해」.
+판정(조사 에이전트, 파일:줄 대조): 하네스 부분(지도·진실원·주입은 있음, 기계적 강제 없음 — hooks.json은 SessionStart뿐), 루프 부분(상한·원장·재개는 superpowers가 공급, **외부 신호가 턴 종료를 막는 장치와 장시간 외부 작업 규칙이 없음**).
+근거(별 수 2026-10-17 GitHub API): OpenAI "Harness engineering"(2026-02-11 — 환경 설계·피드백 루프, 불변식을 린터·CI로 기계 강제), Anthropic "Effective harnesses for long-running agents"(2025-11-26 — 실패 양상 "declares victory too early"), Anthropic "Building effective agents"(2024-12-19 — ground truth from the environment, 반복 상한), Claude Code 문서(Stop exit 2·`stop_hook_active`·연속 차단 상한 8, `/goal` = 소형 모델이 대화 증거로 완료 판정·백그라운드 30분 점검, 백그라운드 명령 30분 한도), garrytan/gstack 136,686★ `bin/gstack-verify-gate`(선언 명령·재진입도 재검사·상한 뒤 경고), obra/superpowers 300,693★(원장·상한 — 중복 금지), anthropics/claude-code 151,255★ `plugins/ralph-wiggum`(완료 약속 문자열 루프).
+반영: Stop 훅 `hooks/verify-gate.sh`(AGENTS.md `<!-- dev:verify: 명령 -->` 선언 + M·L BUILD·VERIFY + 미커밋 변경일 때만, 3회 연속 빨강이면 경고 후 통과, 자체 시험 `hooks/test-verify-gate.sh` 6/6) · rules.md 세션 관리에 `/goal` 권하기 · VERIFY 행에 장시간 외부 작업은 시작/받기 분리 · spec-template 검증에 기대 출력.
+반영 안 함: 완료 약속 문자열 루프(ralph-wiggum) — 종료 신호가 모델의 자기 선언이라 위 「자기 재채점 삭제」(Opus 5 지침)와 같은 부류. 새 진행 파일·SubagentStop 재확인 훅 — NEXT.md·tasks.md·superpowers 원장과 중복, 서브에이전트 재확인은 과잉.
+모델 지침과의 관계: 게이트는 모델에게 「다시 확인하라」고 시키지 않는다 — 환경이 빨간 신호를 돌려줄 뿐이다.
+계기 사건(메이플 측정 장면): 30분 실기기 측정을 한 스크립트가 `sleep`으로 붙들어 백그라운드 30분 한도에 잘릴 뻔함 → 시작/받기(`fetch`) 분리.
+
 ## 2026-10-17 세 분석기 실측 (1.6.4)
 
 사용자 원문: 「IDA 로그인했어 rea로 분석 돌려봐」 · 「우선 그럼 hooper 까지 써서 비교는 해봐 그럼」 · 「테스트끝나는데로 스킬 플러그인 업데이트도 진행」.

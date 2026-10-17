@@ -69,7 +69,7 @@ superpowers가 실행 엔진이다. 이 스킬은 **규모에 맞게 단계를 �
 | SPEC | `references/spec-template.md` (M 1쪽 / L 전체) | 화면이 있으면 `dev:ui` |
 | PLAN | 작업 분해. 첫 3개는 버티컬 슬라이스, 그다음 위험 큰 것부터 | `superpowers:writing-plans` |
 | BUILD | 같은 세션에서 구현. 코드 전에 ponytail 사다리 | `superpowers:executing-plans` · `superpowers:test-driven-development` · `ponytail:ponytail` · 화면이면 `dev:ui` |
-| VERIFY | 테스트·빌드·린트·(UI면) 스크린샷을 실행하고 결과를 붙인다. 완료 기준에 정답지 채점이 있으면 맞은 수/전체를 붙인다. 사용자 손이 필요한 확인은 스케줄·로그로 돌게 해 두고 다음에 내가 읽는다. 실패하면 근본 원인 | `superpowers:verification-before-completion` · 실패 시 `superpowers:systematic-debugging` |
+| VERIFY | 테스트·빌드·린트·(UI면) 스크린샷을 실행하고 결과를 붙인다. 완료 기준에 정답지 채점이 있으면 맞은 수/전체를 붙인다. 사용자 손이 필요한 확인은 스케줄·로그로 돌게 해 두고 다음에 내가 읽는다. 실패하면 근본 원인. 몇 초 안에 끝나는 검증 명령은 프로젝트 AGENTS.md에 `<!-- dev:verify: 명령 -->`으로 선언한다 — Stop 훅이 빨간불이면 턴 종료를 막는다(장비·장시간 명령은 선언 금지). 장비·장시간 작업(기기 빌드·설치, 30분 측정)은 「시작」과 「결과 받기」를 나눈 스크립트로 만들고 `run_in_background`(+`timeout`)나 Monitor로 돌려 끝 알림을 받아 읽는다 — 한 프로세스가 `sleep`으로 붙들고 기다리지 않는다(백그라운드 명령 한도에 잘린다) | `superpowers:verification-before-completion` · 실패 시 `superpowers:systematic-debugging` |
 | REVIEW | diff·SPEC·goals.md를 주고 새 컨텍스트에서 정확성 1회 + 화면·판정이 있으면 눈가린 점검 1회(위 공통 4). 과잉설계는 선택 | `/code-review` · `ponytail:ponytail-review` · 고위험 `/security-review` |
 | SHIP | 작은 커밋, 한글 설명형 메시지, PR. 배포는 남은 작업 묶음 끝에 한 번 — 뒷작업이 남았는데 배포를 앞에 두면 두 번 배포한다 | `superpowers:finishing-a-development-branch` |
 | REFLECT | 다음에도 쓸 규칙만 CLAUDE.md·AGENTS.md에, 결정은 decision-log에 | 없음 |

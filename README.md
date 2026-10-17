@@ -184,7 +184,7 @@ python tools/export.py codex --project <게임 저장소 경로>   # AGENTS.md�
 .claude-plugin/marketplace.json 마켓플레이스 정보(이름 sangchane)
 rules.md                        작업 규칙 (훅이 주입)
 rules-models/                   모델별 지침 (훅이 세션 모델로 골라 주입)
-hooks/                          세션 시작 훅
+hooks/                          세션 시작 훅 · Stop 검증 게이트(verify-gate.sh, 자체 시험 test-verify-gate.sh)
 skills/design|build|ui|setup|guide
 agents/reviewer|deep|quick
 tools/skill_catalog.py          설치 스킬·토큰·라우팅 표 검사
@@ -356,6 +356,8 @@ Godot 게임 UI 쪽은 1만★ 넘는 스킬이 없어(godot-mcp 5.6k, awesome-g
 Remote Control 세션에서는 `/plugin`이 막혀 있으므로 같은 PC의 터미널에서 `claude plugin marketplace add <repo>` → `claude plugin install <name>@<marketplace>`를 쓴다.
 
 ## 변경 이력
+
+**2026-10-17 — 1.6.7 검증 게이트·장시간 작업.** Stop 훅 `hooks/verify-gate.sh`: 프로젝트 AGENTS.md에 `<!-- dev:verify: 명령 -->`을 적어 두면, NEXT.md가 M·L의 BUILD·VERIFY 단계이고 커밋 안 된 변경이 있을 때 턴을 마치기 전에 그 명령을 돌려 빨간불이면 종료를 막고 실패 꼬리를 돌려준다(3번 연속이면 경고만). 선언이 없으면 아무것도 안 한다 — 훅은 권한 확인 없이 도니 남의 저장소의 선언은 열기 전에 확인할 것. rules.md: 끝이 명령 결과로 증명되는 일은 `/goal`을 권한다. build VERIFY: 장비·장시간 작업은 「시작」과 「결과 받기」로 나눠 백그라운드로. 근거·버린 대안(완료 약속 문자열 루프 등)은 `skills/build/references/evidence.md` 「하네스·루프」. 계기: 사용자 「하네스, 루프 엔지니어링이 적용되는 구조인지」 — 조사 결과 둘 다 「부분」, 외부 신호가 종료를 막는 장치가 없었다.
 
 **2026-10-17 — 1.6.6 상수 표 밖 숫자 검사.** check_package C9: 04~07에 단위가 붙은 숫자(ms·초·px·%·비트 …)가 상수 이름 대신 직접 쓰인 줄을 INFO로 보인다(근거 인용 `File:줄`은 뺌). 계기: 메이플 GATE 검토관이 「03 상수 표에 없는 숫자가 06·07·04에 흩어져 있고 자기 검증 스크립트는 잡지 못한다」고 지적 — 첫 실행에서 실제 두 곳(틱·초대 코드 길이)을 잡았다. 오탐(데이터 형식 「64비트」 등)이 있어 막지 않고 보이기만.
 
