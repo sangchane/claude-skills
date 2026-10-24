@@ -12,8 +12,8 @@ description: |
 argument-hint: "[spike|lite|full] [한 줄 아이디어]"
 effort: high
 metadata:
-  version: "1.5.0"
-  updated: "2026-09-29"
+  version: "1.6.0"
+  updated: "2026-10-25"
 ---
 
 # Service Autopilot (서비스 기획·설계 오토파일럿)
@@ -86,6 +86,17 @@ metadata:
     (`references/engineering-baseline.md` 1~17)를 A2에서 12축으로 전부 마킹하고, A4 「코드 구조」·A5 「저장소 설계」·A7에 기본값으로 적는다. 미루는 항목은 「언제」를 적는다.
     사용자가 「현업 방식으로」 같은 작업 방식을 말하면 메모리에만 두지 말고 그 자리에서 이 절들과 프로젝트 AGENTS.md 규약에 올린다.
     이유: 2026-10-17 메이플 — 처음 지시(레이어·서비스·예외·로그)가 메모리에만 남아 새 서버가 한 파일로 만들어졌고 사용자가 「분명 최초 요구사항에 있었을텐데」라고 다시 말해야 했다.
+15. **빈 곳은 우리 문서를 모르는 눈으로도 찾는다(빌더 체크).** A2 택소노미 스캔 뒤, 질문 배치 전에 seed·recon·register 초안만 준 새 서브에이전트에게
+    「이대로 만든다면 추측해야 하는 곳, 그 추측이 틀리면 비싼 곳」을 받는다. 나온 항목을 세 무더기로 나눈다 — **이미 답 있음**(그 문서 위치에 더 분명히 적는다) ·
+    **사소함**(내가 정하고 register에 `Assumed(내 판단)`) · **사용자 몫**(질문 후보). 질문 배치는 사용자 몫에서만 Impact×Uncertainty로 고른다.
+    lite·spike는 서브에이전트 없이 메인이 같은 물음을 스스로 던진다. 이유: 택소노미는 정해진 축만 본다 — 설계를 모르는 독자가 다른 빈 곳을 찾고,
+    세 무더기 분류가 질문 폭격을 막는다. (superpowers brainstorming 「builder check」 · anthropics/skills doc-coauthoring 「Reader Testing」)
+16. **질문 전에 가정을 스스로 무너뜨려 본다.** Assumed 중 Impact가 큰 상위 3개를 사전 부검(「6개월 뒤 이 제품이 실패했다 — 이 가정 때문인가?」)과
+    뒤집기(「확실히 망하게 하려면 무엇을 하면 되나」)로 시험한다. 버티지 못한 가정은 질문 후보로 올리거나, 질문 칸이 없으면 03 가정 목록에 `위험` 표시와 확인 방법을 적는다.
+    A1의 「흔한 실패」 절이 입력이다. 이유: 받아쓰기로 채운 가정은 그럴듯해서 아무도 다시 보지 않는다. (BMAD advanced-elicitation 「Assumption Audit」·「Pre-mortem」·「Inversion」)
+17. **모르는 것은 지어내지 않는다.** 조사와 질문으로도 정하지 못한 사실·수치·요구는 그럴듯한 값으로 채우지 않고 `검증 필요 — 확인 방법: …`으로 적고(check_package C11이 센다 — 「미정」은 C4가 미결정으로 잡는다),
+    그 확인을 08 첫 작업 후보에 넣는다. 사용자가 「알아서 해」라고 답하면 무응답과 같다 — 추천안을 채택하고 최종 보고 (c)에 적는다.
+    이유: 도메인을 모르는 사용자는 그럴듯한 가짜 요구를 걸러 내지 못한다. (ECC `plan-prd` 「Anti-fluff rule … Never invent plausible-sounding requirements」 · spec-kit Assumptions/Deferred)
 
 ## 파이프라인 (A0~A7 + GATE)
 
@@ -96,7 +107,7 @@ A7=⑥IaC·⑦관측성. ④실행·⑤구현은 핸드오프 후 dev:build BUIL
 |---|---|---|---|---|
 | A0 | **SEED** | 한 줄 아이디어 정규화: 서비스 유형·주/인접 도메인·감지된 제약 분류. 되묻지 않음 | `00-seed.md` | 유형·도메인 분류 완료 |
 | A1 | **RECON** | 근거 조사: 도메인 업무 흐름, 이해관계자, 규제/표준, 유사 솔루션 3~5개, 스택 후보 | `01-recon.md` | 전 항목 출처 URL |
-| A2 | **INTERROGATE** | 심문 택소노미(`references/blindspot-checklists.md`) 전축 스캔 → 축별 Clear/Assumed/Asked 마킹 → Impact×Uncertainty 상위 최대 5문항을 **객관식 배치 1회**로 질문 → 답변·가정을 register에 반영 | `02-blindspot-register.md` | 전 축 마킹 완료 (규칙 4) |
+| A2 | **INTERROGATE** | 심문 택소노미(`references/blindspot-checklists.md`) 전축 스캔 → 축별 Clear/Assumed/Asked 마킹 → **빌더 체크 세 무더기(규칙 15) → 가정 사전 부검(규칙 16)** → 사용자 몫 중 Impact×Uncertainty 상위 최대 5문항을 **배치 1회**로 질문 → 답변·가정을 register에 반영 | `02-blindspot-register.md` | 전 축 마킹 완료 (규칙 4) · 빌더 체크·사전 부검 표 있음 |
 | A3 | **PRD** | 제품 목표(≤3·직교) · 유저스토리(3~5, P1만으로 MVP 성립) · 엣지케이스(Given/When/Then) · 요구사항 풀(P0/P1/P2) · 측정 가능 성공기준(SC-###) · 가정 목록 | `03-prd.md` | 성공기준 전부 pass/fail 판정 가능 |
 | A4 | **ARCHITECT** | 구현 접근·컴포넌트 구조(mermaid) · 데이터 흐름(sequenceDiagram) · **위협모델**: 4질문 프레임 + STRIDE 6범주 각각 검토(해당없음도 근거 명시) + 상위 리스크 완화책 | `04-architecture.md` | STRIDE 6범주 전수 검토 |
 | A5 | **CONTRACT** | API 계약: 엔드포인트 표(메서드·경로·요청/응답·에러 포맷·버저닝·페이지네이션·멱등성) · ERD(mermaid erDiagram) · **요구사항↔엔드포인트 커버리지 매핑**(매핑 0건 요구사항 = 결함) | `05-api-contract.md` | P0/P1 요구사항 커버리지 100% |
@@ -150,6 +161,9 @@ lite의 바닥은 스킬 본문 읽기와 도구 호출 횟수다 (문서 분량
      사용 맥락(축 11)을 먼저 묻고, 각 옵션에 "되돌릴 때 비용"을 적는다. 질문 1칸은 A0 해석 목록의 최상위 리스크에 예약한다.
      규모·중앙 서버·멀티사이트처럼 시드에 없는 것을 세우는 **확장 해석**은 가정으로 확정하지 않고 이 칸에 올린다. 기본값은 축소 쪽
      (단일 사이트·로컬 우선·1인 운영) — 확장 해석 위에 쌓인 설계는 범위 절제에서 일관되게 감점된다.
+   - **원하는 것(의도)과 만드는 법(방법)을 나눈다.** 의도(누가·무엇을 하려고·끝의 모습)는 선택지가 답을 끌고 가니 「직접 설명해 주세요」 열린 질문으로 묻고
+     (AskUserQuestion이면 사용자는 「Other」로 쓴다), 방법만 추천안 객관식으로 묻는다. 선택지를 만들 땐 일반 범주가 아니라 **사용자 말의 해석 후보**로 —
+     「빠르게」→ 1초 안 응답 / 큰 자료도 처리 / 바로 시작. 각 질문에 「왜 중요한가」 한 문장. (superpowers 「Options steer. Ask them to describe it first」 · GSD `questioning.md`)
    - 도구 사용 가능 환경이면 AskUserQuestion으로 배치 제시. 아니면 마크다운 표 1회 출력.
 4. **배치 1회로 끝.** 무응답·스킵된 문항은 추천안을 가정으로 채택하고 register에 `Assumed(무응답)` 마킹.
 5. 답변은 받는 즉시 register와 영향받는 산출물에 반영하고 파일 저장(원자적).

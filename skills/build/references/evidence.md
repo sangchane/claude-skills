@@ -174,3 +174,9 @@ Google eng-practices "Small CLs"(약 100줄), Amazon Type 1/Type 2 결정, Basec
 반영: 새 참조 `game-port.md`(순서·정답 층·서버 권위 예측·시험 층과 흔들림 원인·모바일 조작·운영·시행착오 표·사용자와 일하기), `reverse-engineering.md` 3-3(역공학 서브에이전트 위임), build 본문 두 곳·design 규칙 13 ⑤에서 가리킴.
 반영 안 함: 엔진 이름 고정(TS+Phaser+Capacitor는 메이플의 선택 — 규칙은 「웹 가능성을 먼저」까지), 메이플 고유 수치(공격 판정 여유·상수 값)는 프로젝트에 남김.
 회귀 미실행: `evals/`를 돌리지 않았다(참조 문서 추가라 라우팅 변화 없음).
+
+## 2026-10-25 진행 장부 — 한 번에 하나·통과는 출력 뒤·할 일 끝 ≠ 목표 (0.11.0 · 플러그인 1.8.0)
+
+근거(2026-10-25 확인): Anthropic 「Effective harnesses for long-running agents」(기능 목록 전부 `"passes": false` 로 시작 · 「work on only one feature at a time」 · 「It is unacceptable to remove or edit tests」 · 실패 양상 「marks features as done prematurely」) · anthropics/claude-code 153,282★ `plugins/ralph-wiggum`(「Always rely on `--max-iterations` as your primary safety mechanism」) · gsd-build/get-shit-done 64,230★ `agents/gsd-verifier.md`(「Task completion ≠ Goal achievement」·「Do NOT trust SUMMARY.md claims」) · Claude Code `/goal` 문서(조건에 턴 상한).
+반영: 목표와 검증 6번 — tasks.md 줄마다 `검증:`·`통과:` · 출력 본 뒤에만 예 · 시험 고쳐 통과 금지 · 새 세션은 첫 「아니오」부터 · 전부 예여도 3번 정답지 채점까지 · 루프 권할 때 반복 상한.
+1.6.7 결정과의 관계: 새 진행 파일·완료 약속 문자열 루프는 여전히 안 쓴다(tasks.md 를 장부로 쓰고, ralph 에서는 반복 상한만 가져옴).

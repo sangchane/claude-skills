@@ -14,6 +14,8 @@
   C7 03 상수 표에서 근거가 '미확인'인 상수가 성공 기준(SC) 절에 쓰임 (한삼국: 인물 120명 목표 vs 사료 실측 16명)
   C8 문서 머리의 `개정 노트 R# 적용 대기` 배지 — 상류 개정이 아직 전파되지 않은 문서
   C9 04~07의 상수 표 밖 단위 숫자(INFO — 오탐 있음)
+  C11 `검증 필요` 표기(규칙 17)에 「확인 방법:」이 붙었는지 — 없으면 HIGH, 있으면 개수 INFO
+  C12 02 register에 「빌더 체크」·「사전 부검」 표가 있는지 (규칙 15·16)
 """
 import re
 import sys
@@ -136,6 +138,20 @@ def main(d: Path):
         high.append("C10 05에 「저장소 설계」 절 없음 — 마이그레이션·쿼리별 색인 대조표·제약·풀(engineering-baseline 6·7)")
     if reg and "현업 바닥선" not in reg:
         high.append("C10 register에 12축 「현업 바닥선」 행이 없음 — engineering-baseline 1~17을 마킹")
+
+    # C11 지어내지 않은 빈 곳(규칙 17) — 확인 방법이 없으면 그냥 빈칸이다
+    need = [(f, i, l) for f, t in docs.items() if t for i, l in enumerate(t.splitlines(), 1) if "검증 필요" in l]
+    bare = [f"{f}.md:{i}" for f, i, l in need if "확인 방법" not in l]
+    if bare:
+        high.append(f"C11 「검증 필요」에 확인 방법이 없음 {len(bare)}건: " + ", ".join(bare[:8]))
+    if need:
+        info.append(f"C11 검증 필요 {len(need)}건 — 08 첫 작업 후보에 넣는다")
+
+    # C12 빌더 체크·사전 부검(규칙 15·16) — 축 목록만으로 고른 질문은 우리 문서의 맹점을 그대로 공유한다
+    if reg:
+        for kw in ("빌더 체크", "사전 부검"):
+            if not section(reg, kw):
+                high.append(f"C12 02 register에 「{kw}」 표 없음 (규칙 15·16)")
 
     # C8 개정 노트 배지
     for f, t in docs.items():

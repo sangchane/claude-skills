@@ -122,6 +122,27 @@
 - 고친 것: 바닥선 17항목을 별도 참조로 두고(기본값이 있어 대부분 질문 없이 Assumed), 12축 마킹·A4/A5/A7 절·check_package C10·build SPEC 「코드 위치와 바닥선」으로 설계→구현 양쪽에서 대조. 항목 목록은 같은 날 메이플 서버를 계층으로 나눈 실제 작업(계층·조립·오류 두 갈래·마이그레이션·색인 4개·CHECK·풀 시간 제한·설정 검사·종료 저장)과, 그때 「아직 없음」으로 나온 것(빈도 제한·상태 확인·백업 복원·만료 정리·공유 계약·CI·의존 관리)에서 뽑았다. 출처 수렴: OWASP ASVS(입력 검사·오류 처리·로그), Google SRE 4 골든 시그널(07에 이미 있음), 12-Factor(설정·폐기 가능성).
 - 회귀: 동결 시드 스모크(`eval/PROTOCOL.md`)는 돌리지 않았다 — 질문 수·단계 순서는 그대로이고 축 하나·절 둘이 늘어 산출물이 길어지는 쪽. check_package C10을 메이플 패키지에 돌려 실제로 빠진 두 곳(05 「저장소 설계」·12축)을 잡는 것만 확인.
 
+## 2026-10-25 요구 구체화 보강 — 빌더 체크·사전 부검·지어내지 않기 (1.6.0 · 플러그인 1.8.0)
+
+사용자 원문: 「사용자 요구사항은 대부분 모르는 도메인에 대한 서비스 개발을 원하는데 해당 영역에 대한 무지로 인해 구체적이지도 못하고 체계적일 수 없는 부분들을 llm 스스로 생각해나가면서 … github 50k 이상 혹은 그에 준하는」.
+판정: 조사 우선·질문 5 상한·Impact×Uncertainty·추천안·register·적대적 GATE 는 이미 있음. 빠진 것 = 우리 문서를 모르는 눈으로 빈 곳 찾기, 질문 전 가정 압박, 지어낸 요구 막기, 의도/방법 구분, 기능 지도·흔한 실패·전제 조사 절.
+
+| 출처 | 별(2026-10-25 GitHub API) / 공신력 | 가져온 것 |
+|---|---|---|
+| [obra/superpowers](https://github.com/obra/superpowers) brainstorming | 304,612★ | 빌더 체크(맥락 없는 독자 → 「추측해야 하고 틀리면 비싼 곳」 → 이미 답 있음/사소함·my call/사용자 몫) · 「Options steer. Ask them to describe it first」 |
+| [anthropics/skills](https://github.com/anthropics/skills) doc-coauthoring | 183,496★ (Anthropic) | Reader Testing — 맥락 없는 Claude 로 문서의 모호·잘못된 가정·모순 찾기 |
+| [affaan-m/ECC](https://github.com/affaan-m/ECC) `commands/plan-prd.md` | 288,029★ | 「Anti-fluff rule … write `TBD — needs validation via {method}`. Never invent plausible-sounding requirements」 |
+| [gsd-build/get-shit-done](https://github.com/gsd-build/get-shit-done) `references/questioning.md`·연구 에이전트 | 64,230★ | 선택지 = 사용자 말의 해석 후보(「Fast how?」) · table stakes/differentiators/anti-features · verifier 「Task completion ≠ Goal achievement」 |
+| [garrytan/gstack](https://github.com/garrytan/gstack) `office-hours` | 137,517★ | Premise Challenge(맞는 문제·안 하면·배포 경로) — build 2번에 이미 있음, design A1 에 조사 절로 |
+| [bmad-code-org/BMAD-METHOD](https://github.com/bmad-code-org/BMAD-METHOD) advanced-elicitation | 54,512★ | Assumption Audit · Pre-mortem · Inversion (71개 메뉴 전체는 개입을 늘려 안 씀 — 의도적 변경 3과 같은 이유) |
+| [github/spec-kit](https://github.com/github/spec-kit) `/specify` | 142,731★ (GitHub 공식) | Assumptions·Deferred(이미 /clarify 이식) — 규칙 17 의 근거 보강 |
+| Claude Code 공식 [Best practices](https://code.claude.com/docs/en/best-practices) | Anthropic 공식 | 「Don't ask obvious questions, dig into the hard parts I might not have considered」 — 빌더 체크와 같은 방향 |
+| [Karpathy](https://x.com/karpathy/status/2015883857489522876) 2026-01-26 | 본인 공개 | 「they don't seek clarifications, they don't surface inconsistencies … Don't tell it what to do, give it success criteria and watch it go」 |
+
+반영: 규칙 15(빌더 체크) · 16(사전 부검) · 17(지어내지 않기·「알아서 해」=무응답) · 질문 프로토콜 3에 의도/방법 구분 · A1 기능 지도·흔한 실패·전제 확인 · A2 템플릿 표 2개 · 체크리스트 4패스.
+반영 안 함: superpowers·spec-kit 의 「한 번에 한 질문」(의도적 변경 1 — 배치 1회 유지, 새 장치는 모두 배치 앞에 둠) · GSD 연구 에이전트 4병렬(A1 이 이미 맡음) · BMAD 71개 기법 메뉴.
+회귀 평가: eval/PROTOCOL.md 동결 시드 런은 아직 안 돌림(다음 design 실사용 때 비교).
+
 ## 이 파일의 용도
 
 스킬 규칙·템플릿을 바꾸려면: ① 바꿀 항목의 출처를 여기서 확인 ② 새 근거(수렴 출처)를 확보
