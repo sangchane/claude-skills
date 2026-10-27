@@ -41,7 +41,7 @@ superpowers가 실행 엔진이다. 이 스킬은 **규모에 맞게 단계를 �
 | **M** | FRAME(3줄) → SPEC(1쪽) → BUILD → VERIFY → REVIEW → SHIP. 모르는 코드면 EXPLORE. 작업이 5개를 넘으면 PLAN, 아니면 SPEC의 완료 기준 순서대로 메인에서 구현 | `SPEC.md` 1쪽 | 기능 단위 1회 |
 | **L 신규** | design GATE 뒤 **SPEC부터**(입력 `03·05·08`) → PLAN → BUILD → VERIFY → REVIEW → SHIP → REFLECT. PLAN 첫 작업 3개는 버티컬 슬라이스 | SPEC.md + tasks.md | 기능 단위 1회 + 고위험이면 보안 리뷰 |
 | **L 변경** | 기존 저장소의 결제·인증·개인정보·마이그레이션. FRAME → EXPLORE → SPEC → PLAN → BUILD → VERIFY → REVIEW → SHIP | SPEC.md (+ tasks.md) | 기능 단위 1회 + `/security-review` |
-| **버그** | 재현 → 원인 → 수정(`superpowers:systematic-debugging`) → VERIFY. 위험 모듈이면 REVIEW 1회 | 없음 | 위험 모듈만 |
+| **버그** | 원래 증상이 실패하는 명령을 직접 돌림 → 원인 → 수정(`superpowers:systematic-debugging`) → 같은 명령으로 증상이 사라졌는지 확인 → VERIFY. 위험 모듈이면 REVIEW 1회 | 없음 | 위험 모듈만 |
 | **재정비** | 막힌 기존 프로젝트. 아래 "재정비" 절차로 진단한 뒤 위 경로 중 하나로 넘긴다 | NEXT.md 블록 | 넘긴 경로를 따름 |
 
 게임·도구 프로토타입(M)은 SPEC 전에 버리는 프로토타입으로 핵심 가설(재미·성능·조작감) 하나를 먼저 확인하고 결과를 SPEC에 반영한다.
@@ -77,9 +77,9 @@ superpowers가 실행 엔진이다. 이 스킬은 **규모에 맞게 단계를 �
 | PLAN | 작업 분해. 첫 3개는 버티컬 슬라이스, 그다음 위험 큰 것부터 | `superpowers:writing-plans` |
 | BUILD | 같은 세션에서 구현. 코드 전에 ponytail 사다리 | `superpowers:executing-plans` · `superpowers:test-driven-development` · `ponytail:ponytail` · 화면이면 `dev:ui` |
 | VERIFY | 테스트·빌드·린트·(UI면) 스크린샷을 실행하고 결과를 붙인다. 완료 기준에 정답지 채점이 있으면 맞은 수/전체를 붙인다. 사용자 손이 필요한 확인은 스케줄·로그로 돌게 해 두고 다음에 내가 읽는다. 실패하면 근본 원인. 몇 초 안에 끝나는 검증 명령은 프로젝트 AGENTS.md에 `<!-- dev:verify: 명령 -->`으로 선언한다 — Stop 훅이 빨간불이면 턴 종료를 막는다(장비·장시간 명령은 선언 금지). 장비·장시간 작업(기기 빌드·설치, 30분 측정)은 「시작」과 「결과 받기」를 나눈 스크립트로 만들고 `run_in_background`(+`timeout`)나 Monitor로 돌려 끝 알림을 받아 읽는다 — 한 프로세스가 `sleep`으로 붙들고 기다리지 않는다(백그라운드 명령 한도에 잘린다) | `superpowers:verification-before-completion` · 실패 시 `superpowers:systematic-debugging` |
-| REVIEW | diff·SPEC·goals.md를 주고 새 컨텍스트에서 정확성 1회 + 화면·판정이 있으면 눈가린 점검 1회(위 공통 4). 과잉설계는 선택 | `/code-review` · `ponytail:ponytail-review` · 고위험 `/security-review` |
+| REVIEW | diff·SPEC·goals.md를 주고 새 컨텍스트에서 정확성 1회. 규칙 위반과 요구 대조(빠진 것·요청 밖 변경)를 나눠 보고한다. 화면·판정이 있으면 눈가린 점검 1회(위 공통 4). 과잉설계는 선택 | `/code-review` · `ponytail:ponytail-review` · 고위험 `/security-review` |
 | SHIP | 작은 커밋, 한글 설명형 메시지, PR. 배포는 남은 작업 묶음 끝에 한 번 — 뒷작업이 남았는데 배포를 앞에 두면 두 번 배포한다 | `superpowers:finishing-a-development-branch` |
-| REFLECT | 다음에도 쓸 규칙만 CLAUDE.md·AGENTS.md에, 결정은 decision-log에 | 없음 |
+| REFLECT | 반복 실수는 기존 검사가 실제로 도는지 먼저 본다. 기계로 잡을 실수는 검사로 막는다. 판단이 필요한 규칙만 AGENTS.md에, 결정은 decision-log에 | 없음 |
 
 - `superpowers:subagent-driven-development`(작업마다 구현 1 + 리뷰 2 서브에이전트)는 크고 서로 독립인 작업이 한 세션에 안 들어갈 때만,
   요청당 작업 1개씩. 위임 여부·상한·모델은 `references/model-routing.md`.
