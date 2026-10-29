@@ -8,8 +8,8 @@ description: |
   도메인을 모르는 새 서비스는 먼저 dev:design.
 argument-hint: "[요청 한 문장 또는 단계명]"
 metadata:
-  version: "0.11.0"
-  updated: "2026-10-25"
+  version: "0.11.1"
+  updated: "2026-10-29"
 ---
 
 # dev:build
@@ -72,14 +72,14 @@ superpowers가 실행 엔진이다. 이 스킬은 **규모에 맞게 단계를 �
 | 단계 | 하는 일 | 스킬 |
 |---|---|---|
 | FRAME | 사용자·문제·성공 기준·안 할 것을 3줄로. `superpowers:brainstorming`을 대신한다 | 없음 |
-| EXPLORE | 관련 코드를 직접 읽고 file:line으로 인용. 여러 모듈을 넓게 훑을 때만 Explore 서브에이전트. 바깥 자료(라이브러리 이슈·공식 문서·영상 자막)가 필요하면 원문으로 읽는다. 연동·재현할 기능이 남의 앱·웹 안에 있으면 `references/reverse-engineering.md` 관문(robots·약관·봇 차단)부터 | `agent-reach`(설치돼 있으면, 없으면 WebFetch) · 남의 앱·웹 동작은 `rea`(설치돼 있으면) · 실행 파일은 rea+Ghidra·IDA Free·objdump(+Hopper 데모) · 브라우저 직접 조작은 `aside` 기본(설치돼 있으면, 사이트가 안 받으면 헤드리스) — `references/reverse-engineering.md` 3-1·3-2 |
+| EXPLORE | **볼트 · 그래프 먼저**(rules 「문서 지도」) — AGENTS.md 네비게이션의 볼트 인덱스 노트와 graphify 그래프로 이미 정리된 결론 · 판정 장부부터 찾는다(원문 · 데이터를 처음부터 다시 세면 이미 한 판정을 놓친다 — 2026-10-29). 그다음 관련 코드를 직접 읽고 file:line으로 인용. 여러 모듈을 넓게 훑을 때만 Explore 서브에이전트. 바깥 자료(라이브러리 이슈·공식 문서·영상 자막)가 필요하면 원문으로 읽는다. 연동·재현할 기능이 남의 앱·웹 안에 있으면 `references/reverse-engineering.md` 관문(robots·약관·봇 차단)부터 | `agent-reach`(설치돼 있으면, 없으면 WebFetch) · 남의 앱·웹 동작은 `rea`(설치돼 있으면) · 실행 파일은 rea+Ghidra·IDA Free·objdump(+Hopper 데모) · 브라우저 직접 조작은 `aside` 기본(설치돼 있으면, 사이트가 안 받으면 헤드리스) — `references/reverse-engineering.md` 3-1·3-2 |
 | SPEC | `references/spec-template.md` (M 1쪽 / L 전체) | 화면이 있으면 `dev:ui` |
 | PLAN | 작업 분해. 첫 3개는 버티컬 슬라이스, 그다음 위험 큰 것부터 | `superpowers:writing-plans` |
 | BUILD | 같은 세션에서 구현. 코드 전에 ponytail 사다리 | `superpowers:executing-plans` · `superpowers:test-driven-development` · `ponytail:ponytail` · 화면이면 `dev:ui` |
 | VERIFY | 테스트·빌드·린트·(UI면) 스크린샷을 실행하고 결과를 붙인다. 완료 기준에 정답지 채점이 있으면 맞은 수/전체를 붙인다. 사용자 손이 필요한 확인은 스케줄·로그로 돌게 해 두고 다음에 내가 읽는다. 실패하면 근본 원인. 몇 초 안에 끝나는 검증 명령은 프로젝트 AGENTS.md에 `<!-- dev:verify: 명령 -->`으로 선언한다 — Stop 훅이 빨간불이면 턴 종료를 막는다(장비·장시간 명령은 선언 금지). 장비·장시간 작업(기기 빌드·설치, 30분 측정)은 「시작」과 「결과 받기」를 나눈 스크립트로 만들고 `run_in_background`(+`timeout`)나 Monitor로 돌려 끝 알림을 받아 읽는다 — 한 프로세스가 `sleep`으로 붙들고 기다리지 않는다(백그라운드 명령 한도에 잘린다) | `superpowers:verification-before-completion` · 실패 시 `superpowers:systematic-debugging` |
-| REVIEW | diff·SPEC·goals.md를 주고 새 컨텍스트에서 정확성 1회. 규칙 위반과 요구 대조(빠진 것·요청 밖 변경)를 나눠 보고한다. 화면·판정이 있으면 눈가린 점검 1회(위 공통 4). 과잉설계는 선택 | `/code-review` · `ponytail:ponytail-review` · 고위험 `/security-review` |
+| REVIEW | diff·SPEC·goals.md를 주고 새 컨텍스트에서 정확성 1회. 규칙 위반과 요구 대조(빠진 것·요청 밖 변경)를 나눠 보고한다. 다른 도구(Codex 등)에 맡길 때도 요청서 첫머리에 볼트 인덱스 · 그래프 위치와 NEXT 블록을 준다 — 그 도구는 이 세션 시작 훅을 못 받는다. 화면·판정이 있으면 눈가린 점검 1회(위 공통 4). 과잉설계는 선택 | `/code-review` · `ponytail:ponytail-review` · 고위험 `/security-review` |
 | SHIP | 작은 커밋, 한글 설명형 메시지, PR. 배포는 남은 작업 묶음 끝에 한 번 — 뒷작업이 남았는데 배포를 앞에 두면 두 번 배포한다 | `superpowers:finishing-a-development-branch` |
-| REFLECT | 반복 실수는 기존 검사가 실제로 도는지 먼저 본다. 기계로 잡을 실수는 검사로 막는다. 판단이 필요한 규칙만 AGENTS.md에, 결정은 decision-log에 | 없음 |
+| REFLECT | 반복 실수는 기존 검사가 실제로 도는지 먼저 본다. 기계로 잡을 실수는 검사로 막는다. 판단이 필요한 규칙만 AGENTS.md에, 결정은 decision-log에. 결론이 바뀐 볼트 노트 · 그래프는 SHIP 전에 다시 굽는다(생성 노트는 생성 스크립트로) | 없음 |
 
 - `superpowers:subagent-driven-development`(작업마다 구현 1 + 리뷰 2 서브에이전트)는 크고 서로 독립인 작업이 한 세션에 안 들어갈 때만,
   요청당 작업 1개씩. 위임 여부·상한·모델은 `references/model-routing.md`.
