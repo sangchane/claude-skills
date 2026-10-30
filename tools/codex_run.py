@@ -16,9 +16,11 @@ import argparse
 import importlib.util
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 KINDS = {  # 종류 → (모델 설명에서 찾을 말, effort)
@@ -30,12 +32,29 @@ KINDS = {  # 종류 → (모델 설명에서 찾을 말, effort)
 }
 ORDER = ["low", "medium", "high", "xhigh", "max", "ultra"]
 CODEX_HOME = Path(os.environ.get("CODEX_HOME", Path.home() / ".codex"))
+STOP_USED = 90  # 쓴 비율(%)이 이 이상이면(남은 사용량 10% 이하) 새 일을 맡기지 않고, 맡긴 일은 정리해 끝내게 한다 — Claude가 이어서 한다(사용자 2026-10-31)
 PREAMBLE = """[Claude가 나눠 맡긴 일 — Claude Code 세션과 같은 조건으로 한다]
 - 이 저장소의 AGENTS.md(네비게이션·규약·검증 게이트)를 먼저 따른다. 근거·구조는 grep으로 헤매기 전에 AGENTS.md에 적힌 볼트 인덱스·질의 도구·그래프부터 본다.
 - 아래 「맥락」은 Claude 세션이 받는 것과 같은 NEXT 블록과 이 요청에 걸린 볼트·그래프 노트다. 그 노트부터 본다.
 - 끝나면 한국어로 보고한다: 한 일 · 바꾼 파일 · 검증 명령과 결과 줄 · 못 한 것.
+- 단계 사이마다 `python3 {runner} --usage`로 남은 사용량을 본다. 「stop」이 true면(남은 것 10% 이하) 새 단계를 시작하지 말고, 지금까지 한 것·바꾼 파일·남은 일을 보고하고 끝낸다 — Claude가 이어서 한다.
 
 """
+
+
+def usage() -> dict | None:
+    """Codex 세션 기록(sessions/**/*.jsonl)의 마지막 rate_limits — 5시간·1주 창 중 큰 쓴 비율. 창이 이미 새로 시작했으면 0으로 본다. 기록이 없으면 None."""
+    files = sorted((CODEX_HOME / "sessions").glob("*/*/*/*.jsonl"), key=lambda f: f.stat().st_mtime, reverse=True)
+    for f in files[:5]:
+        with open(f, "rb") as h:
+            h.seek(max(0, f.stat().st_size - 262144)); tail = h.read().decode("utf-8", "ignore")  # 기록은 길다: 끝 256KB만
+        for line in reversed(tail.splitlines()):
+            if '"rate_limits"' not in line: continue
+            wins = re.findall(r'"used_percent":([0-9.]+),"window_minutes":(\d+),"resets_at":(\d+)', line.split('"rate_limits"', 1)[1])
+            if not wins: continue
+            used = max(float(u) if int(r) > time.time() else 0.0 for u, _, r in wins)
+            return {"used": used, "stop": used >= STOP_USED, "windows": [{"minutes": int(m), "used": float(u), "resets_at": int(r)} for u, m, r in wins]}
+    return None
 
 
 def context(cd: str, text: str, query: str) -> str:
@@ -73,6 +92,9 @@ def fit_effort(effort: str, supported: list[str]) -> str:
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    if "--usage" in sys.argv:  # Codex가 일하는 중에 스스로 확인한다(PREAMBLE)
+        print(json.dumps(usage(), ensure_ascii=False))
+        return 0
     ap.add_argument("--kind", choices=KINDS, required=True)
     ap.add_argument("--model")
     ap.add_argument("--effort", choices=ORDER)
@@ -80,8 +102,13 @@ def main() -> int:
     ap.add_argument("-o", "--out", required=True, help="Codex 마지막 답을 쓸 파일")
     ap.add_argument("prompt", help="지시문 파일(- 이면 표준 입력)")
     ap.add_argument("--query", help="그래프에서 먼저 찾을 질문(없으면 지시문 첫 줄)")
+    ap.add_argument("--timeout", type=float, default=30, help="분. 넘으면 Codex를 끊고 종료 코드 4 — Claude가 상태를 보고 직접 이어 한다")
     ap.add_argument("--dry-run", action="store_true", help="고른 모델·명령과 붙일 맥락을 보이고 돌리지 않음")
     a = ap.parse_args()
+    u = usage()
+    if u and u["stop"] and not a.dry_run:
+        print(json.dumps({"refused": "Codex 남은 사용량 10% 이하 — Claude가 직접 한다", **u}, ensure_ascii=False), flush=True)
+        return 3
     text = sys.stdin.read() if a.prompt == "-" else Path(a.prompt).read_text(encoding="utf-8")
     ctx = context(a.cd, text, a.query or next((l.strip("#- ") for l in text.splitlines() if l.strip("#- ")), ""))
     model, supported = (a.model, []) if a.model else pick_model(a.kind)
@@ -92,7 +119,12 @@ def main() -> int:
     if a.dry_run:
         print(ctx)
         return 0
-    return subprocess.run(cmd, input=PREAMBLE + ctx + text, text=True, encoding="utf-8", env={**os.environ, "DEV_CONTEXT_INLINE": "1"}).returncode   # 입력을 다 주고 닫으니 「Reading additional input from stdin」에서 멈추지 않는다
+    try:
+        return subprocess.run(cmd, input=PREAMBLE.format(runner=Path(__file__).resolve()) + ctx + text, text=True, encoding="utf-8",
+                              env={**os.environ, "DEV_CONTEXT_INLINE": "1"}, timeout=a.timeout * 60).returncode
+    except subprocess.TimeoutExpired:  # 무한정 기다리지 않는다(사용자 2026-10-31)
+        print(json.dumps({"timeout_min": a.timeout, "out": a.out, "usage": usage()}, ensure_ascii=False), flush=True)
+        return 4   # 입력을 다 주고 닫으니 「Reading additional input from stdin」에서 멈추지 않는다
 
 
 if __name__ == "__main__":
