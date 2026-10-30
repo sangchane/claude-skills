@@ -162,7 +162,7 @@ python tools/export.py codex --project <게임 저장소 경로>   # AGENTS.md�
 기존 AGENTS.md 내용은 그대로 두고 `dev:start~end` 블록만 넣거나 바꾼다. 스킬을 업데이트하려면 같은 명령을 다시 돌리고 커밋한다.
 
 - 저장소가 바뀌면 `git pull` 후 같은 명령을 다시 돌린다. 같은 이름의 **다른** 스킬이 이미 있으면 덮어쓰지 않고 "건너뜀"이라고 알려 준다.
-- **Claude와 같은 맥락**: `export.py codex`가 Codex 훅(`~/.codex/hooks/dev-context.py`)도 건다 — 세션 시작에 NEXT 블록, 질문마다 그 프로젝트 `.claude/settings.json`의 UserPromptSubmit 훅(볼트·그래프 질의 등)을 같은 입력으로 돌려 넣는다. Codex는 바뀐 훅 명령을 **사용자가 승인해야** 돌린다 — 설치 뒤 Codex를 한 번 열고 `/hooks`에서 dev-context 두 줄을 신뢰한다(명령이 같으면 다시 안 묻는다).
+- **Claude와 같은 맥락**: `export.py codex`가 Codex 훅(`~/.codex/hooks/dev-context.py`)도 건다 — 세션 시작에 NEXT 블록 + 그 프로젝트의 Claude 메모리 목록(`~/.claude/projects/<프로젝트>/memory/MEMORY.md`), 질문마다 그 프로젝트 `.claude/settings.json`의 UserPromptSubmit 훅 출력 + `graphify-out/graph.json`이 있으면 질문으로 `graphify query`한 노드. 훅 명령은 설치에 쓴 파이썬 절대 경로(윈도우 `python3`는 Store 바로가기). Codex는 바뀐 훅 명령을 **사용자가 승인해야** 돌린다 — 설치 뒤 Codex를 한 번 열고 `/hooks`에서 dev-context 두 줄을 신뢰한다(명령이 같으면 다시 안 묻는다).
 - **Claude가 Codex에 일을 나눌 때**(「코덱스한테 시켜·분담」): `python3 tools/codex_run.py --kind bulk|survey|build|judge|research -C <저장소> -o <결과> <지시문>`. 종류로 모델·reasoning effort를 고른다(빠른 모델 low · 주력 medium/high · 최상위 high/xhigh — 모델 이름은 `~/.codex/models_cache.json` 설명에서 찾아 새 모델이 나와도 그대로). 같은 맥락(NEXT 블록·볼트·그래프 노트)을 지시문 앞에 직접 붙여 훅 승인 전에도 간다. `--model`·`--effort`·`--dry-run`.
 - Claude Code와 다른 점: design·build는 Claude 전용 절차(superpowers·서브에이전트)가 많아 스킬로 보내지 않고,
   규칙의 등급별 단계(SPEC → 구현 → 검증 → 리뷰, L 신규는 설계 문서 먼저)를 에이전트가 직접 한다. guide와 reviewer·deep·quick 에이전트도 없다.
@@ -358,6 +358,8 @@ Godot 게임 UI 쪽은 1만★ 넘는 스킬이 없어(godot-mcp 5.6k, awesome-g
 Remote Control 세션에서는 `/plugin`이 막혀 있으므로 같은 PC의 터미널에서 `claude plugin marketplace add <repo>` → `claude plugin install <name>@<marketplace>`를 쓴다.
 
 ## 변경 이력
+
+**2026-10-30 — 1.9.1 Codex도 Claude와 같은 조건.** 사용자 「클로드랑 같은 컨디션에서 작업을 분담시키고 싶은거야 스킬이든 그래프 볼트 정리해둔거든 그래야 같은 퍼포먼스를 낼 수 있을거 같거든? 그 점을 확인해서 수정해서 업데이트해줘」. 확인한 빈 곳: ① 1.9.0의 「볼트·그래프 노트」는 프로젝트 질문 훅에만 기대 — 그런 훅이 없는 프로젝트(search-real-estate)는 0줄 → 그래프가 있으면 질문으로 `graphify query`해 붙임(`--query`, 없으면 지시문 첫 줄) ② Claude 자동 메모리(사용자 지적·선호)가 Codex에 없음 → 메모리 목록을 붙임 ③ 윈도우에서 실행기가 `codex`(npm `codex.cmd`)를 못 찾음(WinError 2)·cmd.exe가 인자의 `|`·줄바꿈을 깸 → `shutil.which` + 지시문은 표준 입력(`-`) ④ 훅 명령 `python3`가 윈도우 Store 바로가기(종료 49)라 늘 실패 → 설치 파이썬 절대 경로, 질문 훅 시간 제한 10 → 60초 ⑤ 윈도우 파이프 cp949로 한글 질문·맥락이 깨짐 → 훅 입출력 UTF-8 ⑥ 실행기 + 승인된 훅이면 같은 맥락이 두 벌 → 실행기가 `DEV_CONTEXT_INLINE`을 넘기면 훅은 건너뜀. 시험: 실제 훅 명령(PYTHONUTF8 없이)으로 SessionStart 6,171자(NEXT + 메모리)·UserPromptSubmit 5,033자(그래프 노드), 실행기 `--dry-run`에 NEXT·메모리·그래프 세 절, `judge` → gpt-6-astra·high로 실제 검토 실행.
 
 **2026-10-30 — 1.9.0 Codex에 나눠 맡기기 · 같은 맥락.** 사용자 「코덱스한테 분담시켜라고만 해도 모델이랑 노력 지정해서 · 그래프나 볼트 참조까지 클로드랑 같은 조건에서」. 새 `tools/codex_run.py` — 일 종류(bulk · survey · build · judge · research, 서브에이전트 모델 고르기와 같은 기준)로 Codex 모델 · effort를 골라 `codex exec`(표준 입력 막음). 새 `hooks/codex-context.py` — Codex SessionStart · UserPromptSubmit 훅으로 NEXT 블록과 프로젝트 질문 훅 출력(볼트 · 그래프 노트)을 넣고, `export.py codex`가 `~/.codex/hooks.json`에 건다(예전 NEXT 전용 훅 대신). 알게 된 것: Codex는 훅 명령을 해시로 승인해 두고 바뀐 명령은 `/hooks` 승인 전까지 「Failed」 — 그래서 실행기가 같은 맥락을 지시문 앞에 직접 붙인다. 시험: 빠른 모델 low로 「받은 맥락 첫 줄」을 물어 NEXT 블록 · 볼트 노트 첫 줄을 그대로 받음. `rules.md` 위임 줄 · `build` REVIEW 줄에 실행기.
 

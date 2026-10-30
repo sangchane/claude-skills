@@ -11,7 +11,7 @@ START, END = "<!-- dev:start -->", "<!-- dev:end -->"
 TOOL = {
     "codex": """## 모델·effort·위임
 - 모델과 reasoning effort는 사용자가 `/model`로 고른다. 나는 바꾸지 못한다. 모델 기본 effort로 시작하고, L 작업만 한 단계 올리는 게 맞다. L 작업을 기본보다 낮게 하고 있을 때만 `/model`로 올리라고 한 줄로 권한다. Claude가 맡긴 일(`codex exec`)은 Claude가 일 종류에 맞춰 이미 골라 넘긴다.
-- 세션 시작·질문마다 훅(`hooks/dev-context.py`)이 NEXT 블록과 그 프로젝트의 질문 훅 출력(볼트·그래프 노트)을 넣는다 — Claude Code 세션과 같은 맥락이다. 그 노트를 먼저 보고 근거를 찾는다.
+- 세션 시작·질문마다 훅(`hooks/dev-context.py`)이 Claude Code 세션과 같은 맥락을 넣는다 — NEXT 블록 · Claude 메모리 목록(사용자 지적·선호, `~/.claude/projects/<프로젝트>/memory/`) · 프로젝트 질문 훅 출력 · 그래프가 있으면 질문으로 찾은 노드(`graphify query`). 메모리 줄에 해당하면 그 파일을 읽고, 근거는 그 노드·볼트 인덱스부터 찾는다.
 - 스킬은 `$ui`, `$setup`으로 부르거나 요청에 맞으면 스스로 쓴다.""",
     "antigravity": """## 모델·모드·위임
 - 모델과 사고 수준(Fast·Low·Medium·High)은 사용자가 모델 선택기에서 고른다. 나는 바꾸지 못한다. 모델 기본 수준으로 시작하고, L 작업만 한 단계 올리는 게 맞다. L 작업을 Fast나 Low로 하고 있을 때만 올리라고 한 줄로 권한다.
@@ -54,9 +54,10 @@ def install_codex_hooks(codex):
     cfg = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
     hooks = cfg.setdefault("hooks", {})
     mine = lambda h: any(n in h.get("command", "") for n in [HOOK, *SUPERSEDED])
-    for event, matcher, note in [("SessionStart", "startup|resume|clear|compact", "NEXT.md 작업 문맥 읽기"), ("UserPromptSubmit", None, "프로젝트 볼트·그래프 노트 찾기")]:
+    py = Path(sys.executable).as_posix()   # 윈도우의 python3는 Microsoft Store 바로가기라 훅이 늘 실패한다(2026-10-30) — 설치에 쓴 파이썬 그대로
+    for event, matcher, note, sec in [("SessionStart", "startup|resume|clear|compact", "NEXT.md·메모리 읽기", 10), ("UserPromptSubmit", None, "프로젝트 볼트·그래프 노트 찾기", 60)]:
         groups = [g for g in hooks.get(event, []) if not all(mine(h) for h in g.get("hooks", []))]
-        entry = {"type": "command", "command": f'python3 "{dst}"', "timeout": 10, "statusMessage": note, "additionalContextLimit": 9000}
+        entry = {"type": "command", "command": f'"{py}" "{dst}"', "timeout": sec, "statusMessage": note, "additionalContextLimit": 9000}
         groups.append({**({"matcher": matcher} if matcher else {}), "hooks": [entry]})
         hooks[event] = groups
     path.write_text(json.dumps(cfg, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
