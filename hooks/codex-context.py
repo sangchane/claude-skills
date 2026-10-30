@@ -24,7 +24,7 @@ def project_root(cwd: Path) -> Path:
     return cwd
 
 
-def next_block(root: Path) -> str:
+def next_block(root: Path, limit: int = LIMIT) -> str:
     for rel in ("NEXT.md", "coordination/NEXT.md"):
         f = root / rel
         if f.is_file():
@@ -32,7 +32,7 @@ def next_block(root: Path) -> str:
             a, b = t.find("<!-- NEXT-ACTION:START -->"), t.find("<!-- NEXT-ACTION:END -->")
             if a >= 0 and b > a:
                 block = t[a:b]
-                return f"## 현재 작업 ({rel})\n" + (block if len(block) <= LIMIT else block[:LIMIT] + f"\n> 잘림 — 나머지는 {rel}을 읽는다.")
+                return f"## 현재 작업 ({rel})\n" + (block if len(block) <= limit else block[:max(limit, 0)] + f"\n> 잘림 — 나머지는 {rel}을 읽는다.")
     return ""
 
 
@@ -69,7 +69,7 @@ def memory_index(root: Path) -> str:
     return f"## 사용자 메모리 (Claude와 같은 목록 — 각 줄의 파일은 {d} 에 있다, 해당하면 읽는다)\n" + f.read_text(encoding="utf-8")[:LIMIT]
 
 
-def graph_hits(root: Path, question: str) -> str:
+def graph_hits(root: Path, question: str, limit: int = LIMIT) -> str:
     """볼트를 그래프로 정리한 프로젝트면 할 일 문장으로 그래프를 먼저 찾아 붙인다 — Claude가 근거를 찾을 때 처음 하는 일(rules.md 「문서 지도」)"""
     exe, q = shutil.which("graphify"), " ".join(question.split())[:200]
     if not exe or not q or not (root / "graphify-out" / "graph.json").is_file():
@@ -80,7 +80,7 @@ def graph_hits(root: Path, question: str) -> str:
     except subprocess.TimeoutExpired:
         print("codex-context: graphify query 시간 초과", file=sys.stderr)
         return ""
-    return f"## 그래프에서 먼저 찾은 노드 (graphify query \"{q[:80]}\")\n" + p.stdout.strip()[:LIMIT] if p.returncode == 0 and p.stdout.strip() else ""
+    return f"## 그래프에서 먼저 찾은 노드 (graphify query \"{q[:80]}\")\n" + p.stdout.strip()[:max(limit, 0)] if p.returncode == 0 and p.stdout.strip() else ""
 
 
 def main() -> None:
@@ -90,8 +90,15 @@ def main() -> None:
     payload = json.load(sys.stdin)
     root = project_root(Path(payload.get("cwd") or os.getcwd()).resolve())
     event = payload.get("hook_event_name", "")
-    parts = [next_block(root), memory_index(root)] if event == "SessionStart" else \
-        [prompt_hooks(root, payload), graph_hits(root, payload.get("prompt", ""))] if event == "UserPromptSubmit" else []
+    # 한 훅 출력 합계가 LIMIT 안 — 짧고 늘 필요한 쪽(메모리·프로젝트 훅)이 먼저 자리를 잡고, 긴 쪽(NEXT·그래프)은 남은 만큼(잘리면 파일을 읽으라고 적음)
+    if event == "SessionStart":
+        mem = memory_index(root)
+        parts = [next_block(root, LIMIT - len(mem) - 200), mem]
+    elif event == "UserPromptSubmit":
+        own = prompt_hooks(root, payload)
+        parts = [own, graph_hits(root, payload.get("prompt", ""), LIMIT - len(own) - 200)]
+    else:
+        parts = []
     text = "\n\n".join(p for p in parts if p)
     if text:
         print(json.dumps({"hookSpecificOutput": {"hookEventName": event, "additionalContext": text}}, ensure_ascii=False))
