@@ -162,9 +162,11 @@ python tools/export.py codex --project <게임 저장소 경로>   # AGENTS.md�
 기존 AGENTS.md 내용은 그대로 두고 `dev:start~end` 블록만 넣거나 바꾼다. 스킬을 업데이트하려면 같은 명령을 다시 돌리고 커밋한다.
 
 - 저장소가 바뀌면 `git pull` 후 같은 명령을 다시 돌린다. 같은 이름의 **다른** 스킬이 이미 있으면 덮어쓰지 않고 "건너뜀"이라고 알려 준다.
-- Claude Code와 다른 점: 세션 시작 훅이 없어서 NEXT.md는 에이전트가 규칙대로 직접 읽는다. design·build는 Claude 전용 절차(superpowers·서브에이전트)가 많아 스킬로 보내지 않고,
+- **Claude와 같은 맥락**: `export.py codex`가 Codex 훅(`~/.codex/hooks/dev-context.py`)도 건다 — 세션 시작에 NEXT 블록, 질문마다 그 프로젝트 `.claude/settings.json`의 UserPromptSubmit 훅(볼트·그래프 질의 등)을 같은 입력으로 돌려 넣는다. Codex는 바뀐 훅 명령을 **사용자가 승인해야** 돌린다 — 설치 뒤 Codex를 한 번 열고 `/hooks`에서 dev-context 두 줄을 신뢰한다(명령이 같으면 다시 안 묻는다).
+- **Claude가 Codex에 일을 나눌 때**(「코덱스한테 시켜·분담」): `python3 tools/codex_run.py --kind bulk|survey|build|judge|research -C <저장소> -o <결과> <지시문>`. 종류로 모델·reasoning effort를 고른다(빠른 모델 low · 주력 medium/high · 최상위 high/xhigh — 모델 이름은 `~/.codex/models_cache.json` 설명에서 찾아 새 모델이 나와도 그대로). 같은 맥락(NEXT 블록·볼트·그래프 노트)을 지시문 앞에 직접 붙여 훅 승인 전에도 간다. `--model`·`--effort`·`--dry-run`.
+- Claude Code와 다른 점: design·build는 Claude 전용 절차(superpowers·서브에이전트)가 많아 스킬로 보내지 않고,
   규칙의 등급별 단계(SPEC → 구현 → 검증 → 리뷰, L 신규는 설계 문서 먼저)를 에이전트가 직접 한다. guide와 reviewer·deep·quick 에이전트도 없다.
-- 모델·effort는 두 도구 모두 **사용자가** 바꾼다(Codex `/model`, Antigravity 모델 선택기의 사고 수준). 모델 기본값으로 두고, 큰 작업(L)을 낮은 수준으로 하고 있을 때만 에이전트가 올리라고 한 줄로 권한다.
+- 대화형 세션의 모델·effort는 두 도구 모두 **사용자가** 바꾼다(Codex `/model`, Antigravity 모델 선택기의 사고 수준). Claude가 맡기는 `codex exec`는 위 실행기가 고른다. 모델 기본값으로 두고, 큰 작업(L)을 낮은 수준으로 하고 있을 때만 에이전트가 올리라고 한 줄로 권한다.
 
 ---
 
@@ -356,6 +358,8 @@ Godot 게임 UI 쪽은 1만★ 넘는 스킬이 없어(godot-mcp 5.6k, awesome-g
 Remote Control 세션에서는 `/plugin`이 막혀 있으므로 같은 PC의 터미널에서 `claude plugin marketplace add <repo>` → `claude plugin install <name>@<marketplace>`를 쓴다.
 
 ## 변경 이력
+
+**2026-10-30 — 1.9.0 Codex에 나눠 맡기기 · 같은 맥락.** 사용자 「코덱스한테 분담시켜라고만 해도 모델이랑 노력 지정해서 · 그래프나 볼트 참조까지 클로드랑 같은 조건에서」. 새 `tools/codex_run.py` — 일 종류(bulk · survey · build · judge · research, 서브에이전트 모델 고르기와 같은 기준)로 Codex 모델 · effort를 골라 `codex exec`(표준 입력 막음). 새 `hooks/codex-context.py` — Codex SessionStart · UserPromptSubmit 훅으로 NEXT 블록과 프로젝트 질문 훅 출력(볼트 · 그래프 노트)을 넣고, `export.py codex`가 `~/.codex/hooks.json`에 건다(예전 NEXT 전용 훅 대신). 알게 된 것: Codex는 훅 명령을 해시로 승인해 두고 바뀐 명령은 `/hooks` 승인 전까지 「Failed」 — 그래서 실행기가 같은 맥락을 지시문 앞에 직접 붙인다. 시험: 빠른 모델 low로 「받은 맥락 첫 줄」을 물어 NEXT 블록 · 볼트 노트 첫 줄을 그대로 받음. `rules.md` 위임 줄 · `build` REVIEW 줄에 실행기.
 
 **2026-10-29 — 1.8.3 볼트 · 그래프가 다시 보이게.** 세션 시작 훅 출력은 10,000자를 넘으면 앞 2,000자만 보인다(공식 hooks 문서). 1.8.1 에서 설명 방식 11줄이 「문서 지도」 절 위에 들어가 그 절이 2,472자로 밀려났고, 프로젝트 NEXT 블록(4만 9천 자)이 같은 출력에 붙어 늘 잘렸다 — 그래서 볼트 · 그래프를 안 보고 원문을 처음부터 다시 셌다. 고친 것: `rules.md` 「문서 지도」를 맨 앞(394자)으로 · `session-start.sh` 는 규칙 · 모델 지침을 먼저 내고 NEXT 블록을 남은 글자 수만큼만 붙인다(넘으면 알림) · 모델 미확인이면 지침 파일 경로만 · 첫 줄에 「잘렸으면 저장 파일 전체를 Read」. `build` EXPLORE 는 볼트 · 그래프 먼저 · REVIEW 는 다른 도구(Codex)에 볼트 위치와 NEXT 블록을 함께 · REFLECT 는 바뀐 볼트 · 그래프를 SHIP 전에 다시 굽는다. 시험: opus · fable · sonnet · 모델 없음 × NEXT 4만 9천 자 · 977자 — 출력 6,555~9,388자, 「문서 지도」 394자.
 

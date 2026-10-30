@@ -1,5 +1,5 @@
 # dev 규칙(rules.md)과 스킬을 Codex·Antigravity 전역 설정(또는 --project <폴더>면 그 저장소)으로 내보낸다. 다시 실행하면 최신본으로 덮어쓴다.
-import os, re, shutil, sys
+import json, os, re, shutil, sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
@@ -10,7 +10,8 @@ START, END = "<!-- dev:start -->", "<!-- dev:end -->"
 
 TOOL = {
     "codex": """## 모델·effort·위임
-- 모델과 reasoning effort는 사용자가 `/model`로 고른다. 나는 바꾸지 못한다. 모델 기본 effort로 시작하고, L 작업만 한 단계 올리는 게 맞다. L 작업을 기본보다 낮게 하고 있을 때만 `/model`로 올리라고 한 줄로 권한다.
+- 모델과 reasoning effort는 사용자가 `/model`로 고른다. 나는 바꾸지 못한다. 모델 기본 effort로 시작하고, L 작업만 한 단계 올리는 게 맞다. L 작업을 기본보다 낮게 하고 있을 때만 `/model`로 올리라고 한 줄로 권한다. Claude가 맡긴 일(`codex exec`)은 Claude가 일 종류에 맞춰 이미 골라 넘긴다.
+- 세션 시작·질문마다 훅(`hooks/dev-context.py`)이 NEXT 블록과 그 프로젝트의 질문 훅 출력(볼트·그래프 노트)을 넣는다 — Claude Code 세션과 같은 맥락이다. 그 노트를 먼저 보고 근거를 찾는다.
 - 스킬은 `$ui`, `$setup`으로 부르거나 요청에 맞으면 스스로 쓴다.""",
     "antigravity": """## 모델·모드·위임
 - 모델과 사고 수준(Fast·Low·Medium·High)은 사용자가 모델 선택기에서 고른다. 나는 바꾸지 못한다. 모델 기본 수준으로 시작하고, L 작업만 한 단계 올리는 게 맞다. L 작업을 Fast나 Low로 하고 있을 때만 올리라고 한 줄로 권한다.
@@ -37,6 +38,29 @@ def write_block(path, body):
         new = (old.rstrip() + "\n\n" if old.strip() else "") + block
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(new, encoding="utf-8")
+
+
+HOOK = "dev-context.py"  # ~/.codex/hooks/ 안 이름 — hooks/codex-context.py 복사본
+SUPERSEDED = ["claude-session-context.py"]  # 예전 손으로 둔 NEXT 블록 훅 — dev-context가 같은 일을 하고 더 한다
+
+
+def install_codex_hooks(codex):
+    """Claude Code 세션 시작 훅·프로젝트 질문 훅과 같은 맥락을 Codex에도 — SessionStart·UserPromptSubmit에 dev-context를 건다.
+    hooks.json의 다른 항목은 두고, 이전 dev 항목·SUPERSEDED 항목만 바꾼다"""
+    dst = codex / "hooks" / HOOK
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy(REPO / "hooks" / "codex-context.py", dst)
+    path = codex / "hooks.json"
+    cfg = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+    hooks = cfg.setdefault("hooks", {})
+    mine = lambda h: any(n in h.get("command", "") for n in [HOOK, *SUPERSEDED])
+    for event, matcher, note in [("SessionStart", "startup|resume|clear|compact", "NEXT.md 작업 문맥 읽기"), ("UserPromptSubmit", None, "프로젝트 볼트·그래프 노트 찾기")]:
+        groups = [g for g in hooks.get(event, []) if not all(mine(h) for h in g.get("hooks", []))]
+        entry = {"type": "command", "command": f'python3 "{dst}"', "timeout": 10, "statusMessage": note, "additionalContextLimit": 9000}
+        groups.append({**({"matcher": matcher} if matcher else {}), "hooks": [entry]})
+        hooks[event] = groups
+    path.write_text(json.dumps(cfg, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    print(f"  훅: {path} (SessionStart·UserPromptSubmit → {dst})")
 
 
 def copy_skills(dest):
@@ -75,6 +99,7 @@ def main(tools, project=None):
             codex = Path(os.environ.get("CODEX_HOME", home / ".codex"))
             write_block(codex / "AGENTS.md", rules_for(tool))
             print(f"  규칙: {codex / 'AGENTS.md'}")
+            install_codex_hooks(codex)
             copy_skills(home / ".agents" / "skills")
         elif tool == "antigravity":
             p = home / ".gemini" / "config" / "rules" / "dev.md"
