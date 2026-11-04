@@ -360,6 +360,8 @@ Remote Control 세션에서는 `/plugin`이 막혀 있으므로 같은 PC의 터
 
 ## 변경 이력
 
+**2026-11-04 — 1.9.9 검증 게이트가 Windows 에서 재진입을 못 세던 것.** 사용자 「verify-gate 시험 실패도 고쳐」. `hooks/test-verify-gate.sh` 6개 중 「3번째는 경고만」이 실패했다(기대 0, 실제 2). 원인: `verify-gate.sh`가 입력 JSON 을 `python3`로 읽었는데, 이 PC 의 `python3`는 Microsoft Store 안내용 실행 파일이라 「Python」만 찍고 실패한다 — 그래서 `stop_hook_active`가 늘 0 이 되어 횟수가 매번 1 로 돌아갔다. 실제 사용에서도 3번째 경고 대신 계속 막았다(Claude Code 상한 8번까지). 수정: 입력 JSON(`session_id` · `stop_hook_active` · `cwd`)을 `grep` · `sed`로 읽고, 경고 JSON 도 `printf`로 낸다 — 이 훅은 이제 파이썬이 없어도 돈다. 검증: `test-verify-gate.sh` 6/6, `test-session-start.sh` 10/10, Windows 경로 `cwd` 입력을 그대로 읽음.
+
 **2026-11-04 — 1.9.8 리뷰는 Claude가.** 사용자 「스킬에 리뷰는 코덱스 이용하도록 하는거 빼둬 토큰 사용량이 감당을 못 하네 대신에 코덱스에게 지시할때 모델, 노력을 내가 지시한 작업에 맞게 배당시켜서 진행시키는걸로 남겨」. `rules.md` 위임 절: 「리뷰는 Codex로」 → 「리뷰는 Claude가 한다, Codex는 사용자가 시킨 일에만」. 「코덱스한테 시켜」 줄은 시킨 일의 종류(bulk · survey · build · judge · research)로 모델 · effort를 배당한다고 풀어 적었다. `build` REVIEW 줄도 같게.
 
 **2026-11-04 — 1.9.8 세션 시작 훅을 세 출력으로.** 사용자 「너무 여유가 없는거 같아 작업할수록 이거 어떻게 처리하는지 현업방식 조사해」. 훅이 규칙 · 모델 지침 · NEXT 블록을 한 출력에 담아 한도(9,600자)를 나눠 썼다 — 규칙 · Opus 지침이 9,254자를 써서 NEXT 블록은 46자만 들어갔고, Fable 지침이 붙으면 10,203자로 10,000자를 넘어 규칙 전체가 앞 2,000자 미리보기로 바뀌었다(훅을 돌려 측정). 공식 hooks 문서는 한도를 「훅마다 따로」 잰다고 적는다. 그래서 `hooks.json`이 `session-start.sh`를 `rules` · `model` · `next`로 세 번 부른다(각자 한도). 새 `hooks/test-session-start.sh`: 규칙 · 모델 지침 파일마다 300자 여유, 세 출력이 섞이지 않음, 큰 NEXT 블록은 한도 안에서 잘리고 알림 — 규칙이 다시 길어지면 여기서 실패한다. 측정: 규칙 7,242자 · Fable 지침 2,960자 · Opus 지침 2,011자 · NEXT 블록은 따로 최대 9,300자.

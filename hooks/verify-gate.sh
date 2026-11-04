@@ -6,11 +6,11 @@
 # 안전: 훅은 권한 확인 없이 돈다 — 저장소 파일에 사람이 적은 명령만 실행하고, 명령을 추론하지 않는다.
 # 근거: OpenAI "Harness engineering"(기계적 강제), Claude Code hooks(Stop exit 2), gstack verify-gate(재진입도 다시 검사).
 input=""; [ -t 0 ] || input="$(cat)"
-read -r sid active cwd < <(printf '%s' "$input" | python3 -c '
-import json, sys
-try: d = json.load(sys.stdin)
-except Exception: d = {}
-print(d.get("session_id") or "x", int(bool(d.get("stop_hook_active"))), d.get("cwd") or ".")')
+# 입력 JSON 은 bash 로 읽는다 — Windows 의 python3 는 스토어 안내용 가짜 실행 파일일 수 있다(2026-11-04).
+field() { printf '%s' "$input" | grep -o "\"$1\" *: *\"[^\"]*\"" | head -n1 | sed -E 's/^.*: *"(.*)"$/\1/; s/\\\\/\\/g'; }
+sid="$(field session_id)"; sid="${sid:-x}"
+cwd="$(field cwd)"; cwd="${cwd:-.}"
+active=0; printf '%s' "$input" | grep -qE '"stop_hook_active" *: *true' && active=1
 dir="${CLAUDE_PROJECT_DIR:-$cwd}"
 cmd="$(grep -ho '<!-- *dev:verify: *[^>]*-->' "$dir/AGENTS.md" "$dir/CLAUDE.md" 2>/dev/null | head -n1 | sed -E 's/<!-- *dev:verify: *//; s/ *-->$//')"
 [ -n "$cmd" ] || exit 0
@@ -27,7 +27,8 @@ if [ "$rc" -eq 0 ]; then rm -f "$count"; exit 0; fi
 n=$((n + 1))
 if [ "$n" -ge 3 ]; then
   rm -f "$count"
-  python3 -c 'import json,sys; print(json.dumps({"systemMessage": "[dev:verify] 검증 명령이 3번 연속 실패한 채로 턴을 마쳤다: " + sys.argv[1]}, ensure_ascii=False))' "$cmd"
+  esc="$(printf '%s' "$cmd" | sed 's/\\/\\\\/g; s/"/\\"/g')"
+  printf '{"systemMessage": "[dev:verify] 검증 명령이 3번 연속 실패한 채로 턴을 마쳤다: %s"}\n' "$esc"
   exit 0
 fi
 echo "$n" > "$count"
