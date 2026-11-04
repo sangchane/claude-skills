@@ -186,7 +186,7 @@ python tools/export.py codex --project <게임 저장소 경로>   # AGENTS.md�
 .claude-plugin/marketplace.json 마켓플레이스 정보(이름 sangchane)
 rules.md                        작업 규칙 (훅이 주입)
 rules-models/                   모델별 지침 (훅이 세션 모델로 골라 주입)
-hooks/                          세션 시작 훅 · Stop 검증 게이트(verify-gate.sh, 자체 시험 test-verify-gate.sh)
+hooks/                          세션 시작 훅(규칙·모델 지침·NEXT 세 출력, 크기 시험 test-session-start.sh) · Stop 검증 게이트(verify-gate.sh, 자체 시험 test-verify-gate.sh)
 skills/design|build|ui|setup|guide
 agents/reviewer|deep|quick
 tools/skill_catalog.py          설치 스킬·토큰·라우팅 표 검사
@@ -328,6 +328,7 @@ python tools/export.py                     # 규칙·스킬을 Codex·Antigravit
 2. `.claude-plugin/plugin.json`의 `version`을 올린다 — **안 올리면 `/plugin update`가 "이미 최신"이라며 받지 않는다.**
 3. 커밋·푸시. 다른 PC는 `/plugin update dev@sangchane`.
 4. 회귀 평가: design은 `skills/design/eval/PROTOCOL.md` 스모크(시드 3개), build는 `skills/build/evals/evals.json`.
+5. `rules.md`·`rules-models/`를 고쳤으면 `bash hooks/test-session-start.sh` — 세션 시작 훅 출력이 한도(문자열 하나에 10,000자) 안에 여유를 남기는지 잰다.
 
 ## 외부 스킬 흡수 기준
 
@@ -358,6 +359,8 @@ Godot 게임 UI 쪽은 1만★ 넘는 스킬이 없어(godot-mcp 5.6k, awesome-g
 Remote Control 세션에서는 `/plugin`이 막혀 있으므로 같은 PC의 터미널에서 `claude plugin marketplace add <repo>` → `claude plugin install <name>@<marketplace>`를 쓴다.
 
 ## 변경 이력
+
+**2026-11-04 — 1.9.8 세션 시작 훅을 세 출력으로.** 사용자 「너무 여유가 없는거 같아 작업할수록 이거 어떻게 처리하는지 현업방식 조사해」. 훅이 규칙 · 모델 지침 · NEXT 블록을 한 출력에 담아 한도(9,600자)를 나눠 썼다 — 규칙 · Opus 지침이 9,254자를 써서 NEXT 블록은 46자만 들어갔고, Fable 지침이 붙으면 10,203자로 10,000자를 넘어 규칙 전체가 앞 2,000자 미리보기로 바뀌었다(훅을 돌려 측정). 공식 hooks 문서는 한도를 「훅마다 따로」 잰다고 적는다. 그래서 `hooks.json`이 `session-start.sh`를 `rules` · `model` · `next`로 세 번 부른다(각자 한도). 새 `hooks/test-session-start.sh`: 규칙 · 모델 지침 파일마다 300자 여유, 세 출력이 섞이지 않음, 큰 NEXT 블록은 한도 안에서 잘리고 알림 — 규칙이 다시 길어지면 여기서 실패한다. 측정: 규칙 7,242자 · Fable 지침 2,960자 · Opus 지침 2,011자 · NEXT 블록은 따로 최대 9,300자.
 
 **2026-11-04 — 1.9.7 찾기 결과 자르지 않기.** 사용자 「81번이나 역공학을 했다는거야? 함께 수정해」 — 81번은 역공학이 아니라 `ask.sh` 결과를 `| head` 로 잘라 본 횟수였다(다시 세면 84번 중 76번). `rules.md` 문서 지도에 「찾기 도구 결과는 자르지 않는다」 한 줄. LOD 는 PreToolUse Bash 훅(`tools/hooks/no_cut_ask.py`)이 ask 바로 뒤 자르기만 막고 자르지 않은 명령을 알려 준다 — 재기 도구와 같은 정규식을 쓴다(`scripts/lib/_ask_cut.py`).
 

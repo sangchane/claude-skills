@@ -57,7 +57,7 @@
 - superpowers 스킬은 `dev:build`가 부르는 단계에서만 쓴다. M의 FRAME과 L의 design이 `superpowers:brainstorming`을 대신한다(이 규칙이 using-superpowers보다 우선).
 
 ## 모델별 지침
-세션 시작 훅이 이 파일 뒤에 지금 모델용 지침(`rules-models/<모델>.md`, Anthropic 모델별 프롬프팅 가이드를 옮긴 것)을 붙인다. 공통 규칙과 겹치면 모델별 지침이 세부를 정한다.
+세션 시작 훅이 이 파일과 따로 지금 모델용 지침(`rules-models/<모델>.md`, Anthropic 모델별 프롬프팅 가이드를 옮긴 것)을 넣는다. 공통 규칙과 겹치면 모델별 지침이 세부를 정한다.
 
 ## 모델·effort·위임
 - 메인 세션 모델은 그대로 둔다. 등급에 맞는 effort는 S low~medium, M medium, L high다. L 작업을 low로 하거나 S 작업을 xhigh 이상으로 하고 있을 때만 `/effort <level>`을 한 줄로 권한다.
