@@ -279,6 +279,7 @@ docs/                           과거 분석 기록
 **웹 UI에서 "AI가 만든 티(slop)"를 없애고 의도된 고급 결과를 강제하는 취향 하네스.** React·Tailwind·Zustand 특화.
 3개 dial(밀도·모션·파격)과 프로파일(관제 8 / 제품 UI 5 / 랜딩 3)을 정하고, 하드룰 위반은 반려한다.
 색·서체·컴포넌트 모양은 프로젝트 루트 `DESIGN.md` 한 장에 고정한다. 없으면 [awesome-design-md](https://github.com/VoltAgent/awesome-design-md)(74개 사이트)에서 프로파일에 맞는 것을 받아 브랜드를 지우고 한글 서체를 붙여 쓴다.
+완성한 화면은 `scripts/ui-check.mjs`가 1440·390 폭으로 찍고 겹침·잘림·어긋남·가로 스크롤·밀림을 이름으로 판정한다(종료 코드, 끝 줄 「ui-check passed」).
 dev:build의 BUILD·REVIEW에 프론트가 포함되면 자동 참조된다.
 
 ---
@@ -329,6 +330,7 @@ python tools/export.py                     # 규칙·스킬을 Codex·Antigravit
 3. 커밋·푸시. 다른 PC는 `/plugin update dev@sangchane`.
 4. 회귀 평가: design은 `skills/design/eval/PROTOCOL.md` 스모크(시드 3개), build는 `skills/build/evals/evals.json`.
 5. `rules.md`·`rules-models/`를 고쳤으면 `bash hooks/test-session-start.sh` — 세션 시작 훅 출력이 한도(문자열 하나에 10,000자) 안에 여유를 남기는지 잰다.
+6. `skills/ui/scripts/ui-check.mjs`를 고쳤으면 `node skills/ui/scripts/test-ui-check.mjs`(나쁜·좋은 견본, 15개).
 
 ## 외부 스킬 흡수 기준
 
@@ -359,6 +361,8 @@ Godot 게임 UI 쪽은 1만★ 넘는 스킬이 없어(godot-mcp 5.6k, awesome-g
 Remote Control 세션에서는 `/plugin`이 막혀 있으므로 같은 PC의 터미널에서 `claude plugin marketplace add <repo>` → `claude plugin install <name>@<marketplace>`를 쓴다.
 
 ## 변경 이력
+
+**2026-11-04 — 1.10.0 dev:ui 화면 자동 검사(stageshow 비교 → 사용자 「추천대로해」).** benjitaylor/skills `stageshow`(MIT)와 dev:ui를 비교했다 — 가장 큰 차이는 stageshow가 화면을 재서 결함을 이름으로 내고 통과/실패로 판정하는데(`film-checks.mjs` 1,920줄, 40여 종), dev:ui는 스크린샷을 내 눈으로 읽어 판정한 것. 새 `skills/ui/scripts/ui-check.mjs`: Playwright(프로젝트 → `npx -p` → 전역 → npx 임시 폴더 순으로 찾음, 브라우저는 기본 → Chrome → Edge)로 1440·390을 찍고 실패 7종(`h-scroll`·`overlap`·`clipped`·`near-aligned`·`unit-wrapped`·`layout-shift`·`font-sizes` 8종 이상)과 경고 4종(`font-sizes` 6~7·`start-lines`·`uneven-inset`·`mixed-icons`)을 낸다. 코드는 업무 화면용으로 새로 썼고 생각·기준값만 빌렸다. 헛경보 보정은 공개 화면으로 쟀다: 처음엔 GitHub 저장소 화면에서 실패 26 → sr-only·aria-hidden 제외, 자르는 칸 안에 보이는 부분만 비교, 좁은 행간 위아래 20% 깎기, 사이에 불투명·흐림 층이 있으면 가려진 것으로 봄, 큰 제목 광학 보정(1.4배) 제외 → 업무 화면 6개(GitHub 저장소·이슈, shadcn 대시보드·작업, Tailwind 앱 화면 견본) 실패 0. 남은 실패는 랜딩의 일부러 잘라 보인 제품 그림뿐(`--ignore`로 뺀다). 글자 크기는 규칙(5종 이하)대로 실패로 두면 위 잘 만든 화면도 6~7종이라 6~7은 경고, 8 이상만 실패. SKILL.md 5절: 자동 검사 먼저 · 되풀이 결함 표(2026-10-14 실제 지적 3건 + 기계 결함) · 넘길 때 세 줄(따른 기준 / ui-check / 확인하지 않은 것). `audit.md` 1단계도 ui-check로 찍고 줄 수를 라운드마다 적는다. 자체 시험 `scripts/test-ui-check.mjs` 15/15(나쁜 견본은 이름 10종이 다 나오고 종료 1, 좋은 견본은 실패·경고 0). 가져오지 않은 것: 가짜 화면 규칙·부품 묶음·로고 그림, 잘된 예시 묶음(보류).
 
 **2026-11-04 — 1.9.9 검증 게이트가 Windows 에서 재진입을 못 세던 것.** 사용자 「verify-gate 시험 실패도 고쳐」. `hooks/test-verify-gate.sh` 6개 중 「3번째는 경고만」이 실패했다(기대 0, 실제 2). 원인: `verify-gate.sh`가 입력 JSON 을 `python3`로 읽었는데, 이 PC 의 `python3`는 Microsoft Store 안내용 실행 파일이라 「Python」만 찍고 실패한다 — 그래서 `stop_hook_active`가 늘 0 이 되어 횟수가 매번 1 로 돌아갔다. 실제 사용에서도 3번째 경고 대신 계속 막았다(Claude Code 상한 8번까지). 수정: 입력 JSON(`session_id` · `stop_hook_active` · `cwd`)을 `grep` · `sed`로 읽고, 경고 JSON 도 `printf`로 낸다 — 이 훅은 이제 파이썬이 없어도 돈다. 검증: `test-verify-gate.sh` 6/6, `test-session-start.sh` 10/10, Windows 경로 `cwd` 입력을 그대로 읽음.
 

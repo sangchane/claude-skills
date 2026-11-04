@@ -4,13 +4,14 @@ description: |
   웹 UI를 설계·구현할 때 "AI 티 안 나는" 고급 프론트엔드 결과를 내기 위한 디자인 취향 하네스.
   React·Tailwind·Zustand 스택에 특화(다른 스택도 적용 가능). 대시보드·관제·SaaS 내부화면·랜딩 등
   화면을 만들거나 다시 디자인할 때, 색/그림자/타이포/레이아웃/모션을 정할 때, "디자인이 밋밋하다/
-  AI스럽다·지저분하다"를 고칠 때(기존 화면은 찍고-재고-3개만 고치는 감사 절차), 차트를 고르고 구성할 때 사용. 프로젝트별로 밀도·모션 "dial"을 정하고, 디자인 기준을 DESIGN.md 한 장에 고정하며
+  AI스럽다·지저분하다"를 고칠 때(기존 화면은 찍고-재고-3개만 고치는 감사 절차), 차트를 고르고 구성할 때,
+  완성한 화면을 자동 검사(ui-check: 폭별 스크린샷 + 겹침·잘림·어긋남·가로 스크롤·밀림을 이름으로 판정)할 때 사용. 프로젝트별로 밀도·모션 "dial"을 정하고, 디자인 기준을 DESIGN.md 한 장에 고정하며
   (VoltAgent/awesome-design-md 74개 사이트에서 골라 받음), 하드룰과 anti-slop을 강제한다.
   Godot 모바일 게임 UI(Control·Theme·노치·터치, 폰 해상도 스크린샷 확인)도 다룬다.
   MengTo/Skills의 design-taste-frontend를 이식·일반화. dev:build의 BUILD·REVIEW가 참조.
 metadata:
-  version: "0.6.0"
-  updated: "2026-10-14"
+  version: "0.7.0"
+  updated: "2026-11-04"
 ---
 
 # Frontend Design Taste (프론트엔드 디자인 취향)
@@ -142,9 +143,45 @@ DESIGN.md는 "어떻게 보이나"(색·서체)를 정하고, 이 단계는 "무
 
 ## 5. Pre-Flight Check (완료 선언 전)
 
+### 자동 검사 먼저 — `scripts/ui-check.mjs`
+
+화면이 괜찮은지를 내 눈으로만 판정하지 않는다. 스크립트가 1440·390 폭으로 찍고, 화면을 재서 결함을 이름으로 내고, 종료 코드로 판정한다(stageshow `film.mjs --gate` 방식).
+
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/skills/ui/scripts/ui-check.mjs" http://localhost:5173/<화면> --out shots
+# 끝 줄 「ui-check passed」(종료 0) 또는 「ui-check failed」(종료 1). 2 = Playwright·브라우저·페이지 문제.
+# Playwright 가 없다고 하면: npx -y -p playwright node "<같은 경로>/ui-check.mjs" <URL>
+```
+- **실패**: `h-scroll`(폰 가로 스크롤) · `overlap`(글자 겹침) · `clipped`(말줄임 없이 잘린 글자) · `near-aligned`(시작선 1~4px 어긋남) · `unit-wrapped`(숫자와 단위가 두 줄) · `layout-shift`(그려진 뒤 밀림, CLS > 0.1) · `font-sizes` 8종 이상.
+  **경고**: `font-sizes` 6~7종 · `start-lines`(패널당 시작선 4개 이상) · `uneven-inset`(버튼 좌우 여백 다름) · `mixed-icons`(속 찬 아이콘·선 아이콘 섞임).
+- 일부러 그런 줄이라고 생각되면 그림을 다시 본다. 그래도 맞으면 그 요소에 `data-ui-check-ignore`를 달고, 끝 보고에 그 줄과 이유를 적는다. 요소를 숨기거나 지워 줄을 없애지 않는다.
+- 통과는 필요조건일 뿐이다. 스크린샷(`shots/*-1440.png`, `*-390.png`)은 여전히 Read로 열어 아래 항목을 본다.
+- 랜딩의 일부러 잘라 보인 제품 그림은 `--ignore '<그 그림 선택자>'`로 뺀다(공개 사이트 측정에서 실패는 이것뿐이었다 — 2026-11-04, 업무 화면 6개는 실패 0).
+- 기능마다 그 화면의 명령을 프로젝트 확인 묶음(`qa`)에 한 줄씩 더한다(dev:build VERIFY).
+
+### 되풀이 결함 — 넘기기 전에 이것부터
+
+| 결함 | 실제 사례 | 막는 곳 |
+|---|---|---|
+| 세로축 값·단위 없는 차트 | 2026-10-14 시세 차트(리뷰 통과) | 아래 차트 항목, `patterns/charts.md` |
+| 값을 뜻 없이 나열(블록 23줄) | 2026-10-14 | 3절 정보 구조 「의미 표」 |
+| 뜻 없는 점수(「참고 점수」) | 2026-10-14 | 3절 「결론 1줄」·「기준 대비」 |
+| 폰 가로 스크롤 · 늦게 온 데이터가 아래를 밂 · 잘린 글자 | 흔한 고장(ux-guidelines #111·#19) | `ui-check` 실패 줄 |
+
+### 넘길 때 적는 세 줄 (끝 보고나 SPEC에)
+
+```
+따른 기준: <DESIGN.md·패턴 파일·레퍼런스 화면> (지킨 것 / 바꾼 것)
+ui-check: <폭별 결과, 넘긴 경고와 이유>
+확인하지 않은 것: <찍지 않은 상태·폭·흐름 — 없으면 「없음」>
+```
+「확인하지 않은 것」을 비우지 않는다. 안 본 것을 말해야 다음 사람이 거기부터 본다(stageshow `REHEARSAL.md` 「Not checked」).
+
+### 체크리스트
+
+- [ ] `ui-check`가 「passed」인가? 넘긴 경고마다 이유를 적었나?
 - [ ] 빈/로딩/에러(+실시간이면 stale) 상태가 모두 있나?
-- [ ] 모바일에서 접히나(반응형 보장)? 폰 너비(390×844)로 스크린샷을 찍어 Read로 봤나(쓸 수 있는 브라우저 도구나 Playwright로)?
-- [ ] 폰 너비에서 가로 스크롤이 없나(`document.documentElement.scrollWidth`가 390 이하)? `-mx-*`·고정 바·가로 스크롤 줄이 흔한 원인이다.
+- [ ] 모바일에서 접히나(반응형 보장)? `ui-check`가 찍은 390 스크린샷을 Read로 봤나?
 - [ ] DESIGN.md가 있으면 그 색·서체·반경·컴포넌트 토큰을 썼나? 문서의 Don't를 어기지 않았나? 브랜드 로고·이름·전용 서체가 남지 않았나?
 - [ ] 숫자는 `tabular-nums`인가(모노는 ID·코드만)? 데이터 표·지표에 세리프를 안 썼나? 글자 크기 5개 이하인가?
 - [ ] 강조색이 주요 행동 1곳 + 디테일 1곳뿐인가? 상태색과 섞이지 않았나?
@@ -192,7 +229,9 @@ godot --path <프로젝트> --script "${CLAUDE_PLUGIN_ROOT}/skills/ui/scripts/go
 - `references/motion.md` — MOTION dial별 모션 수치·reduced-motion·모션 그래픽(코드로 프레임 렌더) 범위. 애니메이션을 넣을 때 읽는다.
 - `references/godot-mobile.md` — Godot 모바일 게임 UI 규칙·SafeArea·확인 절차. Godot 프로젝트에서만 읽는다.
 - `scripts/godot_shots.gd` — Godot 씬을 폰·태블릿 해상도로 찍는 스크립트.
+- `scripts/ui-check.mjs` — 웹 화면 자동 검사(5절). 고쳤으면 `node scripts/test-ui-check.mjs`(나쁜·좋은 견본 `scripts/ui-check-fixtures/`)가 모두 통과해야 한다. 검사를 더하면 나쁜 견본에 그 결함을 하나 넣는다.
 
 출처: MengTo/Skills `design-taste-frontend`·`tailwindcss`·`beautiful-shadows`·`minimalist-ui` 이식·일반화. DESIGN.md 레퍼런스: VoltAgent/awesome-design-md(MIT).
 2026-10-14 보강(전부 MIT, 데이터 화면에 맞는 것만 증류 — 랜딩·이미지 생성 지침은 가져오지 않음): Leonxlnx/taste-skill(감사 패스·고치는 순서·간격·색 비율·숫자), nextlevelbuilder/ui-ux-pro-max-skill(charts.csv·ux-guidelines.csv), kylezantos/design-motion-principles(모션 AI 티 임계값), bergside/design-md-chrome(사이트 → DESIGN.md 추출).
+2026-11-04 보강: benjitaylor/skills `stageshow`(MIT, Copyright (c) 2026 Benji Taylor) — 화면을 재서 결함을 이름으로 내는 검사(`scripts/film-checks.mjs`의 생각과 일부 기준값, 코드는 새로 씀)·되풀이 결함 표·「Not checked」 인계. 가짜 제품 화면 규칙·부품 묶음·로고 그림은 업무 화면에 맞지 않아 가져오지 않았다(홍보용 그림이 필요하면 stageshow 를 그대로 설치해 쓴다).
 버전은 프론트매터 `metadata`.

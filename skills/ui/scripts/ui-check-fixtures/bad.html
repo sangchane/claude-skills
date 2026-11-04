@@ -1,0 +1,25 @@
+<!doctype html>
+<!-- ui-check 시험용 나쁜 견본 — 검사마다 결함 하나씩. test-ui-check.mjs 가 이름이 다 나오는지 본다. -->
+<html lang="ko"><head><meta charset="utf-8"><title>bad</title>
+<style>
+  body { font: 14px/1.5 system-ui, sans-serif; margin: 16px; color: #18181b; }
+  .card { border: 1px solid #d4d4d8; padding: 16px; margin-bottom: 16px; width: 320px; box-sizing: border-box; }
+  button { font: inherit; background: #e4e4e7; border: 1px solid #a1a1aa; }
+</style></head>
+<body>
+  <div id="late"></div>
+  <div class="card" id="sizes"><p style="margin: 0; font-size: 10px">가</p><p style="margin: 0; font-size: 11px">나</p><p style="margin: 0; font-size: 12px">다</p><p style="margin: 0; font-size: 13px">라</p><p style="margin: 0; font-size: 15px">마</p><p style="margin: 0; font-size: 17px">바</p><p style="margin: 0; font-size: 19px">사</p><p style="margin: 0; font-size: 22px">아</p></div>
+  <div class="card" id="wide" style="width: 600px">넓은 카드 — 폰 폭에서 가로 스크롤</div>
+  <div class="card" id="ov" style="position: relative"><span>매출 합계</span><span style="position: absolute; left: 30px; top: 16px">겹친 글</span></div>
+  <div class="card"><button id="clip" style="width: 60px; overflow: hidden; white-space: nowrap">아주 긴 버튼 이름입니다</button></div>
+  <div class="card" id="near"><div>첫 줄</div><div style="padding-left: 3px">둘째 줄</div></div>
+  <div class="card"><div id="unit" style="width: 40px; font-size: 20px">47.2 ㎡</div></div>
+  <div class="card"><button id="inset" style="padding: 6px 28px 6px 6px">저장</button></div>
+  <div class="card" id="icons">
+    <svg width="16" height="16" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="currentColor"/></svg>
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor"><circle cx="8" cy="8" r="6"/></svg>
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor"><rect x="2" y="2" width="12" height="12"/></svg>
+  </div>
+  <div class="card" id="starts"><div>가</div><div style="margin-left: 20px">나</div><div style="margin-left: 40px">다</div><div style="margin-left: 60px">라</div></div>
+  <script>setTimeout(() => { document.getElementById('late').style.height = '300px' }, 300)</script>
+</body></html>
