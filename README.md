@@ -56,6 +56,7 @@ claude plugin enable ecc --scope project        # 설계하는 프로젝트 폴�
 | `/dev:design` | 새 서비스를 처음 만들 때 (아이디어 → 설계 문서) |
 | `/dev:build` | 기능 만들기 · 버그 고치기 · 리뷰 · 커밋 |
 | `/dev:ui` | 화면 만들 때 (AI 티 안 나게) |
+| `/dev:audit` | 고치기 전에 보고서부터 — 숨은 상태 머신 · CI 감사 · 「처음부터 다시라면 뭘 남기나」 |
 | `/dev:setup` | 새 프로젝트 폴더에서 처음 한 번 |
 | `/dev:guide 하고 싶은 것` | 뭘 써야 할지 모를 때 |
 
@@ -77,6 +78,11 @@ claude plugin enable ecc --scope project        # 설계하는 프로젝트 폴�
 | 막힌 옛 프로젝트 | "이거 몇 주째 진도가 안 나가. 살려줘" | 실제로 돌려 보고 진단 → 막힌 원인 설명 → 경로 확인 1번 → 이어서 진행 |
 | 어제 하던 거 | "다음 진행해" | NEXT.md에 적힌 곳부터 이어서 |
 | 마무리 | "리뷰해줘", "커밋하고 PR 만들어줘" | 리뷰 1번 / 커밋·PR |
+| 버그가 여러 개 | "버그 목록 정리해" | 빈도×심각도(1~10) 점수, 곱이 5 미만이면 이슈로만 남김 |
+| 구조 정리 | "이 모듈 리팩토링해" | 버그 확률(시험이 놓치는 실수 비율)을 목표치 아래로 낮춘 뒤 바꿈 |
+| 상태가 꼬임 | "숨은 상태 머신 찾아" | 후보 표 · UX·DX·AX 점수 · 고침/놔둠 결정 → 고침 |
+| CI가 느림 | "CI 감사해" | 최근 150번 · 대기/셋업/실행 · 가장 느린 5개 보고(코드 안 고침) |
+| 갈아엎을지 고민 | "처음부터 다시 만든다면 뭘 남길까" | 모듈마다 남김·다시 씀·버림 보고 |
 
 응답 첫 줄에 `등급: M — 기능 하나`처럼 크기 판정이 나온다. 너무 크거나 작게 잡았으면 "S로 해", "L로 해"라고만 하면 된다.
 
@@ -178,7 +184,7 @@ python tools/export.py codex --project <게임 저장소 경로>   # AGENTS.md�
 |---|---|---|
 | **규칙** `rules.md` | 세션 시작 훅(`hooks/session-start.sh`)이 매 세션 Claude에게 넣는다 | 작업 원칙(Karpathy 가이드라인의 Opus 5.5판) · 규모 판정(S·M·L) · superpowers 경계 · 모델·위임 규칙 |
 | **NEXT.md** (프로젝트 루트) | 스킬이 단계마다 덮어쓰는 "지금 어디까지 왔나" 블록 | 같은 훅이 세션 시작 때 함께 넣는다. "다음 진행해"가 여기서 이어진다 |
-| **스킬** `skills/` | design · build · ui · setup · guide | 필요할 때만 로드되는 단계별 절차 |
+| **스킬** `skills/` | design · build · ui · audit · setup · guide | 필요할 때만 로드되는 단계별 절차 |
 | **에이전트** `agents/` | `dev:reviewer`(high) · `dev:deep`(high) · `dev:quick`(low) | 독립 리뷰, 깊은 작업, 대량 기계 작업 위임. 모델은 부를 때 준다 |
 
 ```
@@ -187,7 +193,7 @@ python tools/export.py codex --project <게임 저장소 경로>   # AGENTS.md�
 rules.md                        작업 규칙 (훅이 주입)
 rules-models/                   모델별 지침 (훅이 세션 모델로 골라 주입)
 hooks/                          세션 시작 훅(규칙·모델 지침·NEXT 세 출력, 크기 시험 test-session-start.sh) · Stop 검증 게이트(verify-gate.sh, 자체 시험 test-verify-gate.sh)
-skills/design|build|ui|setup|guide
+skills/design|build|ui|audit|setup|guide
 agents/reviewer|deep|quick
 tools/skill_catalog.py          설치 스킬·토큰·라우팅 표 검사
 tools/export.py                 규칙·스킬을 Codex·Antigravity로 복사
@@ -258,7 +264,8 @@ docs/                           과거 분석 기록
 
 - **등급별 경로**: S는 이 스킬 없이 처리. M은 FRAME 3줄 → 1쪽 SPEC → BUILD → VERIFY → REVIEW 1회 → SHIP
   (게임·도구 프로토타입은 버리는 프로토타입으로 핵심 가설부터). L 신규는 autopilot 뒤 SPEC부터, 첫 작업 3개는 버티컬 슬라이스.
-  L 변경(기존 저장소의 결제·인증 등)은 전체 경로 + `/security-review`. 버그는 `superpowers:systematic-debugging`.
+  L 변경(기존 저장소의 결제·인증 등)은 전체 경로 + `/security-review`. 버그는 빈도×심각도 분류(곱 5 미만은 이슈만) 뒤 `superpowers:systematic-debugging`.
+  리팩토링은 `scripts/bug_odds.py`로 버그 확률을 재고 목표치(기본 10%) 아래로 낮춘 뒤 바꾼다. 익숙하지 않은 기능은 GitHub 오픈소스 3~5개 접근을 비교한 뒤 만든다.
 - **단계별로 붙이는 것**: PLAN `superpowers:writing-plans`, BUILD `superpowers:executing-plans`(같은 세션) + TDD + `ponytail:ponytail` 사다리
   (+ 화면이면 `dev:ui`), VERIFY `verification-before-completion`, REVIEW `/code-review` 1회(+ `ponytail-review` 선택),
   SHIP `finishing-a-development-branch`. FRAME이 `brainstorming`을 대신한다.
@@ -273,6 +280,13 @@ docs/                           과거 분석 기록
 ```
 
 ---
+
+## /dev:audit — 고치기 전에 보고서부터
+
+세 점검. 모두 보고서가 먼저고, 고침은 `dev:build` 경로로 넘긴다.
+- **상태 머신 헌터**: 흩어진 불리언·status 문자열·null 시각 상태를 찾아 후보마다 UX·DX·AX 점수와 고침/놔둠 결정. 고침은 이름 있는 상태 + 순수 전이 함수 + 전이 표 시험.
+- **CI 감사관**: `skills/audit/scripts/ci_audit.py` — `gh`로 최근 150번, job마다 대기(기계 할당)·셋업(체크아웃·설치·캐시)·실행 중앙값, 가장 느린 5개. 코드는 안 고친다.
+- **재설계자**: 「오늘 같은 목표로 처음부터라면 무엇을 남기나」 — 모듈마다 남김·다시 씀·버림과 근거. 남길 것이 맨 앞.
 
 ## /dev:ui — 화면 품질
 
@@ -331,6 +345,9 @@ python tools/export.py                     # 규칙·스킬을 Codex·Antigravit
 4. 회귀 평가: design은 `skills/design/eval/PROTOCOL.md` 스모크(시드 3개), build는 `skills/build/evals/evals.json`.
 5. `rules.md`·`rules-models/`를 고쳤으면 `bash hooks/test-session-start.sh` — 세션 시작 훅 출력이 한도(문자열 하나에 10,000자) 안에 여유를 남기는지 잰다.
 6. `skills/ui/scripts/ui-check.mjs`를 고쳤으면 `node skills/ui/scripts/test-ui-check.mjs`(나쁜·좋은 견본, 15개).
+7. `ci_audit.py`·`bug_odds.py`를 고쳤으면 `python3 -I skills/audit/scripts/test_ci_audit.py` · `python3 -I skills/build/scripts/test_bug_odds.py`.
+
+주의: `claude plugin marketplace update`·`plugin update`는 `~/.claude/plugins/marketplaces/sangchane`을 원격에서 새로 받는다 — 거기서 고치고 올리지 않은 커밋은 사라진다(2026-11-16). 고치는 일은 따로 clone한 폴더에서 하고, 올린 뒤에 업데이트한다.
 
 ## 외부 스킬 흡수 기준
 
@@ -361,6 +378,8 @@ Godot 게임 UI 쪽은 1만★ 넘는 스킬이 없어(godot-mcp 5.6k, awesome-g
 Remote Control 세션에서는 `/plugin`이 막혀 있으므로 같은 PC의 터미널에서 `claude plugin marketplace add <repo>` → `claude plugin install <name>@<marketplace>`를 쓴다.
 
 ## 변경 이력
+
+**2026-11-16 — 1.11.0 작업 방식 7가지(사용자 「이내용대로 작업할 수 있도록 하고 해당 내용을 내 스킬에 적용할 수 있도록해」).** 새 스킬 `dev:audit`(상태 머신 헌터 · CI 감사관 + `ci_audit.py` · 재설계자). `dev:build`: 버그 경로 앞에 빈도×심각도 분류(곱 5 미만은 이슈만) · 새 리팩토링 경로(버그 확률을 `bug_odds.py` 변이 놓친 비율로 재고, 목표치까지 설계 고침과 재측정 반복, 최대 5바퀴) · EXPLORE 에 오픈소스 스카우트. `rules.md`: 「계속할까요?」 금지 · 지우기 전에만 묻기 · 끝 보고는 과정을 못 본 사람용 요점 먼저. 자체 시험 `test_ci_audit.py`·`test_bug_odds.py` 통과. `ci_audit.py` 는 공개 저장소 실행 3번에서 표를 냈고, `bug_odds.py` 는 실제 Deno 저장소 파일 하나(23줄)에서 변이 15개 · 놓친 비율 80% 를 냈고 파일은 원래대로 돌아왔다.
 
 **2026-11-04 — 1.10.0 dev:ui 화면 자동 검사(stageshow 비교 → 사용자 「추천대로해」).** benjitaylor/skills `stageshow`(MIT)와 dev:ui를 비교했다 — 가장 큰 차이는 stageshow가 화면을 재서 결함을 이름으로 내고 통과/실패로 판정하는데(`film-checks.mjs` 1,920줄, 40여 종), dev:ui는 스크린샷을 내 눈으로 읽어 판정한 것. 새 `skills/ui/scripts/ui-check.mjs`: Playwright(프로젝트 → `npx -p` → 전역 → npx 임시 폴더 순으로 찾음, 브라우저는 기본 → Chrome → Edge)로 1440·390을 찍고 실패 7종(`h-scroll`·`overlap`·`clipped`·`near-aligned`·`unit-wrapped`·`layout-shift`·`font-sizes` 8종 이상)과 경고 4종(`font-sizes` 6~7·`start-lines`·`uneven-inset`·`mixed-icons`)을 낸다. 코드는 업무 화면용으로 새로 썼고 생각·기준값만 빌렸다. 헛경보 보정은 공개 화면으로 쟀다: 처음엔 GitHub 저장소 화면에서 실패 26 → sr-only·aria-hidden 제외, 자르는 칸 안에 보이는 부분만 비교, 좁은 행간 위아래 20% 깎기, 사이에 불투명·흐림 층이 있으면 가려진 것으로 봄, 큰 제목 광학 보정(1.4배) 제외 → 업무 화면 6개(GitHub 저장소·이슈, shadcn 대시보드·작업, Tailwind 앱 화면 견본) 실패 0. 남은 실패는 랜딩의 일부러 잘라 보인 제품 그림뿐(`--ignore`로 뺀다). 글자 크기는 규칙(5종 이하)대로 실패로 두면 위 잘 만든 화면도 6~7종이라 6~7은 경고, 8 이상만 실패. SKILL.md 5절: 자동 검사 먼저 · 되풀이 결함 표(2026-10-14 실제 지적 3건 + 기계 결함) · 넘길 때 세 줄(따른 기준 / ui-check / 확인하지 않은 것). `audit.md` 1단계도 ui-check로 찍고 줄 수를 라운드마다 적는다. 자체 시험 `scripts/test-ui-check.mjs` 15/15(나쁜 견본은 이름 10종이 다 나오고 종료 1, 좋은 견본은 실패·경고 0). 가져오지 않은 것: 가짜 화면 규칙·부품 묶음·로고 그림, 잘된 예시 묶음(보류).
 

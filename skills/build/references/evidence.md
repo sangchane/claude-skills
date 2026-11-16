@@ -180,3 +180,9 @@ Google eng-practices "Small CLs"(약 100줄), Amazon Type 1/Type 2 결정, Basec
 근거(2026-10-25 확인): Anthropic 「Effective harnesses for long-running agents」(기능 목록 전부 `"passes": false` 로 시작 · 「work on only one feature at a time」 · 「It is unacceptable to remove or edit tests」 · 실패 양상 「marks features as done prematurely」) · anthropics/claude-code 153,282★ `plugins/ralph-wiggum`(「Always rely on `--max-iterations` as your primary safety mechanism」) · gsd-build/get-shit-done 64,230★ `agents/gsd-verifier.md`(「Task completion ≠ Goal achievement」·「Do NOT trust SUMMARY.md claims」) · Claude Code `/goal` 문서(조건에 턴 상한).
 반영: 목표와 검증 6번 — tasks.md 줄마다 `검증:`·`통과:` · 출력 본 뒤에만 예 · 시험 고쳐 통과 금지 · 새 세션은 첫 「아니오」부터 · 전부 예여도 3번 정답지 채점까지 · 루프 권할 때 반복 상한.
 1.6.7 결정과의 관계: 새 진행 파일·완료 약속 문자열 루프는 여전히 안 쓴다(tasks.md 를 장부로 쓰고, ralph 에서는 반복 상한만 가져옴).
+
+## 2026-11-16 작업 방식 7가지 — 버그 분류·리팩토링 버그 확률·오픈소스 스카우트·마무리 (0.12.0 · 플러그인 1.11.0)
+사용자 원문: 프롬프트 6개(상태 머신 헌터 · 오픈소스 스카우트 · 버그 분류기 · 마무리 해결사 · CI 감사관 · 재설계자)와 「리팩토링 변경 사항을 적용할 때 버그가 발생할 가능성을 줄여줘. 현재 버그가 유입될 확률을 먼저 분석한 다음, 설계를 개선하고 목표치(x%)에 도달할 때까지 다시 측정하는 과정을 반복해」 → 「이내용대로 작업할 수 있도록 하고 해당 내용을 내 스킬에 적용할 수 있도록해」.
+반영: build — 버그 경로 앞 빈도×심각도(곱 5 미만은 이슈만) · 리팩토링 경로 · EXPLORE 오픈소스 비교. 새 스킬 audit — 상태 머신 헌터 · CI 감사관 · 재설계자(보고서 먼저). rules — 「계속할까요?」 금지 · 지우기 전에만 묻기 · 끝 보고 요점 먼저.
+판단(내 것, 외부 조사 안 함): 「버그 유입 확률」은 잴 수 없어 대리값으로 변이 시험의 놓친 비율을 썼다 — 바꿀 코드에 작은 실수를 넣었을 때 시험이 통과시키는 비율. 언어마다 도구(Stryker·mutmut)가 다르고 Deno 는 붙이기 어려워 글자 단위 변이 스크립트(`scripts/bug_odds.py`)로 했다. 형 검사에서 깨지는 변이도 「잡음」으로 세는 한계는 코드 주석에 적었다. 목표치 기본 10% · 최대 5바퀴는 내가 정한 값이다.
+「삭제 전에만 묻기」 범위: 파일·데이터·갈래·기능·이슈. 내가 방금 쓴 줄을 고쳐 쓰는 것은 뺐다(빼지 않으면 모든 수정이 질문이 된다).
