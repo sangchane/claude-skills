@@ -11,8 +11,14 @@ mode="${1:-rules}"
 input=""; [ -t 0 ] || input="$(cat)"
 
 rules_part() {
-  echo "(이 출력이 잘려 미리보기로만 보이면 저장된 파일 전체를 Read 한다 — 규칙 대부분이 뒤에 있다.)"
-  cat "$root/rules.md"
+  # 규칙을 「## 」 절 경계에서 한도 안 조각으로 나눠 want 번째만 낸다(hooks.json 이 rules 1 · rules 2 로 부른다).
+  # 한 출력에 다 담으면 규칙이 자랄 때마다 10,000자를 넘어 미리보기만 보였다(1.8.1 · 1.10.0 · 1.11.0 반복). 조각이 hooks.json 수보다 많아지면 test-session-start.sh 가 실패한다.
+  LC_ALL=C.UTF-8 awk -v max="$(( LIMIT - 300 ))" -v want="${1:-1}" '
+    function flush() { if (sec == "") return; if (size > 0 && size + length(sec) > max) { chunk++; size = 0 }
+      if (chunk + 1 == want) printf "%s", sec; size += length(sec); sec = "" }
+    /^## / { flush() }
+    { sec = sec $0 "\n" }
+    END { flush() }' "$root/rules.md"
 }
 
 model_part() {
@@ -43,7 +49,7 @@ next_part() {
 }
 
 case "$mode" in
-  rules) rules_part ;;
+  rules) rules_part "${2:-1}" ;;
   model) model_part ;;
   next) next_part ;;
 esac

@@ -192,11 +192,12 @@ python tools/export.py codex --project <게임 저장소 경로>   # AGENTS.md�
 .claude-plugin/marketplace.json 마켓플레이스 정보(이름 sangchane)
 rules.md                        작업 규칙 (훅이 주입)
 rules-models/                   모델별 지침 (훅이 세션 모델로 골라 주입)
-hooks/                          세션 시작 훅(규칙·모델 지침·NEXT 세 출력, 크기 시험 test-session-start.sh) · Stop 검증 게이트(verify-gate.sh, 자체 시험 test-verify-gate.sh)
+hooks/                          세션 시작 훅(규칙 두 조각·모델 지침·NEXT 네 출력, 크기 시험 test-session-start.sh) · Stop 검증 게이트(verify-gate.sh, 자체 시험 test-verify-gate.sh)
 skills/design|build|ui|audit|setup|guide
 agents/reviewer|deep|quick
 tools/skill_catalog.py          설치 스킬·토큰·라우팅 표 검사
 tools/export.py                 규칙·스킬을 Codex·Antigravity로 복사
+tools/check.sh                  자체 시험 묶음 — 커밋 훅(tools/git-hooks)과 GitHub CI(.github/workflows/check.yml)가 돈다
 docs/                           과거 분석 기록
 ```
 
@@ -339,11 +340,11 @@ python tools/export.py                     # 규칙·스킬을 Codex·Antigravit
 
 ## 스킬을 고칠 때
 
-1. 이 저장소를 clone해서 고친다.
+1. 이 저장소를 clone해서 고친다. clone한 뒤 한 번 `git config core.hooksPath tools/git-hooks` — 커밋할 때마다 `tools/check.sh`(규칙 크기·자체 시험)가 돌아 실패하면 커밋이 막힌다. 올리면 GitHub CI가 같은 것을 다시 돈다.
 2. `.claude-plugin/plugin.json`의 `version`을 올린다 — **안 올리면 `/plugin update`가 "이미 최신"이라며 받지 않는다.**
 3. 커밋·푸시. 다른 PC는 `/plugin update dev@sangchane`.
 4. 회귀 평가: design은 `skills/design/eval/PROTOCOL.md` 스모크(시드 3개), build는 `skills/build/evals/evals.json`.
-5. `rules.md`·`rules-models/`를 고쳤으면 `bash hooks/test-session-start.sh` — 세션 시작 훅 출력이 한도(문자열 하나에 10,000자) 안에 여유를 남기는지 잰다.
+5. `rules.md`·`rules-models/`를 고쳤으면 `bash hooks/test-session-start.sh` — 훅이 규칙을 `## ` 절 경계에서 두 조각으로 나눠 넣는다. 조각마다 한도(문자열 하나에 10,000자) 안 여유, 조각을 이으면 rules.md와 같은지, 세 번째 조각이 생기지 않는지 본다. 세 번째가 생기면 조각을 늘리지 말고 rules.md를 줄이거나 자세한 절차를 스킬 references로 옮긴다.
 6. `skills/ui/scripts/ui-check.mjs`를 고쳤으면 `node skills/ui/scripts/test-ui-check.mjs`(나쁜·좋은 견본, 15개).
 7. `ci_audit.py`·`bug_odds.py`를 고쳤으면 `python3 -I skills/audit/scripts/test_ci_audit.py` · `python3 -I skills/build/scripts/test_bug_odds.py`.
 
@@ -378,6 +379,8 @@ Godot 게임 UI 쪽은 1만★ 넘는 스킬이 없어(godot-mcp 5.6k, awesome-g
 Remote Control 세션에서는 `/plugin`이 막혀 있으므로 같은 PC의 터미널에서 `claude plugin marketplace add <repo>` → `claude plugin install <name>@<marketplace>`를 쓴다.
 
 ## 변경 이력
+
+**2026-11-16 — 1.12.0 규칙 출력 초과가 되풀이되지 않게 + 문서 충돌 다섯.** 사용자 「손대지 않은 것들 다 고쳐 규칙출력 초과도 자꾸 반복되는데 반복되지 않도록 고쳐」. 원인: 훅이 rules.md 전체를 출력 하나로 내 10,000자를 넘으면 미리보기만 보였고(1.8.1 · 1.10.0 · 1.11.0 — 15,645자), 크기 시험은 있었지만 아무도 돌리지 않았다. 고침: ① 훅이 `## ` 절 경계에서 두 조각(`rules 1`·`rules 2`)으로 낸다 ② 크기 시험이 조각마다 한도 · 이으면 원문과 바이트까지 같음 · 세 번째 조각 없음을 본다(세 배로 불린 사본에서 실패 확인) ③ `tools/check.sh` 를 커밋 훅과 GitHub CI 가 돈다 — 시험을 잊어도 커밋·push 에서 걸린다. 문서 충돌(1.11.1 회귀 확인에서 나온 것): goals.md 없을 때 design vs 프로토타입 M · M 에서 tasks.md 요청 · 리뷰 새 맥락 vs 메인 자기 점검 · 「모르는 도메인」은 새 제품일 때만 L · 리팩토링 등급.
 
 **2026-11-16 — 1.11.0 작업 방식 7가지(사용자 「이내용대로 작업할 수 있도록 하고 해당 내용을 내 스킬에 적용할 수 있도록해」).** 새 스킬 `dev:audit`(상태 머신 헌터 · CI 감사관 + `ci_audit.py` · 재설계자). `dev:build`: 버그 경로 앞에 빈도×심각도 분류(곱 5 미만은 이슈만) · 새 리팩토링 경로(버그 확률을 `bug_odds.py` 변이 놓친 비율로 재고, 목표치까지 설계 고침과 재측정 반복, 최대 5바퀴) · EXPLORE 에 오픈소스 스카우트. `rules.md`: 「계속할까요?」 금지 · 지우기 전에만 묻기 · 끝 보고는 과정을 못 본 사람용 요점 먼저. 자체 시험 `test_ci_audit.py`·`test_bug_odds.py` 통과. `ci_audit.py` 는 공개 저장소 실행 3번에서 표를 냈고, `bug_odds.py` 는 실제 Deno 저장소 파일 하나(23줄)에서 변이 15개 · 놓친 비율 80% 를 냈고 파일은 원래대로 돌아왔다.
 

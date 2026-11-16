@@ -8,7 +8,7 @@ description: |
   도메인을 모르는 새 서비스는 먼저 dev:design.
 argument-hint: "[요청 한 문장 또는 단계명]"
 metadata:
-  version: "0.12.0"
+  version: "0.12.1"
   updated: "2026-11-16"
 ---
 
@@ -22,7 +22,7 @@ superpowers가 실행 엔진이다. 이 스킬은 **규모에 맞게 단계를 �
 세상에 없는 제품을 만들 때 사용자가 세부를 다 정해 줄 수 없다. 그래서 이 여섯 가지는 등급과 상관없이 내가 먼저 한다.
 근거·사건은 `references/evidence.md` "2026-10-14 덧대기·검증 공백".
 
-1. **목표 대조.** 요청을 `docs/goals.md`(목표 한 장)의 번호에 붙인다. 목표를 바꾸는 말이면 goals.md부터 고친다(rules.md). goals.md가 없거나 사용자 말이 목표를 바꾸면 `dev:design` 목표 수립·갱신(lite, 규칙 11)으로 조사해 세운다 — 사용자 말을 모아 옮겨 적는 것으로 대신하지 않는다.
+1. **목표 대조.** 요청을 `docs/goals.md`(목표 한 장)의 번호에 붙인다. 목표를 바꾸는 말이면 goals.md부터 고친다(rules.md). goals.md가 없거나 사용자 말이 목표를 바꾸면 `dev:design` 목표 수립·갱신(lite, 규칙 11)으로 조사해 세운다(게임·도구 프로토타입 M은 예외 — FRAME 3줄이 목표를 대신하고, 사용자·데이터가 있는 제품이 되면 그때 세운다) — 사용자 말을 모아 옮겨 적는 것으로 대신하지 않는다.
 2. **전제 도전.** 기능 요청을 받으면 만들기 전에, 도메인 조사(실무자·공식 자료)로 "이게 목표에 맞는 문제인가, 더 나은 형태가 있나"를 한 단락 제안한다. 사용자도 그 분야를 모르면 화면·기능 전에 **의미 표**(보여 줄 정보 → 그걸로 무엇을 판단하나 → 무엇과 비교해야 의미가 생기나 → 근거 출처)를 만든다. 이유: 요청을 그대로 받아 만들면 사용자가 기획자 역할을 떠안고, 데이터만 나열된 화면이 된다. (gstack `/office-hours`·`/plan-ceo-review` 방식)
 3. **정답지 채점.** goals.md 완료 기준마다 *실제 세계의 정답*(실제 사례·공식 값·실무자 판정)과 대조하는 검증이 있어야 완료다. 내가 쓴 SPEC에서 만든 테스트는 "코드가 내 생각대로 도는가"만 보므로 완료 근거가 아니다. 정답지가 없으면 정답지를 모으는 것이 첫 작업이다. 결과는 맞은 수/전체로 보고한다. (BMAD TEA trace 방식: 요구 → 증명하는 검증을 표로 잇고 통과/우려/실패)
 4. **눈가린 점검.** 화면이나 판정이 있는 기능은 REVIEW에서, 코드·SPEC·diff를 주지 않은 새 에이전트(`dev:reviewer`)에게 goals.md와 돌아가는 앱만 준다. 실제 브라우저로 "이 화면만 보고 목표의 판단을 할 수 있나, 어디서 막히나"를 스크린샷 증거와 함께 보고받는다. 이유: 내 SPEC을 아는 리뷰는 내 맹점을 그대로 공유한다. (gstack `/qa-only` 방식) 기능당 1회 — 같은 코드를 다시 확인하는 용도가 아니다.
@@ -38,7 +38,7 @@ superpowers가 실행 엔진이다. 이 스킬은 **규모에 맞게 단계를 �
 | 등급 | 단계 | 문서 | 리뷰 |
 |---|---|---|---|
 | **S** | 이 스킬 없이 바로 수정 → 검증 명령 1회 | 없음 | 요청 시만 |
-| **M** | FRAME(3줄) → SPEC(1쪽) → BUILD → VERIFY → REVIEW → SHIP. 모르는 코드면 EXPLORE. 작업이 5개를 넘으면 PLAN, 아니면 SPEC의 완료 기준 순서대로 메인에서 구현 | `SPEC.md` 1쪽 | 기능 단위 1회 |
+| **M** | FRAME(3줄) → SPEC(1쪽) → BUILD → VERIFY → REVIEW → SHIP. 모르는 코드면 EXPLORE. 작업이 5개를 넘거나 사용자가 tasks.md·작업 쪼개기를 요청하면 PLAN(tasks.md), 아니면 SPEC의 완료 기준 순서대로 메인에서 구현 | `SPEC.md` 1쪽 | 기능 단위 1회 |
 | **L 신규** | design GATE 뒤 **SPEC부터**(입력 `03·05·08`) → PLAN → BUILD → VERIFY → REVIEW → SHIP → REFLECT. PLAN 첫 작업 3개는 버티컬 슬라이스 | SPEC.md + tasks.md | 기능 단위 1회 + 고위험이면 보안 리뷰 |
 | **L 변경** | 기존 저장소의 결제·인증·개인정보·마이그레이션. FRAME → EXPLORE → SPEC → PLAN → BUILD → VERIFY → REVIEW → SHIP | SPEC.md (+ tasks.md) | 기능 단위 1회 + `/security-review` |
 | **버그** | **먼저 분류**: 빈도(1 거의 아무도 안 겪음 ~ 10 모두가 매번)와 심각도(1 보기 흉함 ~ 10 데이터 손실·보안·돈)를 매겨 곱한다. 곱이 5 미만이면 코드를 건드리지 않고 이슈로만 남긴다(`gh issue create`, GitHub 저장소가 아니면 루트 `ISSUES.md` 한 줄 — 점수·재현·근거). 사용자가 그 버그를 콕 집어 고치라고 했으면 점수와 상관없이 고친다. 아무도 요청하지 않은 드문 사례·미래 상황까지 대비해 고치지 않는다 — 증상 하나에 수정 하나. 5 이상이면: 원래 증상이 실패하는 명령을 직접 돌림 → 원인 → 수정(`superpowers:systematic-debugging`) → 같은 명령으로 증상이 사라졌는지 확인 → VERIFY. 위험 모듈이면 REVIEW 1회 | 없음 | 위험 모듈만 |
@@ -91,7 +91,7 @@ superpowers가 실행 엔진이다. 이 스킬은 **규모에 맞게 단계를 �
 | PLAN | 작업 분해. 첫 3개는 버티컬 슬라이스, 그다음 위험 큰 것부터 | `superpowers:writing-plans` |
 | BUILD | 같은 세션에서 구현. 코드 전에 ponytail 사다리 | `superpowers:executing-plans` · `superpowers:test-driven-development` · `ponytail:ponytail` · 화면이면 `dev:ui` |
 | VERIFY | 테스트·빌드·린트·(UI면) 스크린샷을 실행하고 결과를 붙인다. 완료 기준에 정답지 채점이 있으면 맞은 수/전체를 붙인다. 사용자 손이 필요한 확인은 스케줄·로그로 돌게 해 두고 다음에 내가 읽는다. 실패하면 근본 원인. 몇 초 안에 끝나는 검증 명령은 프로젝트 AGENTS.md에 `<!-- dev:verify: 명령 -->`으로 선언한다 — Stop 훅이 빨간불이면 턴 종료를 막는다(장비·장시간 명령은 선언 금지). 장비·장시간 작업(기기 빌드·설치, 30분 측정)은 「시작」과 「결과 받기」를 나눈 스크립트로 만들고 `run_in_background`(+`timeout`)나 Monitor로 돌려 끝 알림을 받아 읽는다 — 한 프로세스가 `sleep`으로 붙들고 기다리지 않는다(백그라운드 명령 한도에 잘린다) 화면 확인 스크립트는 결과를 내가 눈으로 읽어 판정하지 않게 통과/실패와 종료 코드를 내고, 기능마다 프로젝트의 확인 묶음(`qa` 명령)에 하나씩 더해 다음 바퀴의 회귀 검사로 남긴다 | `superpowers:verification-before-completion` · 실패 시 `superpowers:systematic-debugging` |
-| REVIEW | diff·SPEC·goals.md를 주고 새 컨텍스트에서 정확성 1회. 규칙 위반과 요구 대조(빠진 것·요청 밖 변경)를 나눠 보고한다. 리뷰는 Claude가 한다 — Codex로 보내지 않는다(사용량, 사용자 2026-11-04). 사용자가 Codex에 시키라고 한 일만 `tools/codex_run.py`(시킨 일의 종류로 모델·effort)로 넘긴다 — NEXT 블록·볼트·그래프 노트는 `export.py`가 설치한 Codex 훅이 Claude와 같게 넣는다. 훅이 없는 도구면 요청서 첫머리에 볼트 인덱스 · 그래프 위치와 NEXT 블록을 준다. 화면·판정이 있으면 눈가린 점검 1회(위 공통 4). 과잉설계는 선택 | `/code-review` · `ponytail:ponytail-review` · 고위험 `/security-review` |
+| REVIEW | diff·SPEC·goals.md를 주고 새 컨텍스트(`dev:reviewer` 서브에이전트)에서 정확성 1회 — 구현 중 자기 점검은 메인에서 하고 이것과 따로 센다. 규칙 위반과 요구 대조(빠진 것·요청 밖 변경)를 나눠 보고한다. 리뷰는 Claude가 한다 — Codex로 보내지 않는다(사용량, 사용자 2026-11-04). 사용자가 Codex에 시키라고 한 일만 `tools/codex_run.py`(시킨 일의 종류로 모델·effort)로 넘긴다 — NEXT 블록·볼트·그래프 노트는 `export.py`가 설치한 Codex 훅이 Claude와 같게 넣는다. 훅이 없는 도구면 요청서 첫머리에 볼트 인덱스 · 그래프 위치와 NEXT 블록을 준다. 화면·판정이 있으면 눈가린 점검 1회(위 공통 4). 과잉설계는 선택 | `/code-review` · `ponytail:ponytail-review` · 고위험 `/security-review` |
 | SHIP | 작은 커밋, 한글 설명형 메시지, PR. 기능 하나가 VERIFY·REVIEW를 넘으면 묻지 않고 커밋하고, 프로젝트 AGENTS.md에 배포 명령이 있으면 배포한 뒤 운영 확인까지 하고 다음 기능으로 간다(rules 「검증은 내가 한다」). 배포 명령은 커밋 안 된 변경을 거절하고, DB 백업·직전 판 보관·배포 커밋 기록을 한 뒤 올리고, 운영 확인이 실패하면 직전 판으로 되돌린다(rules 「바퀴의 안전장치」). 배포는 그 기능의 남은 작업 끝에 한 번 — 뒷작업이 남았는데 배포를 앞에 두면 두 번 배포한다 | `superpowers:finishing-a-development-branch` |
 | REFLECT | 반복 실수는 기존 검사가 실제로 도는지 먼저 본다. 기계로 잡을 실수는 검사로 막는다. 판단이 필요한 규칙만 AGENTS.md에, 결정은 decision-log에. 결론이 바뀐 볼트 노트 · 그래프는 SHIP 전에 다시 굽는다(생성 노트는 생성 스크립트로) | 없음 |
 

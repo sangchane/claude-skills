@@ -8,13 +8,20 @@ LIMIT=9600; MARGIN=300
 count() { LC_ALL=C.UTF-8 awk '{ n += length($0) + 1 } END { print n + 0 }'; }
 ok=0; total=0
 check() { total=$((total + 1)); if [ "$2" = 0 ]; then ok=$((ok + 1)); else echo "실패: $1"; fi; }
-run() { printf '{"model":"%s"}' "$2" | CLAUDE_PLUGIN_ROOT="$root" CLAUDE_PROJECT_DIR="$3" bash "$here/session-start.sh" "$1"; }
+run() { printf '{"model":"%s"}' "$2" | CLAUDE_PLUGIN_ROOT="$root" CLAUDE_PROJECT_DIR="$3" bash "$here/session-start.sh" $1; }
 
 t="$(mktemp -d)"
-# 1) 규칙 · 모델 지침: 각각 한도에서 여유 300자를 남겨야 한다(모델 지침은 파일마다, 모델을 모를 때도)
-n="$(run rules "" "$t" | count)"
-[ "$n" -le $((LIMIT - MARGIN)) ]; check "규칙 출력이 ${n}자 (한도 ${LIMIT}에서 ${MARGIN}자 여유 필요)" $?
-echo "  규칙: ${n}자 (남는 자리 $((LIMIT - n)))"
+# 1) 규칙: hooks.json 이 부르는 조각(rules 1 · rules 2)마다 한도에서 여유 300자, 조각을 이으면 rules.md 와 같아야 하고(빠짐 없음), 그 밖 조각은 비어야 한다
+parts="$(grep -o 'session-start.sh\\" rules [0-9]*' "$root/hooks/hooks.json" | grep -o '[0-9]*$')"
+: > "$t/joined"; used=0
+for p in $parts; do
+  run "rules $p" "" "$t" > "$t/part"; n="$(count < "$t/part")"; used=$((used + n)); cat "$t/part" >> "$t/joined"
+  [ "$n" -le $((LIMIT - MARGIN)) ]; check "규칙 조각 $p 출력이 ${n}자 (한도 ${LIMIT}에서 ${MARGIN}자 여유 필요)" $?
+done
+next_part=$(( $(printf '%s\n' $parts | sort -n | tail -n1) + 1 ))
+[ -z "$(run "rules $next_part" "" "$t")" ]; check "규칙이 hooks.json 조각 수를 넘어 조각 $next_part 이 생겼다 — rules.md 를 줄이거나 자세한 내용을 스킬 references 로 옮길 것" $?
+cmp -s "$t/joined" "$root/rules.md"; check "조각을 이은 것이 rules.md 와 다르다(빠지거나 겹친 줄)" $?
+echo "  규칙: ${used}자 / 조각 $(echo $parts | wc -w | tr -d ' ')개 (남는 자리 $(( $(echo $parts | wc -w) * (LIMIT - MARGIN) - used )))"
 for f in "$root"/rules-models/*.md; do
   m="$(basename "$f" .md)"
   n="$(run model "claude-$m" "$t" | count)"
