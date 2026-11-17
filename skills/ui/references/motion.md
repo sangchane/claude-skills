@@ -233,3 +233,9 @@ dev:ui는 **UI의 모션**(상태 변화를 설명하는 150~700ms)을 다룬다
 22. Motion MCP 문서 — https://docs.motion.so/guides/mcp · https://docs.motion.so/guides/credits · https://motion.so
 23. pasqualepillitteri.it — https://pasqualepillitteri.it/en/news/19007/opus-5-5-motion-design-video-en **(접속 실패 3회, 미확인 — 검색 요약만 사용)**
 24. kylezantos/design-motion-principles(MIT, ★1.3천) `references/creation-gotchas.md`·`anti-checklist.md` — https://github.com/kylezantos/design-motion-principles (확인일 2026-10-14)
+
+## 속성을 이름으로 (2026-11-17)
+
+- `transition-all` 대신 바뀌는 속성을 이름으로 적는다(`transition: opacity .15s, transform .15s`). all은 색·크기·그림자까지 끌고 다녀 느리고 의도가 안 보인다.
+- 카드에 `hover:scale`을 걸지 않는다 — 데이터 화면에서 카드가 커지면 옆 글자를 덮고 「눌러도 되나」만 흐린다. 눌리는 것은 테두리·배경 색 변화로.
+- 출처: unslop by Damir Sokolovsky (@heydamir), CC BY 4.0, https://github.com/heydamir/unslop §9 Motion에서 증류·변경.

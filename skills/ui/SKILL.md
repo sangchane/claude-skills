@@ -8,10 +8,11 @@ description: |
   완성한 화면을 자동 검사(ui-check: 폭별 스크린샷 + 겹침·잘림·어긋남·가로 스크롤·밀림을 이름으로 판정)할 때 사용. 프로젝트별로 밀도·모션 "dial"을 정하고, 디자인 기준을 DESIGN.md 한 장에 고정하며
   (VoltAgent/awesome-design-md 74개 사이트에서 골라 받음), 하드룰과 anti-slop을 강제한다.
   Godot 모바일 게임 UI(Control·Theme·노치·터치, 폰 해상도 스크린샷 확인)도 다룬다.
+  화면 글·숫자가 내용을 이해한 것처럼 읽히는지 보는 의미 패스, 구현 전 Chrome modern-web-guidance 검색도 맡는다.
   MengTo/Skills의 design-taste-frontend를 이식·일반화. dev:build의 BUILD·REVIEW가 참조.
 metadata:
-  version: "0.7.0"
-  updated: "2026-11-04"
+  version: "0.8.0"
+  updated: "2026-11-17"
 ---
 
 # Frontend Design Taste (프론트엔드 디자인 취향)
@@ -66,6 +67,7 @@ DESIGN.md는 "어떻게 보이나"(색·서체)를 정하고, 이 단계는 "무
 1. `references/patterns/README.md` 표에서 만들 화면에 맞는 패턴 파일 2~3개를 골라 읽고, 그 "규칙(측정 가능)"을 체크리스트로 쓴다.
 2. 같은 일을 하는 실제 제품 화면 2~3개를 본다. 출처는 `references/patterns/sources.md`(무료·약관 확인). SaaSUI.design MCP가 연결돼 있으면 한 단어로 검색한다. 이미지는 저장하지 않고 링크·관찰만 남긴다.
 3. 화면마다 **결정 근거** 몇 줄을 DESIGN.md(없으면 SPEC)에 남긴다: 빌린 패턴·레퍼런스 · 왜(위계·가독성·과업) · 버린 대안. 다음 수정이 근거 없이 흔들리지 않게 한다.
+   새 화면·「다시 디자인」이면 같은 자리에 **방향 다섯 줄**도 둔다(unslop 「Direction」): 제품(누가 무엇을 판단하나) · 성격 낱말 셋(clean·modern·sleek·minimal·premium 금지) · 세계(이 분야 실물에서 빌린 재료) · 모먼트(풍부한 색을 쓸 한두 곳) · 시그니처(이 제품만의 작은 표시 하나, 한 곳에서만). 묻지 않고 정해 한 줄로 알린다.
 4. "다시 디자인"·L 등급의 핵심 화면은 2안을 나란히(Artifact 또는 로컬 페이지) 보여 고르게 한다. 그 밖에는 하지 않는다.
 5. 차트가 있으면 `references/patterns/charts.md`(종류·겹치기·빈 구간)를 읽는다. 이 환경에 `dataviz` 스킬이 있으면 색·마크 규격은 그 스킬을 먼저 읽는다.
 
@@ -82,6 +84,7 @@ DESIGN.md는 "어떻게 보이나"(색·서체)를 정하고, 이 단계는 "무
 - 전체 높이는 `min-h-[100dvh]` — `h-screen`은 모바일 주소창 높이를 빼지 못해 잘린다.
 - 다열 레이아웃은 CSS Grid (`grid grid-cols-1 md:grid-cols-3 gap-6`) — flex 퍼센트 계산은 gap과 합쳐지면 줄바꿈이 깨진다.
 - 읽는 화면(문서·폼·설정)은 컨테이너로 폭을 잡는다 (`max-w-7xl mx-auto`). 목록+지도+상세 같은 앱 셸은 전폭 패널로 나눈다 — 가운데 1200px에 가두면 지도·표가 좁아진다(taste-skill `layout.md`).
+- 간격은 4px 격자 위에만(`mt-[13px]` 같은 한 번 쓰는 값 금지). 같은 것은 같은 크기 — 목록 행 높이·간격 하나, 형제 카드 패딩 하나(unslop §1).
 - 간격: 관련 요소는 가깝게, 패널·섹션 사이 간격은 그 안의 어떤 간격보다 크게, 제목 위 간격은 아래의 2배 이상. 패널마다 텍스트 시작선(왼쪽 x)은 3개 이하, 나란한 카드의 같은 역할 요소(제목·가격·배지)는 같은 높이에 — "지저분하다"의 가장 흔한 원인이 간격·정렬 불균형이다.
 - flex·grid 자식 텍스트·차트 컨테이너는 `min-width: 0`, 긴 이름은 `overflow-wrap: anywhere`(`break-all` 금지) — 긴 한글 이름·SVG가 폰 가로 스크롤을 만든다(ui-ux-pro-max ux #111).
 - 늦게 오는 데이터(차트·점수·배지) 자리는 높이를 미리 잡는다 — 그려지며 아래를 밀면 화면이 흔들린다(ux #19).
@@ -90,6 +93,8 @@ DESIGN.md는 "어떻게 보이나"(색·서체)를 정하고, 이 단계는 "무
 - 대시보드·소프트웨어 UI는 산세리프 페어링 (`Geist`+`Geist Mono`, `Satoshi`+`JetBrains Mono` 등 — `references/tokens.md`). 세리프는 데이터 화면에서 판독성이 떨어진다.
 - 표·지표·차트 숫자는 `font-variant-numeric: tabular-nums`(Tailwind `tabular-nums`) — 자릿수가 정렬돼야 읽힌다. 모노 서체는 ID·코드·좌표에만 — 한글 본문 옆 모노 숫자는 폭·굵기가 어긋난다(2026-10-14 개정, 이전엔 숫자 전부 모노).
 - 한 화면 글자 크기는 5개 이하 — 그보다 많으면 전부 중간 크기라 위계가 사라진다(taste-skill `critique.md` 패스 6).
+- 굵기는 400·500, 드물게 600까지. 위계는 크기와 색으로 만든다. 작은 글자에 음수 자간, 강조에 기울임을 쓰지 않는다(unslop §5).
+- 숫자 형식(자릿수 구분·소수 자리·단위 축약 「만」「억」「㎡」)은 화면 전체에서 하나로 맞춘다 — 같은 값이 카드마다 다른 꼴이면 사용자가 다른 값으로 읽는다.
 - H1은 화면 역할에 맞는 크기로, 폰트 하나에 기대지 않는다 (기본값 `Inter` 하나로 전체를 덮으면 템플릿 티가 난다).
 
 ### 정보 구조 (근거: `references/patterns/` — 2026-10 실제 사용자 지적에서)
@@ -98,6 +103,12 @@ DESIGN.md는 "어떻게 보이나"(색·서체)를 정하고, 이 단계는 "무
 - 값은 **기준 대비**로 보인다: 값 · 기준선 · 여유/부족 차이를 한 줄(불릿 차트 등). 색만으로 상태를 말하지 않는다(WCAG 1.4.1).
 - 설명·근거·계산식·정의는 **기본 접힘**(공개 단계 최대 2). 기본으로 보이는 것은 결론·값·상태.
 - 핵심 화면(지도·차트)은 위 띠·배너에 밀리지 않는다: 배너는 페이지당 1개·2줄, 항목 상태는 배지, 지도·차트 위 라벨·범례는 구석 작은 카드.
+- **내용을 이해한 화면**(2026-11-17 실사례 — 부동산 블록 카드를 사용자가 「AI가 내용을 이해 못 하고 만든 느낌」이라 함, Codex 의미 점검 `references/audit.md` 의미 패스). 두 외부 자료(unslop·modern-web-guidance)는 이 문제를 다루지 않는다:
+  - **한 낱말은 한 질문만 맡는다.** 의미 표에 「답하는 질문」 칸을 둔다. 한 라벨(「사업성」)이 둘 이상의 질문(법정 요건 충족 / 진행된 곳과 닮음 / 수익 여지)을 덮으면 이름과 묶음을 나눈다.
+  - **의미 표에 「기준 종류」 칸을 둔다: 규정 문턱 / 비교 집단 분포 / 가정 추정.** 합격 기호(○△✕)와 초록은 규정 문턱에만 쓴다. 비교값은 「진행 구역 가운데 57%」처럼 위치로 쓴다. 추정값은 「가정」을 밝히고 합격색을 쓰지 않는다.
+  - **비율에는 분모와 분류 기준을 붙인다.** 분류 기준이 다른 비율(「반대 쪽 땅 3%」 대 「상가 땅 56%」)을 한 줄·한 원그래프·나란한 칸에 두지 않는다. 내보내기 전에 「모순처럼 보이는 쌍」 목록을 만들고, 쌍마다 값 바로 옆 한 줄 해명을 붙이거나 둘을 떨어뜨린다.
+  - **모델 추정·집단 통계를 사실이나 개별 예측의 이름으로 부르지 않는다.** 분양 자격 추정을 「찬성/반대」로, 비교 집단 비율을 「이 블록의 확률」로 쓰지 않는다.
+  - **결론과 반대 신호가 한 화면에 같이 보이면 결론 실패다**(「낮음」 옆 초록 ○, 「위험 낮음」 옆 「점수 낮음」). 결론은 사용자가 할 행동(「보류하세요」)으로 쓰고, 다음 줄에 가장 큰 이유 하나를 값·비교와 함께 쓴다.
 
 ### Cockpit 모드 (VISUAL_DENSITY ≥ 8)
 - 작은 패딩, 1px 선(`border-t`/`divide-y`)과 여백으로 논리 그룹화. 카드 박스는 z-index로 띄울 실제 이유가 있을 때만 — 박스가 겹치면 밀도가 죽는다.
@@ -107,6 +118,7 @@ DESIGN.md는 "어떻게 보이나"(색·서체)를 정하고, 이 단계는 "무
 ### 색 & 테마
 - 무채색은 Zinc-950 계열 — 순수 `#000000`은 대비가 과해 눈이 피로하다.
 - 글로우·그라디언트는 강조 한 곳에만.
+- 풍부한 색은 내용의 한두 곳(데이터 앱은 지도·메인 차트)에만 둔다. 배경·버튼·테두리·라벨은 무채색으로 조용히(unslop 「moment」).
 - 강조색은 한 화면에 1개, 주요 행동 1곳 + 디테일 1곳. 상태색(통과·주의·위험)·증감색은 강조색과 별개 쌍. 본문 글자·숫자는 진한 잉크, 회색은 보조 라벨에만, 회색 계열은 1종 — 점수 막대·배지·차트 선이 저마다 색을 쓰면 어디를 볼지 사라진다.
 - 프로젝트에 CSS 변수 테마가 있으면 하드코드 색 대신 그 토큰을 쓴다 (예: NEUROS는 `var(--color-*)` + `data-theme` 다크/라이트).
 - 상태색(정상/경고/위험/정보)은 `references/tokens.md`의 의미쌍.
@@ -138,6 +150,10 @@ DESIGN.md는 "어떻게 보이나"(색·서체)를 정하고, 이 단계는 "무
 | 모든 카드 같은 반경·같은 회색 그림자, 모든 섹션 fade+slide-up·모든 카드 hover | 위계에 따라 다르게, 모션은 동작 응답만(`references/motion.md`) |
 | "제출/확인" 버튼, 사과형 오류("죄송합니다") | 일어나는 일 그대로("변경 저장"), 오류는 원인+해결 |
 | 숫자·문장 나열로 끝나는 판정·지표 화면 | 결론 1줄 + 기준 대비 막대 + 근거 접기(`references/patterns/verdict-score-report.md`) |
+| 이모지를 아이콘·라벨 장식으로 | 선 아이콘 한 벌을 한 크기·한 굵기로, 색은 그 글자 역할 색. 범주 색은 작은 점(unslop §3) |
+| 모든 요소가 알약 모양, 안팎 반경이 같음 | 안쪽 반경 = 바깥 반경 − 사이 패딩(최소 4)(`references/tokens.md`) |
+| 같은 크기 차트 두 개, 지표 카드마다 채우기용 스파크라인 | 메인 차트 하나만 크게, 나머지는 작고 다른 꼴(가는 막대 순위 목록·짧은 표). 지표 카드는 라벨·숫자·비교 붙은 변화만 |
+| 모달·팝오버·툴팁·고정 머리를 JS 라이브러리로 손수 | 플랫폼 기능(`<dialog>`·popover·anchor positioning·`details`) — 구현 전 modern-web-guidance 검색(6절) |
 
 > 정성 표현("토스처럼", "고급스럽게")이 요구사항에 있으면 **측정 가능 기준으로 변환**한 뒤 진행.
 
@@ -171,7 +187,7 @@ node "${CLAUDE_PLUGIN_ROOT}/skills/ui/scripts/ui-check.mjs" http://localhost:517
 ### 넘길 때 적는 세 줄 (끝 보고나 SPEC에)
 
 ```
-따른 기준: <DESIGN.md·패턴 파일·레퍼런스 화면> (지킨 것 / 바꾼 것)
+따른 기준: <DESIGN.md·패턴 파일·레퍼런스 화면·modern-web-guidance 안내서 id> (지킨 것 / 바꾼 것)
 ui-check: <폭별 결과, 넘긴 경고와 이유>
 확인하지 않은 것: <찍지 않은 상태·폭·흐름 — 없으면 「없음」>
 ```
@@ -187,6 +203,9 @@ ui-check: <폭별 결과, 넘긴 경고와 이유>
 - [ ] 강조색이 주요 행동 1곳 + 디테일 1곳뿐인가? 상태색과 섞이지 않았나?
 - [ ] 차트가 있으면 `patterns/charts.md` 체크(점 4개 미만은 숫자로·겹친 보조 계열은 아래·옅게·빈 구간 끊기·표 보기)를 돌았나? **세로축에 값 눈금과 단위(예: 만원/㎡)가 보이나** — 축 없는 선은 차트가 아니다. 스크린샷을 Read로 열어 눈으로 확인했나?
 - [ ] 화면의 모든 값이 의미 표에 있나(3절 정보 구조)? 눈가린 점검(dev:build 공통 4)에서 "이 화면으로 판단할 수 있다"가 나왔나?
+- [ ] 의미 패스를 돌았나(`references/audit.md`)? 라벨 하나가 질문 하나만 맡나? ○△✕·초록이 규정 문턱에만 쓰였나? 「모순처럼 보이는 쌍」마다 값 옆 해명이 있나?
+- [ ] 템플릿 검사: 도메인 낱말(구역·노후도·분담금)을 다른 제품 이름으로 바꿔도 화면이 성립하면 아직 템플릿이다(unslop Checklist).
+- [ ] 표 행의 머리·쓰는 중인 값·선택·키보드 포커스가 서로 구별되나?
 - [ ] 늦게 오는 데이터 자리의 높이를 잡아 화면이 밀리지 않나? flex·grid 자식에 `min-width: 0`이 있나?
 - [ ] 기존 화면 개선이었다면 전후 스크린샷이 있고, 라운드마다 상위 3개만 고쳤나(`references/audit.md`)?
 - [ ] 색이 테마 토큰(하드코드 아님)인가? 순수 #000·네온을 안 썼나(DESIGN.md가 정한 색은 예외)?
@@ -203,7 +222,11 @@ ui-check: <폭별 결과, 넘긴 경고와 이유>
 ## 6. dev:build와 통합
 
 - **BUILD(5)**: 프론트 구현 시 이 스킬의 dial·프로파일·하드룰을 적용해 코드를 쓴다.
-- **REVIEW(7)**: 이 스킬의 Pre-Flight + `dev:build`의 `anti-patterns.md` C절을 리뷰 루브릭으로 함께 적용.
+  표·접기·툴팁·드롭다운·모달·고정 머리·폼처럼 플랫폼 기능이 있는 부품은 코드를 쓰기 직전에 Chrome **modern-web-guidance**(Apache-2.0, GoogleChrome/modern-web-guidance — 학습 데이터의 낡은 패턴 대신 최신 HTML·CSS·Baseline 호환)로 찾는다:
+  `npx -y modern-web-guidance@latest search "<2~5단어 영어, 부품 이름>"` → `retrieve "<id>"`(윈도우는 `npx.cmd`). 프레임워크·도메인 낱말은 검색어에 넣지 않는다.
+  데이터 화면에서 자주 쓰는 id: `responsive-table` · `sortable-table` · `single-line-overflow` · `search-hidden-content`(접은 근거도 페이지 찾기) · `accordion` · `interest-triggered-tooltips`·`position-aware-tooltips`(용어 한 줄 정의) · `hovercard`(핀·행 미리보기) · `viewport-aware-dropdowns`(필터) · `state-aware-sticky-headers` · `size-aware-styling`(같은 카드를 패널·상세에 다르게) · `scrollability-affordance-hints` · `defer-rendering-heavy-content`(긴 목록·INP).
+  설계 단계에는 쓰지 않는다 — 이 자료는 「어떻게 만드나」만 다루고 「무엇을 왜 보이나」는 3절 의미 표가 맡는다.
+- **REVIEW(7)**: 이 스킬의 Pre-Flight + `dev:build`의 `anti-patterns.md` C절을 리뷰 루브릭으로 함께 적용. 바뀐 프론트 폴더에 `npx -y modern-web-guidance@latest legacy-scan <폴더> --json`을 돌려 경고로만 적는다(안내서의 약 20%만 검사, 고칠 땐 `keepWhen`/`dropWhen`으로 거짓 경보부터 뺀다).
 - 두 스킬은 겹치는 anti-slop을 공유하되, 이 스킬은 **적극적 "이렇게 만들라"**(dial·토큰), 저쪽은 **소극적 "하지 말라"** 담당.
 
 ## 7. Godot 모바일 게임
@@ -234,4 +257,5 @@ godot --path <프로젝트> --script "${CLAUDE_PLUGIN_ROOT}/skills/ui/scripts/go
 출처: MengTo/Skills `design-taste-frontend`·`tailwindcss`·`beautiful-shadows`·`minimalist-ui` 이식·일반화. DESIGN.md 레퍼런스: VoltAgent/awesome-design-md(MIT).
 2026-10-14 보강(전부 MIT, 데이터 화면에 맞는 것만 증류 — 랜딩·이미지 생성 지침은 가져오지 않음): Leonxlnx/taste-skill(감사 패스·고치는 순서·간격·색 비율·숫자), nextlevelbuilder/ui-ux-pro-max-skill(charts.csv·ux-guidelines.csv), kylezantos/design-motion-principles(모션 AI 티 임계값), bergside/design-md-chrome(사이트 → DESIGN.md 추출).
 2026-11-04 보강: benjitaylor/skills `stageshow`(MIT, Copyright (c) 2026 Benji Taylor) — 화면을 재서 결함을 이름으로 내는 검사(`scripts/film-checks.mjs`의 생각과 일부 기준값, 코드는 새로 씀)·되풀이 결함 표·「Not checked」 인계. 가짜 제품 화면 규칙·부품 묶음·로고 그림은 업무 화면에 맞지 않아 가져오지 않았다(홍보용 그림이 필요하면 stageshow 를 그대로 설치해 쓴다).
+2026-11-17 보강: heydamir/unslop(CC BY 4.0, Damir Sokolovsky — 고칠 양 정하기·방향 다섯 줄·모먼트 색·글 먼저·4px 격자·굵기·이모지 아이콘·안쪽 반경·차트 위계·템플릿 검사를 증류·변경, 겉모양만 다루고 내용은 안 바꾸는 범위라 「내용을 이해한 화면」 규칙은 실사례에서 새로 씀) · GoogleChrome/modern-web-guidance(Apache-2.0 — 본문은 옮기지 않고 CLI 검색만 부름, 6절).
 버전은 프론트매터 `metadata`.

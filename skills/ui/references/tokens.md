@@ -94,3 +94,9 @@ const alarmTone: Record<AlarmLevel, string> = {
 ```
 - 지표 라벨은 작게·저대비, 값은 크게·`tabular-nums`.
 - z-index로 실제로 띄울 이유(드롭다운·모달)가 있을 때만 카드+그림자.
+
+## 6. 반경 — 안쪽 = 바깥 − 사이 패딩
+
+- 안쪽 요소 반경 = 바깥 반경 − 둘 사이 패딩(최소 4px). 안팎이 같은 반경이면 모서리 띠 두께가 들쭉날쭉해 보인다.
+- 모든 요소를 알약(`rounded-full`) 모양으로 만들지 않는다. 알약은 칩·토글처럼 작은 것에만.
+- 출처: unslop by Damir Sokolovsky (@heydamir), CC BY 4.0, https://github.com/heydamir/unslop — tokens.md 「Radius」에서 증류·변경(2026-11-17).
