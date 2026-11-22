@@ -11,6 +11,14 @@
         ]
       }
     ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          { "type": "command", "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/rtk.sh\"", "timeout": 10 }
+        ]
+      }
+    ],
     "Stop": [
       {
         "hooks": [

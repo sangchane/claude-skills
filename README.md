@@ -33,6 +33,20 @@ claude plugin list        # dev@sangchane가 enabled인지 확인
 </details>
 
 <details>
+<summary>명령 출력을 줄여 토큰을 아끼려면 RTK (선택)</summary>
+
+[RTK](https://github.com/rtk-ai/rtk)는 `git status`·테스트·`ls` 같은 명령의 출력을 줄여서 Claude 에게 넘긴다(공식 설명 60~90% 감소, `rtk gain`으로 실제 절약량을 본다). dev 는 RTK 가 깔려 있으면 **자동으로 쓴다** — `hooks/rtk.sh`(PreToolUse·Bash)가 명령을 `rtk …`로 바꾼다. 없으면 아무것도 안 한다. 터미널에서 한 번:
+
+```bash
+brew install rtk-ai/tap/rtk-oss    # Apache-2.0 판(상업 무료). 기본판 rtk 는 일부가 BUSL-1.1
+rtk --version && rtk gain          # 「command not found」가 아니라 절약 표가 나와야 맞다(crates.io 의 다른 rtk 주의)
+```
+- `rtk init -g`는 하지 않아도 된다(dev 훅이 같은 일을 한다). 이미 했으면 dev 훅이 비켜서 두 번 돌지 않는다.
+- 줄인 출력에 필요한 줄이 없으면 `rtk bypass <명령>`으로 원문을 본다. Read·Grep 같은 내장 도구 출력은 줄이지 않는다.
+- 끄려면 `brew uninstall rtk-oss`.
+</details>
+
+<details>
 <summary>새 서비스 설계를 자주 한다면 (선택)</summary>
 
 설계 도구 상자 ecc를 설치하고, 무거우니 평소엔 꺼 둔다. 설계하는 프로젝트에서만 켠다.
@@ -192,7 +206,7 @@ python tools/export.py codex --project <게임 저장소 경로>   # AGENTS.md�
 .claude-plugin/marketplace.json 마켓플레이스 정보(이름 sangchane)
 rules.md                        작업 규칙 (훅이 주입)
 rules-models/                   모델별 지침 (훅이 세션 모델로 골라 주입)
-hooks/                          세션 시작 훅(규칙 두 조각·모델 지침·NEXT 네 출력, 크기 시험 test-session-start.sh) · Stop 검증 게이트(verify-gate.sh, 자체 시험 test-verify-gate.sh)
+hooks/                          세션 시작 훅(규칙 두 조각·모델 지침·NEXT 네 출력, 크기 시험 test-session-start.sh) · Stop 검증 게이트(verify-gate.sh, 자체 시험 test-verify-gate.sh) · RTK 출력 줄이기(rtk.sh, 자체 시험 test-rtk.sh)
 skills/design|build|ui|audit|setup|guide
 agents/reviewer|deep|quick
 tools/skill_catalog.py          설치 스킬·토큰·라우팅 표 검사
@@ -379,6 +393,8 @@ Godot 게임 UI 쪽은 1만★ 넘는 스킬이 없어(godot-mcp 5.6k, awesome-g
 Remote Control 세션에서는 `/plugin`이 막혀 있으므로 같은 PC의 터미널에서 `claude plugin marketplace add <repo>` → `claude plugin install <name>@<marketplace>`를 쓴다.
 
 ## 변경 이력
+
+**2026-11-22 — 1.15.0 RTK 로 명령 출력 줄이기 + 규칙 세 번째 조각.** 사용자 「Rtk 라는 불필요한 텍스트 줄여주는 스킬이 있다던데 sangchane dev 에 적용해서 플러그인 최신화해」. RTK(rtk-ai/rtk, 87k 별, 2026-11-19 v1.2.1)는 스킬이 아니라 명령 출력을 줄이는 Rust 실행 파일 + PreToolUse 훅이다. 새 `hooks/rtk.sh`(PreToolUse·Bash): `rtk`가 있으면 `rtk hook claude`(원본의 Claude 훅, 소스 `src/hooks/hook_cmd.rs` 로 입출력 확인)에 넘기고 결과만 돌려준다. rtk 가 없거나 옛 판·오류·반쪽 출력이면 명령을 그대로 두고, 전역 `rtk init -g` 훅이 이미 있으면 비킨다. 권한(자동 허용·물어보기)은 rtk 가 사용자 allow·ask·deny 규칙대로 정한다. 설치는 사용자 몫(README 1절, Apache-2.0 인 `rtk-oss` 판 — 기본판은 일부 BUSL-1.1). 자체 시험 `hooks/test-rtk.sh` 6/6(가짜 rtk), 변이 2개(전역 훅 확인 지우기·오류 비키기 지우기)를 잡는 것 확인, `tools/check.sh`에 넣음. 알린 것(고치지 않음): 1.14.0 의 rules.md(18,480자)가 두 조각에 안 들어가 `test-session-start.sh` 가 11/13 으로 실패한다 — 세 번째 조각에 해당하는 끝부분이 세션에 빠진다. evidence.md 「조각을 셋 이상으로 늘리지 않는다」 결정이 있어 사용자 결정을 기다린다.
 
 **2026-11-18 — 1.14.0 큰 단위 끝 정리 도구.** 사용자 「timeout.exe worked.exe 같은거 작업 끝나고 생산된 불필요해진 파일들 큰 단위 작업이 끝나면 알아서 프로세스 종료시키고 부산물은 삭제하도록」「node javascript runtime 이런것도 … 내가 모르는 프로세스들 포함」. 새 `tools/leftovers.py`: 이름으로 끄지 않고 프로세스 나무로 주인을 가린다 — 같은 PC 에 다른 Claude 세션(MCP node 4개)·다른 세션의 pytest·프로젝트 로컬 서버가 같은 이름으로 떠 있었다(측정 2026-11-18). 고르는 것: 이 세션 claude 아래 전부(MCP 나무와 도구 자신 빼고) · 부모가 죽은 MCP 나무(닫힌 세션) · 부모가 죽은 것 중 `--mine` 정규식. 자식까지 끈다(`taskkill /T`). 부산물: `--mark` 뒤에 생긴 git 밖 파일 중 추적 파일이 가리키지 않는 것 + 스크래치(점 폴더·node_modules 제외). 지킬 서버는 프로젝트 `.claude/keep-processes.txt`. 자체 시험 `tools/test_leftovers.py`(가짜 프로세스 표, 아무것도 안 끔)를 `check.sh`에. rules.md 「모델·effort·위임」·build SHIP 칸에 한 줄씩.
 
