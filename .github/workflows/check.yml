@@ -2,7 +2,13 @@ name: check
 on: [push, pull_request]
 jobs:
   check:
-    runs-on: ubuntu-latest
+    # 사용자가 쓰는 OS 셋 모두에서 돈다 — awk·python 이 OS 마다 달라 한 OS 에서만 통과하던 일이 있었다(1.14.0: 리눅스 통과, Mac 은 규칙 끝 절이 빠짐).
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
       - run: bash tools/check.sh
+        shell: bash

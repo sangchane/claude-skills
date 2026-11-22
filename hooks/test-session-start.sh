@@ -5,12 +5,19 @@
 set -u
 here="$(cd "$(dirname "$0")" && pwd)"; root="$(cd "$here/.." && pwd)"
 LIMIT=9600; MARGIN=300
-count() { LC_ALL=C.UTF-8 awk '{ n += length($0) + 1 } END { print n + 0 }'; }
+# 글자 수(session-start.sh 와 같은 방법 — OS·awk 종류와 상관없이 글자). 아래 0) 이 이 방법을 바로 시험한다.
+count() { LC_ALL=C awk '{ s = $0; gsub(/[\200-\277]/, "", s); n += length(s) + 1 } END { print n + 0 }'; }
 ok=0; total=0
 check() { total=$((total + 1)); if [ "$2" = 0 ]; then ok=$((ok + 1)); else echo "실패: $1"; fi; }
 run() { printf '{"model":"%s"}' "$2" | CLAUDE_PLUGIN_ROOT="$root" CLAUDE_PROJECT_DIR="$3" bash "$here/session-start.sh" $1; }
 
 t="$(mktemp -d)"
+# 0) 재는 단위가 글자인가 — macOS awk 는 length() 가 바이트라 한글이 3배로 잡혔다(1.14.0). python 이 있으면 rules.md 전체도 맞대 본다.
+[ "$(printf '가나다\n' | count)" = 4 ]; check "글자 수 재기가 글자가 아니다(「가나다」+줄바꿈 = 4 여야 함, 실제 $(printf '가나다\n' | count)) — awk 단위 문제" $?
+if py="$(command -v python3)" && "$py" -c 'pass' 2>/dev/null; then
+  [ "$(count < "$root/rules.md")" = "$("$py" -c 'import sys; print(len(open(sys.argv[1], encoding="utf-8").read()))' "$root/rules.md")" ]
+  check "rules.md 글자 수가 python 과 다르다" $?
+fi
 # 1) 규칙: hooks.json 이 부르는 조각(rules 1 · rules 2)마다 한도에서 여유 300자, 조각을 이으면 rules.md 와 같아야 하고(빠짐 없음), 그 밖 조각은 비어야 한다
 parts="$(grep -o 'session-start.sh\\" rules [0-9]*' "$root/hooks/hooks.json" | grep -o '[0-9]*$')"
 : > "$t/joined"; used=0

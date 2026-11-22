@@ -7,15 +7,19 @@
 # 크기 검사: hooks/test-session-start.sh
 root="${CLAUDE_PLUGIN_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}"
 LIMIT=9600
+# 글자 수 = 바이트 모드(LC_ALL=C) awk 에서 UTF-8 이어지는 바이트(0x80~0xBF)를 뺀 길이. Claude Code 한도는 글자 단위다.
+# awk 의 length() 는 OS 마다 단위가 다르다 — macOS awk(20200816)는 UTF-8 로캘에서도 바이트를 세서 한글이 3배로 잡혔고,
+# 리눅스 gawk 는 글자를 센다. 그래서 같은 rules.md 가 Mac 에서만 조각 3 으로 넘쳐 끝 절이 빠졌다(1.14.0, CI 는 통과).
+CLEN='function clen(s) { gsub(/[\200-\277]/, "", s); return length(s) }'
 mode="${1:-rules}"
 input=""; [ -t 0 ] || input="$(cat)"
 
 rules_part() {
   # 규칙을 「## 」 절 경계에서 한도 안 조각으로 나눠 want 번째만 낸다(hooks.json 이 rules 1 · rules 2 로 부른다).
   # 한 출력에 다 담으면 규칙이 자랄 때마다 10,000자를 넘어 미리보기만 보였다(1.8.1 · 1.10.0 · 1.11.0 반복). 조각이 hooks.json 수보다 많아지면 test-session-start.sh 가 실패한다.
-  LC_ALL=C.UTF-8 awk -v max="$(( LIMIT - 300 ))" -v want="${1:-1}" '
-    function flush() { if (sec == "") return; if (size > 0 && size + length(sec) > max) { chunk++; size = 0 }
-      if (chunk + 1 == want) printf "%s", sec; size += length(sec); sec = "" }
+  LC_ALL=C awk -v max="$(( LIMIT - 300 ))" -v want="${1:-1}" "$CLEN"'
+    function flush() { if (sec == "") return; n = clen(sec); if (size > 0 && size + n > max) { chunk++; size = 0 }
+      if (chunk + 1 == want) printf "%s", sec; size += n; sec = "" }
     /^## / { flush() }
     { sec = sec $0 "\n" }
     END { flush() }' "$root/rules.md"
@@ -40,8 +44,8 @@ next_part() {
     if [ -f "$f" ]; then
       printf '## 현재 작업 (%s)\n' "${f#"$dir"/}"
       # 머리 줄과 잘림 알림 줄 몫으로 300자를 남긴다
-      sed -n '/NEXT-ACTION:START/,/NEXT-ACTION:END/p' "$f" | LC_ALL=C.UTF-8 awk -v max="$(( LIMIT - 300 ))" -v file="${f#"$dir"/}" '
-        { n += length($0) + 1; if (n <= max) print; else cut = 1 }
+      sed -n '/NEXT-ACTION:START/,/NEXT-ACTION:END/p' "$f" | LC_ALL=C awk -v max="$(( LIMIT - 300 ))" -v file="${f#"$dir"/}" "$CLEN"'
+        { n += clen($0) + 1; if (n <= max) print; else cut = 1 }
         END { if (cut) printf "\n> NEXT 블록이 %d자라 앞 %d자만 붙였다 — 나머지는 %s 를 Read 한다. 끝난 블록은 NEXT-ACTION:END 아래로 옮길 것.\n", n, max, file }'
       break
     fi
