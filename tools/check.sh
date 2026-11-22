@@ -5,6 +5,7 @@ cd "$(dirname "$0")/.."
 bash hooks/test-session-start.sh </dev/null
 bash hooks/test-verify-gate.sh </dev/null
 bash hooks/test-rtk.sh </dev/null
+python3 -I hooks/test_ste_check.py
 python3 -I skills/audit/scripts/test_ci_audit.py
 python3 -I skills/build/scripts/test_bug_odds.py
 python3 -I tools/test_leftovers.py

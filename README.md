@@ -206,7 +206,8 @@ python tools/export.py codex --project <게임 저장소 경로>   # AGENTS.md�
 .claude-plugin/marketplace.json 마켓플레이스 정보(이름 sangchane)
 rules.md                        작업 규칙 (훅이 주입)
 rules-models/                   모델별 지침 (훅이 세션 모델로 골라 주입)
-hooks/                          세션 시작 훅(규칙 두 조각·모델 지침·NEXT 네 출력, 크기 시험 test-session-start.sh) · Stop 검증 게이트(verify-gate.sh, 자체 시험 test-verify-gate.sh) · RTK 출력 줄이기(rtk.sh, 자체 시험 test-rtk.sh)
+output-styles/ste-korean.md     정비 문체(항공정비 문서 방식 10항) — 플러그인이 켜지면 자동으로 쓰는 출력 스타일, 요청마다 들어감
+hooks/                          세션 시작 훅(규칙 두 조각·모델 지침·NEXT 네 출력, 크기 시험 test-session-start.sh) · Stop 검증 게이트(verify-gate.sh, 자체 시험 test-verify-gate.sh) · RTK 출력 줄이기(rtk.sh, 자체 시험 test-rtk.sh) · Stop 문체 검사(ste-check.sh → ste_check.py, 자체 시험 test_ste_check.py)
 skills/design|build|ui|audit|setup|guide
 agents/reviewer|deep|quick
 tools/skill_catalog.py          설치 스킬·토큰·라우팅 표 검사
@@ -348,6 +349,7 @@ python tools/skill_catalog.py --catalog    # 전체 목록 (id | 출처 | descri
 python tools/skill_catalog.py --unassigned # 켜져 있지만 라우팅 표에 없는 스킬
 python tools/skill_catalog.py --available  # 마켓플레이스에 있지만 미설치인 플러그인
 python tools/export.py                     # 규칙·스킬을 Codex·Antigravity 전역 설정으로 복사 (6절)
+python3 -I tools/ste_measure.py            # 정비 문체 준수율을 주마다(이 PC 대화 기록, 읽기만)
 ```
 
 설치된 플러그인 폴더나 이 저장소를 clone한 곳에서 실행한다. 꺼진 플러그인(`enabledPlugins`, user < project < local)은 토큰 합계에서 뺀다.
@@ -393,6 +395,8 @@ Godot 게임 UI 쪽은 1만★ 넘는 스킬이 없어(godot-mcp 5.6k, awesome-g
 Remote Control 세션에서는 `/plugin`이 막혀 있으므로 같은 PC의 터미널에서 `claude plugin marketplace add <repo>` → `claude plugin install <name>@<marketplace>`를 쓴다.
 
 ## 변경 이력
+
+**2026-11-22 — 1.16.0 정비 문체를 지키게: 출력 스타일 + 답변 검사 훅 + 첫 줄 충돌 정리.** 사용자 「항공정비어로 답변하는거도 계속 안지키던데 … 근본적인 해결 방법을 조사해봐」 → 「셋 다」. 측정(이 PC 대화 기록 10-26~11-22, 300자 넘는 끝 보고 805개): 1항(첫 줄 결론) 지킴 32% · 모든 항목 통과 23% · 화살표 잇기 14% · 풀지 않은 약어 6%. 문장 길이는 대체로 지킴(중앙값 28글자). 원인 셋: ① 규칙끼리 충돌 — 규모 판정 「응답 첫 줄에 `등급:`」 vs 문체 「첫 줄은 결론」 ② 자리 — 문체가 세션 시작 때 한 번 들어가는 규칙 묶음 30여 줄 중 하나였다(공식 문서: 출력 스타일은 「요청마다」 보낸다) ③ 확인 장치 없음. 고침: ① `등급:` 은 작업 시작 알림 첫 줄, 끝 보고 첫 줄은 결론 ② 새 `output-styles/ste-korean.md`(`force-for-plugin` 으로 자동, `keep-coding-instructions` 로 기본 코딩 지시 유지) — rules.md 의 문체 묶음은 한 줄 안내로(규칙 9,166 → 8,793 글자), `export.py` 는 Codex·Antigravity 규칙 뒤에 문체를 붙인다 ③ 새 Stop 훅 `ste-check.sh`: 끝 보고(300자 이상)의 1·3·8·9항과 화살표를 재서 어긋나면 한 번 막고 고쳐 쓰게 한다, 두 번째는 통과. python 이 없거나 Windows 가짜 python 이면 건너뜀. 기준값은 지난 답변 805개로 맞췄다(약어로 걸린 예 APK·MPQ·XNB 는 실제로 안 풀어 쓴 말). 자체 시험 `test_ste_check.py`, 측정 도구 `tools/ste_measure.py`(기준선 기록). 다음 측정 목표: 1항 지킴 90% 이상.
 
 **2026-11-22 — 1.15.2 Windows 에서 한글 출력·드라이브 이동.** 1.15.1 에서 CI 를 Windows 로 넓히자 처음 드러났다: `bug_odds.py` 가 한글을 Windows 콘솔 기본 인코딩(cp1252)으로 출력하다 죽었고, 자체 시험의 `cd D:\…` 가 cmd 에서 다른 드라이브로 옮기지 못했다. `bug_odds.py`·`ci_audit.py`·`leftovers.py` 출력은 UTF-8 로, 시험은 `cd` 없이 시험 파일 경로로 돈다.
 

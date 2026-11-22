@@ -26,7 +26,9 @@ def rules_for(tool):
     t = t.split("## 모델별 지침")[0]   # 모델별 지침·위임은 Claude Code 전용
     t = t.replace("(dev 플러그인 세션 시작 훅이 이미 넣어 둔다)", "").replace("`dev:", "`")
     t = re.sub(r"- superpowers 스킬은.*\n", "", t)
-    return t.rstrip() + "\n\n" + TOOL[tool] + "\n" + COMMON + "\n"
+    style = (REPO / "output-styles" / "ste-korean.md").read_text(encoding="utf-8").split("---", 2)[2]  # 문체(출력 스타일)는 Claude Code 만 따로 넣으므로 다른 도구에는 규칙 뒤에 붙인다
+    style = re.sub(r"\n끝 보고는 답이 끝날 때 dev 훅.*\n", "\n", style)
+    return t.rstrip() + "\n\n" + style.strip() + "\n\n" + TOOL[tool] + "\n" + COMMON + "\n"
 
 
 def write_block(path, body):

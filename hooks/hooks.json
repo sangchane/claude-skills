@@ -22,7 +22,8 @@
     "Stop": [
       {
         "hooks": [
-          { "type": "command", "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/verify-gate.sh\"", "timeout": 600 }
+          { "type": "command", "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/verify-gate.sh\"", "timeout": 600 },
+          { "type": "command", "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/ste-check.sh\"", "timeout": 20 }
         ]
       }
     ]
