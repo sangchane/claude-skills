@@ -41,7 +41,9 @@ claude plugin list        # dev@sangchane가 enabled인지 확인
 brew install rtk-ai/tap/rtk-oss    # Apache-2.0 판(상업 무료). 기본판 rtk 는 일부가 BUSL-1.1
 rtk --version && rtk gain          # 「command not found」가 아니라 절약 표가 나와야 맞다(crates.io 의 다른 rtk 주의)
 ```
+- Homebrew 가 「Command Line Tools are too outdated」로 거절하면 미리 만든 파일을 받는다: `gh release download -R rtk-ai/rtk -p 'rtk-oss-aarch64-apple-darwin.tar.gz' -p checksums.txt` → `shasum -a 256 -c` 로 지문 확인 → 압축을 풀어 `rtk` 를 `~/.local/bin` 에 둔다(Intel Mac 은 `x86_64-apple-darwin`, Windows 는 `x86_64-pc-windows-msvc.zip`).
 - `rtk init -g`는 하지 않아도 된다(dev 훅이 같은 일을 한다). 이미 했으면 dev 훅이 비켜서 두 번 돌지 않는다.
+- 그 대신 rtk 가 하루 한 번 「No hook installed」 경고를 낸다(dev 훅을 모른다). 끄기: `rtk config --create` 뒤 `rtk config` 가 보여 주는 config.toml 의 `[hooks]` 에서 `suppress_hook_warning = true`.
 - 줄인 출력에 필요한 줄이 없으면 `rtk bypass <명령>`으로 원문을 본다. Read·Grep 같은 내장 도구 출력은 줄이지 않는다.
 - 끄려면 `brew uninstall rtk-oss`.
 </details>
