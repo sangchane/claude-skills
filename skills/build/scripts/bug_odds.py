@@ -16,6 +16,10 @@ import sys
 import time
 from pathlib import Path
 
+# Windows 콘솔 기본 인코딩(cp1252 등)에서 한글 출력이 죽지 않게(2026-11-22 windows CI).
+for _s in (sys.stdout, sys.stderr):
+    _s.reconfigure(encoding="utf-8", errors="replace")
+
 # (찾을 식, 바꿀 글) — 공백으로 둘러싼 이항 연산만 바꿔 제네릭·화살표·증감을 피한다.
 # shortcut: 글자 단위 변이라 형 검사에서 깨지는 변이도 「잡음」으로 센다. 점수가 의심스러우면 Stryker·mutmut 같은 도구로 올린다.
 OPS = [

@@ -22,7 +22,8 @@ src = "def f(a, b):\n    if a > 0:\n        return a + b\n    return 0\n"
 
 def run(test):
     return subprocess.run([sys.executable, "-I", str(here / "bug_odds.py"), "--file", str(d / "m.py"),
-                           "--test", f"cd {d} && {sys.executable} -B {test}", "--target", "0"], capture_output=True, text=True)
+                           # cd 없이 시험 파일 경로로 — Windows cmd 의 cd 는 다른 드라이브(임시 폴더 C:, 저장소 D:)로 옮기지 못한다.
+                           "--test", f'"{sys.executable}" -B "{d / test}"', "--target", "0"], capture_output=True, text=True, encoding="utf-8")
 
 
 weak = run("weak.py")

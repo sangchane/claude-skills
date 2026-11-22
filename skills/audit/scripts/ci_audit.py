@@ -17,6 +17,10 @@ import sys
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 
+# Windows 콘솔 기본 인코딩(cp1252 등)에서 한글 출력이 죽지 않게(2026-11-22 windows CI).
+for _s in (sys.stdout, sys.stderr):
+    _s.reconfigure(encoding="utf-8", errors="replace")
+
 # shortcut: 단계 이름으로 셋업을 가른다 — 이름이 특이한 준비 단계는 실행으로 잡힌다. 틀리면 이 식에 이름을 더한다.
 SETUP = re.compile(
     r"(?i)^(set up job|complete job|post |run actions/(checkout|setup-|cache|download-artifact)|checkout|"

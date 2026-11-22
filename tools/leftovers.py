@@ -17,6 +17,10 @@
 import argparse, json, os, re, shutil, subprocess, sys, time
 from pathlib import Path
 
+# Windows 콘솔 기본 인코딩(cp1252 등)에서 한글 출력이 죽지 않게(2026-11-22 windows CI).
+for _s in (sys.stdout, sys.stderr):
+    _s.reconfigure(encoding="utf-8", errors="replace")
+
 WIN = os.name == "nt"
 MCP = re.compile(r"mcp", re.I)
 BOOT = 120   # claude 가 뜬 뒤 이 초 안에 띄운 직계 자식 = MCP·훅 같은 세션 기반
