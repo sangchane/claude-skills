@@ -8,11 +8,13 @@ description: |
   완성한 화면을 자동 검사(ui-check: 폭별 스크린샷 + 겹침·잘림·어긋남·가로 스크롤·밀림을 이름으로 판정)할 때 사용. 프로젝트별로 밀도·모션 "dial"을 정하고, 디자인 기준을 DESIGN.md 한 장에 고정하며
   (VoltAgent/awesome-design-md 74개 사이트에서 골라 받음), 하드룰과 anti-slop을 강제한다.
   Godot 모바일 게임 UI(Control·Theme·노치·터치, 폰 해상도 스크린샷 확인)도 다룬다.
+  Windows·macOS 데스크톱 앱(WinForms·WPF·Win32) 화면 자동 검사(desk-check: agent-desktop 으로 창 사진 + 접근성 나무 →
+  창 밖·겹침·이름 없음·바뀌는 자동화 ID·오류 창을 이름으로 판정, 흐름 JSON 으로 누르기·넣기·값 확인)도 맡는다.
   화면 글·숫자가 내용을 이해한 것처럼 읽히는지 보는 의미 패스, 구현 전 Chrome modern-web-guidance 검색도 맡는다.
   MengTo/Skills의 design-taste-frontend를 이식·일반화. dev:build의 BUILD·REVIEW가 참조.
 metadata:
-  version: "0.8.0"
-  updated: "2026-11-17"
+  version: "0.9.0"
+  updated: "2026-11-25"
 ---
 
 # Frontend Design Taste (프론트엔드 디자인 취향)
@@ -175,6 +177,25 @@ node "${CLAUDE_PLUGIN_ROOT}/skills/ui/scripts/ui-check.mjs" http://localhost:517
 - 랜딩의 일부러 잘라 보인 제품 그림은 `--ignore '<그 그림 선택자>'`로 뺀다(공개 사이트 측정에서 실패는 이것뿐이었다 — 2026-11-04, 업무 화면 6개는 실패 0).
 - 기능마다 그 화면의 명령을 프로젝트 확인 묶음(`qa`)에 한 줄씩 더한다(dev:build VERIFY).
 
+### 데스크톱 앱 — `scripts/desk-check.py` (agent-desktop)
+
+웹이 아닌 데스크톱 앱(WinForms·WPF·Win32·macOS 앱)은 같은 일을 이 스크립트가 한다. [agent-desktop](https://github.com/vercel-labs/agent-desktop)(Vercel Labs, Apache-2.0)으로 창마다 접근성 나무와 사진을 받아 재고, 종료 코드로 판정한다. 진짜 마우스·키보드를 쓰지 않아 사용자 화면을 빼앗지 않는다.
+
+```bash
+npm install -g agent-desktop                      # 한 번(개발 PC)
+python "${CLAUDE_PLUGIN_ROOT}/skills/ui/scripts/desk-check.py" --app MyApp.exe --out shots          # 떠 있는 앱
+python "<같은 경로>" --launch C:\app\MyApp.exe --cwd C:\app --flow qa/login.json --out shots     # 띄우고 흐름 돌리고 닫기
+# 끝 줄 「desk-check passed」(종료 0) / 「desk-check failed」(1). 2 = agent-desktop·앱 문제.
+```
+- **실패**: `error-dialog`(창 제목에 오류·예외, 「처리되지 않은 예외」 문구) · `outside-window`(누르는 요소가 창 밖) · `overlap`(같은 칸의 누르는 요소끼리 30% 넘게 겹침) · `flow`(흐름 단계가 요소를 못 찾거나 값이 다름).
+  **경고**: `clipped-by-parent`(담는 칸 밖으로 나감) · `no-name`(이름 없는 단추·칸 — 화면 읽기·자동 시험이 못 고른다) · `unstable-id`(자동화 ID 가 창 번호라 실행마다 바뀜 — WinForms 면 컨트롤 `Name` 을 준다) · `tiny-target`(12px 미만).
+- 흐름 파일은 JSON 목록이다: `{"click":"button:로그인"}` `{"set":"textfield:아이디","value":"x"}` `{"wait":"statictext:접속됨","timeout":15}` `{"gone":"window:불러오는 중"}` `{"expect":"textfield:상태","value":"정상"}` `{"shot":"로그인 뒤"}` `{"sleep":500}`. 고르개는 「역할:이름 일부」. 단계마다 오류 창을 본다. 돈·보내기·지우기처럼 되돌리기 어려운 단추는 흐름에 넣지 않는다(문자 보내기 단추 등).
+- **기능마다 그 화면의 흐름 파일을 프로젝트 `qa/` 에 하나씩 더해** 다음 바퀴의 회귀 검사로 남긴다(웹 `qa` 묶음과 같다). 흐름이 고르는 이름이 바뀌면 그 화면을 바꾼 것이다.
+- **앱을 따로 만든 데스크톱(시험용 숨은 데스크톱)에서 띄웠으면** desk-check 도 그 데스크톱에서 띄운다 — 기본 화면에선 다른 데스크톱 창이 안 보인다. 자식 프로세스는 부모의 데스크톱을 물려받으므로 그 데스크톱에서 `python desk-check.py …` 를 한 번 띄우면 된다(예: DeviceAgent `tools/testenv/adesk.py exec`).
+- 앱이 화면을 그리느라 바쁘면 `APP_UNRESPONSIVE` 가 난다 → 스크립트가 6번 다시 시도한다. 누르기는 한 번에 수 초 걸릴 수 있다(DevExpress 리본 7초). 시간 측정은 이 도구로 하지 않는다 — 앱 안 탐침·로그가 맡는다.
+- DevExpress 같은 그린 컨트롤은 화면 자동화 「누르기」를 거절할 수 있다. 그때는 그 프로젝트의 기존 조작 스크립트(창 메시지 직접 보내기 등)를 쓰고, desk-check 는 찍기·판정만 한다. Electron 앱은 화면 안이 웹이라 `ui-check.mjs` 가 더 잘 잰다(`agent-desktop launch <앱> --cdp` 로 연 주소에 붙인다).
+- 통과는 필요조건일 뿐이다. `shots/*.png` 를 Read 로 열어 본다.
+
 ### 되풀이 결함 — 넘기기 전에 이것부터
 
 | 결함 | 실제 사례 | 막는 곳 |
@@ -252,6 +273,7 @@ godot --path <프로젝트> --script "${CLAUDE_PLUGIN_ROOT}/skills/ui/scripts/go
 - `references/motion.md` — MOTION dial별 모션 수치·reduced-motion·모션 그래픽(코드로 프레임 렌더) 범위. 애니메이션을 넣을 때 읽는다.
 - `references/godot-mobile.md` — Godot 모바일 게임 UI 규칙·SafeArea·확인 절차. Godot 프로젝트에서만 읽는다.
 - `scripts/godot_shots.gd` — Godot 씬을 폰·태블릿 해상도로 찍는 스크립트.
+- `scripts/desk-check.py` — 데스크톱 앱 화면 자동 검사(5절). 고쳤으면 `python -I scripts/desk-check.py --selftest` 가 통과해야 한다. 검사를 더하면 selftest 의 나쁜 견본에 그 결함을 하나 넣는다.
 - `scripts/ui-check.mjs` — 웹 화면 자동 검사(5절). 고쳤으면 `node scripts/test-ui-check.mjs`(나쁜·좋은 견본 `scripts/ui-check-fixtures/`)가 모두 통과해야 한다. 검사를 더하면 나쁜 견본에 그 결함을 하나 넣는다.
 
 출처: MengTo/Skills `design-taste-frontend`·`tailwindcss`·`beautiful-shadows`·`minimalist-ui` 이식·일반화. DESIGN.md 레퍼런스: VoltAgent/awesome-design-md(MIT).

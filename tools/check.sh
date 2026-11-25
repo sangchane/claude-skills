@@ -9,4 +9,5 @@ python3 -I hooks/test_ste_check.py
 python3 -I skills/audit/scripts/test_ci_audit.py
 python3 -I skills/build/scripts/test_bug_odds.py
 python3 -I tools/test_leftovers.py
+python3 -I skills/ui/scripts/desk-check.py --selftest
 echo "check ok"

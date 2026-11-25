@@ -75,6 +75,13 @@ Hopper 데모: 기한 없이 쓸 수 있다(제한은 30분마다 꺼짐 · 저�
 - `aside repl "<JS>"` — Playwright 식 JS 로 직접 조작(120초 한도, `const` 가 이어지니 새 이름을 쓴다, `console.log` 로 값을 돌려받음). 사용자가 연 탭은 `listBrowserTabs()` → `attachBrowserTab(id)`/`attachActiveBrowserTab()`, 새 페이지는 `openTab(url)`, 읽기는 `snapshot(page, { interactive: true })`, 확인은 `page.screenshot()`. 사용자가 연 탭에 붙는 것이 2절 ②(사용자가 연 페이지 읽기)와 같은 범위다.
 - `aside memory` 는 사용자의 개인 맥락이다 — 필요한 것만 읽고 저장소에 옮겨 적지 않는다. 결제·보내기·삭제처럼 되돌리기 어려운 클릭은 하기 전에 사용자에게 확인한다.
 
+## 3-2b. 데스크톱 앱 화면 살피기 — agent-desktop (읽기부터)
+
+남의(또는 소스 없는 옛) 데스크톱 앱이 어떤 화면·단추·칸으로 이루어졌는지는 실행 파일을 뜯기 전에 **떠 있는 창의 접근성 나무**로 먼저 본다. `agent-desktop snapshot --app <앱> -i --compact`(누르는 요소만, 이름·역할·ref), 화면 사진은 `agent-desktop screenshot --app <앱> <파일.png>`. 진짜 마우스를 쓰지 않는다.
+- 화면 이름·자동화 ID(WinForms 는 컨트롤 `Name`)를 실행 파일 문자열·디컴파일 결과와 맞대면 「이 단추가 이 함수」를 바로 잇는다 — 찾은 짝은 3-4 색인에 주소와 함께 적는다.
+- 누르기·값 넣기는 그 앱이 운영 중인 장비·DB 에 닿을 수 있으니 시험 환경에서만 한다. 쓰는 단추(보내기·저장·삭제)는 누르기 전에 사용자에게 묻는다.
+- 시험용 숨은 데스크톱에서 띄운 앱은 그 데스크톱 안에서 agent-desktop 을 띄워야 보인다. 화면 판정·흐름 시험은 dev:ui `desk-check.py`.
+
 ## 3-3. 실행 파일 역공학을 서브에이전트에 맡길 때 (게임 클라이언트처럼 큰 대상)
 
 메이플(2026-10-17~21)에서 판마다 통한 방식:
