@@ -398,6 +398,8 @@ Remote Control 세션에서는 `/plugin`이 막혀 있으므로 같은 PC의 터
 
 ## 변경 이력
 
+**2026-11-25 — 1.18.1 desk-check 거짓 경보 줄이기.** SI 클라이언트(DevExpress)에 돌려 보니 ① 큰 나무에서 요소 찾기가 기본 5초를 넘겨 흐름 첫 단계가 실패 → `find --timeout-ms 20000`, 실패 줄에 마지막 오류 ② 실행 모드에서 숨긴 리본 단추가 보이는 단추와 같은 자리로 와 `overlap` 6건(접근성 정보로는 못 가림) → `--ignore <이름 정규식>`(사진 확인 뒤, 이유는 끝 보고에) ③ DevExpress 입력 칸의 겉·속이 겹침으로 잡힘 → 같은 종류가 통째로 감싸면 뺌. 고친 뒤 관리기 4개 흐름 통과(51초). selftest 5/5.
+
 **2026-11-25 — 1.18.0 데스크톱 앱 화면 자동 검사 desk-check.** 사용자 「agent-desktop으로 ui 단 qa? 같은것도 가능하지 않아? 다른 부분도 적용 가능한 부분 있으면 찾아서 사용할 수 있도록 스킬에 반영해」. 웹 `ui-check.mjs` 의 데스크톱판 `skills/ui/scripts/desk-check.py`: agent-desktop 으로 창마다 접근성 나무(위치 포함)와 사진을 받아 실패(`error-dialog`·`outside-window`·`overlap`·`flow`)·경고(`clipped-by-parent`·`no-name`·`unstable-id`·`tiny-target`)를 이름으로 내고 종료 코드로 판정, 흐름 JSON(누르기·넣기·기다리기·값 확인·찍기)으로 기능 확인을 `qa/` 에 남긴다. 실제 대조: DeviceAgent SMS_C.exe(WinForms)를 시험 데스크톱에 띄워 흐름 4단계 통과·`unstable-id` 경고 2개(코드로 만든 컨트롤에 Name 없음). 판정 selftest 3/3 을 `check.sh` 에. 적용 자리: ui 5절·참조, ui `audit.md` 1단계(데스크톱 찍기), build VERIFY(1.17.0 줄을 desk-check 로), build `reverse-engineering.md` 3-2b(옛·남의 데스크톱 앱 화면을 실행 파일보다 먼저 접근성 나무로).
 
 **2026-11-25 — 1.17.0 데스크톱 앱 화면 확인에 agent-desktop.** 사용자 「Vercel 에서 desktop agent 라는게 있던데 … 더 효과적이면 적용하고 dev 스킬에도 적용해」. Vercel Labs `agent-desktop`(Apache-2.0, 1.3.1, `npm install -g agent-desktop`)을 DeviceAgent SI 클라이언트(.NET WinForms + DevExpress, 32비트)에 대조했다: 따로 만든 시험 데스크톱 안에서 띄우면 앱 목록 0.6초 · 접근성 나무(DevExpress 리본 단추까지 이름·ref) · 창 찍기 · 리본 단추 누르기(화면 자동화 Invoke, 7.2초) 모두 됨. 기본 화면에서 띄우면 다른 데스크톱 창은 안 보이고, 값 칠하기로 바쁜 앱은 `APP_UNRESPONSIVE` 를 4번 연속 냈다. 이미 있던 화면 조작 스크립트(.NET UI Automation)에 없던 것은 화면 찍기·살피기뿐이라 그 둘에만 쓴다(그 프로젝트 `tools/testenv/adesk.py`, 첫 쓰임은 글자 잔상 확인). build VERIFY 칸에 한 줄.

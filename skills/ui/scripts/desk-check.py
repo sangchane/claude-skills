@@ -64,9 +64,10 @@ def _label(n):
     return f'{n.get("role")}「{(n.get("name") or "")[:30]}」'
 
 
-def judge(tree: dict, title: str = "") -> list:
+def judge(tree: dict, title: str = "", ignore=None) -> list:
     """창 하나의 나무 → [(fail|warn, 코드, 설명)]."""
     out = []
+    skip = (lambda n: bool(ignore and ignore.search(n.get("name") or "")))
     if ERROR_TITLE.search(title or ""):
         out.append(("fail", "error-dialog", f"창 제목에 오류 낱말: {title}"))
     win = _box(tree)
@@ -78,7 +79,7 @@ def judge(tree: dict, title: str = "") -> list:
         text = " ".join(str(n.get(k) or "") for k in ("name", "value", "description"))
         if CRASH_TEXT.search(text):
             out.append(("fail", "error-dialog", f"앱 고장 문구: {text[:80]}"))
-        if role in INTERACTIVE and visible and box:
+        if role in INTERACTIVE and visible and box and not skip(n):
             pb = _box(parent) if parent else None
             if win and (box[0] < win[0] - EDGE_PX or box[1] < win[1] - EDGE_PX or box[2] > win[2] + EDGE_PX or box[3] > win[3] + EDGE_PX):
                 out.append(("fail", "outside-window", f"{_label(n)} 이 창 밖으로 나감 {box} / 창 {win}"))
@@ -93,11 +94,14 @@ def judge(tree: dict, title: str = "") -> list:
             if min(box[2] - box[0], box[3] - box[1]) < TINY_PX:
                 out.append(("warn", "tiny-target", f"{_label(n)} 누를 자리가 {TINY_PX}px 보다 작음"))
         # 같은 부모 아래 누르는 요소끼리 겹침
-        sib = [(c, _box(c)) for c in kids if c.get("role") in INTERACTIVE and _box(c) and "offscreen" not in (c.get("states") or [])]
+        sib = [(c, _box(c)) for c in kids if c.get("role") in INTERACTIVE and _box(c) and "offscreen" not in (c.get("states") or []) and not skip(c)]
         for i in range(len(sib)):
             for j in range(i + 1, len(sib)):
                 a, b = sib[i][1], sib[j][1]
                 w, h = min(a[2], b[2]) - max(a[0], b[0]), min(a[3], b[3]) - max(a[1], b[1])
+                inside = lambda p, q: p[0] <= q[0] and p[1] <= q[1] and p[2] >= q[2] and p[3] >= q[3]
+                if sib[i][0].get("role") == sib[j][0].get("role") and (inside(a, b) or inside(b, a)):
+                    continue  # 같은 종류가 통째로 감쌈 = 한 부품의 겉·속(DevExpress 입력 칸 안의 실제 입력 칸)
                 if w > 0 and h > 0:
                     small = min((a[2] - a[0]) * (a[3] - a[1]), (b[2] - b[0]) * (b[3] - b[1]))
                     if w * h > OVERLAP_RATIO * small:
@@ -113,7 +117,7 @@ def judge(tree: dict, title: str = "") -> list:
 
 def find_ref(app: str, sel: str):
     role, _, name = sel.partition(":")
-    args = ["find", "--app", app]
+    args = ["find", "--app", app, "--timeout-ms", "20000"]  # 큰 나무(DevExpress)는 기본 5초에 못 다 돈다
     if role:
         args += ["--role", role]
     if name:
@@ -126,14 +130,15 @@ def find_ref(app: str, sel: str):
     return None, r
 
 
-def wait_for(app: str, sel: str, timeout: float, gone: bool = False) -> bool:
-    end = time.time() + timeout
+def wait_for(app: str, sel: str, timeout: float, gone: bool = False):
+    """(맞음, 마지막 find 결과) — 실패 줄에 마지막 오류를 보이려고 돌려준다."""
+    end, last = time.time() + timeout, None
     while time.time() < end:
-        ref, _ = find_ref(app, sel)
+        ref, last = find_ref(app, sel)
         if (ref is None) == gone:
-            return True
+            return True, last
         time.sleep(0.5)
-    return False
+    return False, last
 
 
 def run_flow(app: str, steps: list, shots: Path, problems: list) -> None:
@@ -145,8 +150,11 @@ def run_flow(app: str, steps: list, shots: Path, problems: list) -> None:
             screenshot_all(app, shots, st["shot"])
         elif "wait" in st or "gone" in st:
             sel = st.get("wait") or st.get("gone")
-            if not wait_for(app, sel, st.get("timeout", 10), gone="gone" in st):
-                problems.append(("fail", "flow", f"{tag}: {st.get('timeout', 10)}초 안에 {'안 사라짐' if 'gone' in st else '안 나타남'}"))
+            ok, last = wait_for(app, sel, st.get("timeout", 10), gone="gone" in st)
+            if not ok:
+                err = (last or {}).get("error") if isinstance(last, dict) else None
+                problems.append(("fail", "flow", f"{tag}: {st.get('timeout', 10)}초 안에 {'안 사라짐' if 'gone' in st else '안 나타남'}"
+                                 + (f" — 마지막 오류 {json.dumps(err, ensure_ascii=False)[:160]}" if err else "")))
                 return
         else:
             sel = st.get("click") or st.get("set") or st.get("expect")
@@ -191,7 +199,7 @@ def screenshot_all(app: str, shots: Path, tag: str) -> None:
         ad("screenshot", "--window-id", w["id"], str((shots / f"{safe}.png").resolve()))
 
 
-def check(app: str, shots: Path) -> list:
+def check(app: str, shots: Path, ignore=None) -> list:
     problems = []
     wins = windows(app)
     if not wins:
@@ -201,7 +209,7 @@ def check(app: str, shots: Path) -> list:
         if not r.get("ok"):
             problems.append(("fail", "snapshot", f"창 {w.get('title')!r}: {json.dumps(r.get('error'), ensure_ascii=False)[:200]}"))
             continue
-        for lvl, code, msg in judge(r["data"]["tree"], w.get("title") or ""):
+        for lvl, code, msg in judge(r["data"]["tree"], w.get("title") or "", ignore):
             problems.append((lvl, code, f"[{w.get('title') or w['id']}] {msg}"))
     screenshot_all(app, shots, "끝")
     return problems
@@ -219,7 +227,10 @@ def selftest() -> int:
     codes = lambda t, title="": sorted({c for _, c, _ in judge(t, title)})
     cases = [(codes(good), []),
              (codes(bad), ["error-dialog", "no-name", "outside-window", "overlap", "tiny-target", "unstable-id"]),
-             (codes(good, "Microsoft .NET Framework 오류"), ["error-dialog"])]
+             (codes(good, "Microsoft .NET Framework 오류"), ["error-dialog"]),
+             (sorted({c for _, c, _ in judge(win([{"role": "textfield", "name": "알람", "bounds": {"x": 0, "y": 0, "width": 300, "height": 22}},
+                                                  {"role": "textfield", "name": "알람", "bounds": {"x": 4, "y": 3, "width": 290, "height": 16}}]))}), []),
+             (sorted({c for _, c, _ in judge(win([btn("새파일", 10, 10, nid="a"), btn("파일 열기", 10, 10, nid="b")]), "", re.compile("^새파일$"))}), [])]
     ok = sum(a == b for a, b in cases)
     for a, b in cases:
         if a != b:
@@ -238,6 +249,7 @@ def main() -> int:
     ap.add_argument("--flow", type=Path, help="흐름 JSON 파일")
     ap.add_argument("--out", type=Path, default=Path("shots"))
     ap.add_argument("--keep-open", action="store_true")
+    ap.add_argument("--ignore", help="이름이 이 정규식에 맞는 요소는 판정에서 뺀다 — 사진으로 확인한 거짓 경보만(예: DevExpress 가 숨긴 리본 단추를 보이는 자리로 알려 줌), 끝 보고에 이유")
     ap.add_argument("--selftest", action="store_true")
     a = ap.parse_args()
     if a.selftest:
@@ -255,12 +267,12 @@ def main() -> int:
             print("desk-check: 앱을 못 띄움", json.dumps(r.get("error"), ensure_ascii=False)[:300])
             return 2
         launched = True
-        wait_for(app, "", 20)
+        wait_for(app, "", 20)  # 창이 뜰 때까지
     problems = []
     try:
         if a.flow:
             run_flow(app, json.loads(a.flow.read_text(encoding="utf-8")), a.out, problems)
-        problems += check(app, a.out)
+        problems += check(app, a.out, re.compile(a.ignore) if a.ignore else None)
     finally:
         if launched and not a.keep_open:
             ad("close-app", app, "--force")
