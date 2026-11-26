@@ -209,7 +209,7 @@ python tools/export.py codex --project <게임 저장소 경로>   # AGENTS.md�
 rules.md                        작업 규칙 (훅이 주입)
 rules-models/                   모델별 지침 (훅이 세션 모델로 골라 주입)
 output-styles/ste-korean.md     정비 문체(항공정비 문서 방식 10항) — 플러그인이 켜지면 자동으로 쓰는 출력 스타일, 요청마다 들어감
-hooks/                          세션 시작 훅(규칙 두 조각·모델 지침·NEXT 네 출력, 크기 시험 test-session-start.sh) · Stop 검증 게이트(verify-gate.sh, 자체 시험 test-verify-gate.sh) · RTK 출력 줄이기(rtk.sh, 자체 시험 test-rtk.sh) · Stop 문체 검사(ste-check.sh → ste_check.py, 자체 시험 test_ste_check.py) · 세션 시작 claude-mem 옛 판 정리(prune_claude_mem.py) · 세션 종료 정리(session_end_cleanup.py — 프로세스 나무·스크래치, py-hook.sh 가 부름)
+hooks/                          세션 시작 훅(규칙 두 조각·모델 지침·NEXT 네 출력, 크기 시험 test-session-start.sh) · Stop 검증 게이트(verify-gate.sh, 자체 시험 test-verify-gate.sh) · RTK 출력 줄이기(rtk.sh, 자체 시험 test-rtk.sh) · Stop 문체 검사(ste-check.sh → ste_check.py, 자체 시험 test_ste_check.py) · 세션 시작 플러그인 옛 판 정리(prune_plugin_cache.py — 1.20.1 부터 모든 플러그인) · 세션 종료 정리(session_end_cleanup.py — 프로세스 나무·스크래치, py-hook.sh 가 부름)
 skills/design|build|ui|audit|setup|guide
 agents/reviewer|deep|quick
 tools/skill_catalog.py          설치 스킬·토큰·라우팅 표 검사
@@ -397,6 +397,8 @@ Godot 게임 UI 쪽은 1만★ 넘는 스킬이 없어(godot-mcp 5.6k, awesome-g
 Remote Control 세션에서는 `/plugin`이 막혀 있으므로 같은 PC의 터미널에서 `claude plugin marketplace add <repo>` → `claude plugin install <name>@<marketplace>`를 쓴다.
 
 ## 변경 이력
+
+**2026-11-27 — 1.20.1 모든 플러그인의 옛 판 정리.** 사용자 「위험도 해결해서 스킬 업데이트해」. 1.20.0 끝 보고의 위험: dev 판 11개(1.9.5 ~ 1.20.0, 72MB)가 캐시에 쌓였다 — 1.19.0 정리 훅이 claude-mem 이름만 보았기 때문이다. `hooks/prune_claude_mem.py` 를 `hooks/prune_plugin_cache.py` 로 바꿨다: `installed_plugins.json` 의 모든 플러그인에서 쓰는 판 + 그 밖 가장 최근 판 1개(다시 시작하지 않은 세션용)만 남긴다. `plugins/cache/<마켓>/<플러그인>/<판>` 꼴만 지우고 그 밖 설치는 건드리지 않는다. 시험: `--test`(판 고르기 · 플러그인 둘 · 범위 둘 · cache 밖 설치). 실제로 미리 보기 뒤 돌려 dev 판 9개를 지웠다(72MB → 13MB, 남은 판 1.16.0 · 1.20.0).
 
 **2026-11-27 — 1.20.0 서버 없는 코어의 현업 바닥선.** 사용자 「서비스 레이어도 나누고 … 현업 수준의 블라인드 스팟 채워가면서 작업하고 있는거지?」「dev구현 스킬에도 업데이트해」. FM2012 이식에서 Rust 코드가 60바퀴 동안 서비스 층 · 설정 검사 · 결정성 시험 · 린트 없이 자랐다. 원인은 바닥선의 「서버·DB가 없으면 해당 없음」 줄, 「SPEC마다」만 도는 build 공통 5, 도구 설치를 안 보는 품질 도구 줄이었다. ① `dev:design` `engineering-baseline.md` 에 「서버 없는 코어」 18~22(서비스 층 · 결정성 · 바깥 값으로 죽지 않음 · 배포 대상 빌드 · 성능 예산 · 저장 판 번호)를 더하고, 해당 없음은 6·7·11~14 만 허용 ② 16 품질 도구: 게이트가 린트 · 포맷까지 돌고 「설치 안 됨」도 실패 ③ `dev:build` 공통 5: SPEC 없이 바퀴로 도는 일도 바퀴를 시작할 때 층 · 바닥선 표를 보고 없으면 먼저 세움 ④ `game-port.md` 1절: 첫 워크스페이스에서 규칙 · 서비스 · 바깥 층 나누기. 근거 `evidence.md` 「2026-11-27」.
 

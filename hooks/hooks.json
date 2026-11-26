@@ -13,7 +13,7 @@
       {
         "matcher": "startup",
         "hooks": [
-          { "type": "command", "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/py-hook.sh\" prune_claude_mem.py", "timeout": 30 }
+          { "type": "command", "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/py-hook.sh\" prune_plugin_cache.py", "timeout": 30 }
         ]
       }
     ],

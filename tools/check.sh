@@ -9,7 +9,7 @@ python3 -I hooks/test_ste_check.py
 python3 -I skills/audit/scripts/test_ci_audit.py
 python3 -I skills/build/scripts/test_bug_odds.py
 python3 -I tools/test_leftovers.py
-python3 -I hooks/prune_claude_mem.py --test
+python3 -I hooks/prune_plugin_cache.py --test
 python3 -I hooks/session_end_cleanup.py --test
 python3 -I skills/ui/scripts/desk-check.py --selftest
 echo "check ok"
