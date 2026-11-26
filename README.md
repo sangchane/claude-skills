@@ -209,7 +209,7 @@ python tools/export.py codex --project <게임 저장소 경로>   # AGENTS.md�
 rules.md                        작업 규칙 (훅이 주입)
 rules-models/                   모델별 지침 (훅이 세션 모델로 골라 주입)
 output-styles/ste-korean.md     정비 문체(항공정비 문서 방식 10항) — 플러그인이 켜지면 자동으로 쓰는 출력 스타일, 요청마다 들어감
-hooks/                          세션 시작 훅(규칙 두 조각·모델 지침·NEXT 네 출력, 크기 시험 test-session-start.sh) · Stop 검증 게이트(verify-gate.sh, 자체 시험 test-verify-gate.sh) · RTK 출력 줄이기(rtk.sh, 자체 시험 test-rtk.sh) · Stop 문체 검사(ste-check.sh → ste_check.py, 자체 시험 test_ste_check.py)
+hooks/                          세션 시작 훅(규칙 두 조각·모델 지침·NEXT 네 출력, 크기 시험 test-session-start.sh) · Stop 검증 게이트(verify-gate.sh, 자체 시험 test-verify-gate.sh) · RTK 출력 줄이기(rtk.sh, 자체 시험 test-rtk.sh) · Stop 문체 검사(ste-check.sh → ste_check.py, 자체 시험 test_ste_check.py) · 세션 시작 claude-mem 옛 판 정리(prune_claude_mem.py) · 세션 종료 정리(session_end_cleanup.py — 프로세스 나무·스크래치, py-hook.sh 가 부름)
 skills/design|build|ui|audit|setup|guide
 agents/reviewer|deep|quick
 tools/skill_catalog.py          설치 스킬·토큰·라우팅 표 검사
@@ -397,6 +397,8 @@ Godot 게임 UI 쪽은 1만★ 넘는 스킬이 없어(godot-mcp 5.6k, awesome-g
 Remote Control 세션에서는 `/plugin`이 막혀 있으므로 같은 PC의 터미널에서 `claude plugin marketplace add <repo>` → `claude plugin install <name>@<marketplace>`를 쓴다.
 
 ## 변경 이력
+
+**2026-11-26 — 1.19.0 디스크·메모리 낭비 막기: claude-mem 옛 판 정리 · 세션 종료 정리.** 사용자 「클로드 mem 옛 버전 계속 쌓이는 문제는 지금처럼 쌓이지 않도록」「작업하면서 생기는 테스트 파일이나 부산물, 프로세스는 알아서 정리하게 … 메모리나 리소스 낭비시키지 않도록」. C 드라이브 조사에서 `plugins/cache/thedotmack/claude-mem` 에 판 13개(10.1GB)가 쌓여 있었다 — 업데이트가 옛 판을 남긴다. ① `hooks/prune_claude_mem.py`(SessionStart·startup): `installed_plugins.json` 이 가리키는 판과 그 밖 가장 최근 판 1개(열린 다른 세션용)만 남긴다. ② `hooks/session_end_cleanup.py`(SessionEnd·logout|prompt_input_exit|other — `/clear`·`/resume` 은 빼서 띄워 둔 서버가 살아남는다): 이 세션 claude 아래 프로세스 나무를 끄고(MCP 포함 — Windows 에서 `cmd /c npx` 아래 node 가 남던 것), 세션 스크래치 폴더 `<임시>/claude*/<해시>/<session_id>` 를 떼어 낸 프로세스로 지운다. 공식 hooks 문서: SessionEnd 는 기본 1.5초, 플러그인 훅의 timeout 은 이 예산을 늘리지 못한다 — 그래서 `leftovers.py`(powershell 목록 1.7초) 대신 ToolHelp(ctypes)로 0.05초에 읽는다. 저장소 안 부산물은 커밋 전 새 코드와 구별이 안 돼 자동으로 지우지 않는다(rules.md: 시험·임시 파일은 스크래치에). 예약 작업은 만들지 않는다(사용자 2026-11-24 주기 실행 거절). 시험: 두 스크립트 `--test`(check.sh 에 넣음), 실제 세션에서 끌 대상을 보기만 해 MCP 나무 2개(`@playwright/mcp`·`rea-agents`)와 훅 사슬 제외를 확인.
 
 **2026-11-25 — 1.18.1 desk-check 거짓 경보 줄이기.** SI 클라이언트(DevExpress)에 돌려 보니 ① 큰 나무에서 요소 찾기가 기본 5초를 넘겨 흐름 첫 단계가 실패 → `find --timeout-ms 20000`, 실패 줄에 마지막 오류 ② 실행 모드에서 숨긴 리본 단추가 보이는 단추와 같은 자리로 와 `overlap` 6건(접근성 정보로는 못 가림) → `--ignore <이름 정규식>`(사진 확인 뒤, 이유는 끝 보고에) ③ DevExpress 입력 칸의 겉·속이 겹침으로 잡힘 → 같은 종류가 통째로 감싸면 뺌. 고친 뒤 관리기 4개 흐름 통과(51초). selftest 5/5.
 

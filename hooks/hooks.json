@@ -9,6 +9,20 @@
           { "type": "command", "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/session-start.sh\" model" },
           { "type": "command", "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/session-start.sh\" next" }
         ]
+      },
+      {
+        "matcher": "startup",
+        "hooks": [
+          { "type": "command", "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/py-hook.sh\" prune_claude_mem.py", "timeout": 30 }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "matcher": "logout|prompt_input_exit|other",
+        "hooks": [
+          { "type": "command", "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/py-hook.sh\" session_end_cleanup.py" }
+        ]
       }
     ],
     "PreToolUse": [
